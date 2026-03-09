@@ -7,7 +7,9 @@
       "mcp__trello__get_checklist_items",
       "mcp__trello__get_checklist_by_name",
       "mcp__trello__update_checklist_item",
-      "mcp__trello__add_checklist_item"
+      "mcp__trello__add_checklist_item",
+      "mcp__trello__get_active_board_info",
+      "mcp__trello__get_card"
     ]
   }
 }
