@@ -1,0 +1,17 @@
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/AutocicloApiApplication.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/config/GlobalExceptionHandler.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/config/SecurityConfig.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/controllers/AuthController.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/dto/AuthResponse.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/dto/LoginRequest.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/dto/RegisterRequest.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/models/Cliente.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/models/Rol.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/models/Usuario.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/repositories/ClienteRepository.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/repositories/RolRepository.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/repositories/UsuarioRepository.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/security/JwtAuthFilter.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/security/JwtUtil.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/security/UserDetailsServiceImpl.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/services/AuthService.java

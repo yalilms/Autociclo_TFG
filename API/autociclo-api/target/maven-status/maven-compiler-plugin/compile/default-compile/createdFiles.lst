@@ -1,0 +1,17 @@
+com/autociclo/repositories/RolRepository.class
+com/autociclo/dto/LoginRequest.class
+com/autociclo/security/UserDetailsServiceImpl.class
+com/autociclo/dto/AuthResponse.class
+com/autociclo/security/JwtAuthFilter.class
+com/autociclo/dto/RegisterRequest.class
+com/autociclo/models/Cliente.class
+com/autociclo/config/SecurityConfig.class
+com/autociclo/models/Usuario.class
+com/autociclo/repositories/ClienteRepository.class
+com/autociclo/controllers/AuthController.class
+com/autociclo/repositories/UsuarioRepository.class
+com/autociclo/config/GlobalExceptionHandler.class
+com/autociclo/security/JwtUtil.class
+com/autociclo/models/Rol.class
+com/autociclo/AutocicloApiApplication.class
+com/autociclo/services/AuthService.class
