@@ -1,0 +1,149 @@
+/* =================================================================
+   ESTILOS PARA FORMULARIOS - EFECTO CRISTAL/GLASS
+   ================================================================= */
+
+/* Contenedor principal del formulario */
+.formulario-container {
+    -fx-background-color: rgba(30, 35, 45, 0.75);
+    -fx-background-radius: 15px;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1px;
+    -fx-border-radius: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 20, 0.4, 0, 5);
+}
+
+/* Header del formulario */
+.formulario-header {
+    -fx-background-color: rgba(40, 50, 65, 0.85);
+    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-border-width: 0 0 1 0;
+    -fx-background-radius: 15 15 0 0;
+}
+
+.formulario-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/* Labels de los formularios */
+.formulario-container .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/* TextFields con efecto glass */
+.formulario-container .text-field {
+    -fx-background-color: rgba(50, 55, 65, 0.7);
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.5);
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.formulario-container .text-field:focused {
+    -fx-border-color: rgba(100, 180, 230, 0.8);
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(100, 180, 230, 0.4), 8, 0.3, 0, 0);
+}
+
+/* TextArea con efecto glass */
+.formulario-container .text-area {
+    -fx-background-color: rgba(50, 55, 65, 0.7);
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.5);
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.formulario-container .text-area:focused {
+    -fx-border-color: rgba(100, 180, 230, 0.8);
+    -fx-border-width: 2px;
+}
+
+.formulario-container .text-area .content {
+    -fx-background-color: transparent;
+}
+
+/* ComboBox con efecto glass */
+.formulario-container .combo-box {
+    -fx-background-color: rgba(50, 55, 65, 0.7);
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.formulario-container .combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+}
+
+.formulario-container .combo-box-popup .list-view {
+    -fx-background-color: rgba(40, 45, 55, 0.95);
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1px;
+}
+
+.formulario-container .combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: rgba(60, 65, 75, 0.8);
+}
+
+/* Botones del formulario con efecto glass */
+.formulario-container .button {
+    -fx-background-color: rgba(60, 70, 85, 0.8);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 8, 0.3, 0, 2);
+}
+
+.formulario-container .button:hover {
+    -fx-background-color: rgba(70, 80, 95, 0.9);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.formulario-container .button:pressed {
+    -fx-background-color: rgba(50, 60, 75, 0.95);
+}
+
+/* Botón Guardar (verde) */
+.formulario-container .button-guardar {
+    -fx-background-color: rgba(46, 204, 113, 0.8);
+    -fx-border-color: rgba(39, 174, 96, 0.6);
+}
+
+.formulario-container .button-guardar:hover {
+    -fx-background-color: rgba(39, 174, 96, 0.9);
+}
+
+/* Botón Cancelar (gris) */
+.formulario-container .button-cancelar {
+    -fx-background-color: rgba(149, 165, 166, 0.8);
+    -fx-border-color: rgba(127, 140, 141, 0.6);
+}
+
+.formulario-container .button-cancelar:hover {
+    -fx-background-color: rgba(127, 140, 141, 0.9);
+}
+
+/* Botón Cerrar (X) en el header */
+.formulario-header .button-close {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-padding: 5px 10px;
+    -fx-border-width: 0;
+}
+
+.formulario-header .button-close:hover {
+    -fx-background-color: rgba(231, 76, 60, 0.8);
+    -fx-background-radius: 5px;
+}

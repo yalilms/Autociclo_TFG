@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.effect.BoxBlur?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="1150.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.autociclo.controllers.ListadoMaestroController"
+           stylesheets="@../css/styles.css" styleClass="root">
+
+   <ImageView fitHeight="750.0" fitWidth="1150.0" preserveRatio="false">
+      <image>
+         <Image url="@../images/listados_background.png" />
+      </image>
+      <effect>
+         <BoxBlur width="20" height="20" iterations="3" />
+      </effect>
+   </ImageView>
+
+   <BorderPane style="-fx-background-color: transparent;">
+   <top>
+      <VBox prefHeight="160.0" prefWidth="1150.0" BorderPane.alignment="CENTER" spacing="10">
+         <children>
+            <MenuBar styleClass="menu-bar">
+              <menus>
+                <Menu mnemonicParsing="true" text="_Archivo">
+                  <items>
+                    <MenuItem fx:id="menuSalir" mnemonicParsing="true" text="_Salir" />
+                  </items>
+                </Menu>
+                <Menu fx:id="Menu" mnemonicParsing="true" text="_Gestión">
+                  <items>
+                    <MenuItem fx:id="menuvehiculos" mnemonicParsing="true" onAction="#mostrarVehiculos" text="_Vehículos" />
+                        <MenuItem fx:id="menupiezas" mnemonicParsing="true" onAction="#mostrarPiezas" text="_Piezas" />
+                        <MenuItem fx:id="MenuInventario" mnemonicParsing="true" onAction="#mostrarInventario" text="_Inventario" />
+                        <MenuItem fx:id="menuEstadisticas" mnemonicParsing="true" onAction="#mostrarEstadisticas" text="_Estadísticas" />
+                  </items>
+                </Menu>
+              </menus>
+            </MenuBar>
+
+            <ToolBar styleClass="tool-bar" prefHeight="45.0">
+              <items>
+                <Button fx:id="btnNuevo" mnemonicParsing="true" text="_Nuevo" styleClass="button-success" prefWidth="100.0">
+                    <tooltip><Tooltip text="Crear nuevo registro (Alt+N)" /></tooltip>
+                </Button>
+                  <Button fx:id="btnVer" mnemonicParsing="true" text="_Ver" styleClass="button-primary" prefWidth="90.0">
+                      <tooltip><Tooltip text="Ver detalles del elemento seleccionado (Alt+V)" /></tooltip>
+                  </Button>
+                  <Button fx:id="btnEditar" mnemonicParsing="true" text="E_ditar" styleClass="button-primary" prefWidth="100.0">
+                      <tooltip><Tooltip text="Editar elemento seleccionado (Alt+D)" /></tooltip>
+                  </Button>
+                  <Button fx:id="btnEliminar" mnemonicParsing="true" text="E_liminar" styleClass="button-danger" prefWidth="100.0">
+                      <tooltip><Tooltip text="Eliminar elemento seleccionado (Alt+L)" /></tooltip>
+                  </Button>
+                  <Separator orientation="VERTICAL" prefHeight="35.0" prefWidth="15.0" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <TextField fx:id="txtBuscar" alignment="CENTER_LEFT" prefWidth="300.0" prefHeight="32.0" promptText="Buscar por marca, modelo o código...">
+                      <tooltip><Tooltip text="Escribe para filtrar por marca, modelo, código o nombre" /></tooltip>
+                  </TextField>
+                  <Button fx:id="btnBuscar" mnemonicParsing="true" text="_Buscar" styleClass="button-primary" prefWidth="80.0" prefHeight="32.0">
+                      <tooltip><Tooltip text="Ejecutar búsqueda (Alt+B)" /></tooltip>
+                  </Button>
+              </items>
+            </ToolBar>
+
+            <HBox alignment="CENTER" prefHeight="80.0" prefWidth="200.0" spacing="20.0" style="-fx-padding: 10;">
+               <children>
+                  <Button fx:id="btnNavVehiculos" mnemonicParsing="true" onAction="#mostrarVehiculos" prefHeight="45.0" prefWidth="160.0" styleClass="button-primary" text="🚗  _Vehículos">
+                      <tooltip><Tooltip text="Gestionar vehículos del desguace (Alt+V)" /></tooltip>
+                  </Button>
+                  <Button fx:id="btnNavPiezas" mnemonicParsing="true" onAction="#mostrarPiezas" prefHeight="45.0" prefWidth="160.0" styleClass="button" text="🔩  _Piezas">
+                      <tooltip><Tooltip text="Gestionar piezas disponibles (Alt+P)" /></tooltip>
+                  </Button>
+                  <Button fx:id="btnNavInventario" mnemonicParsing="true" onAction="#mostrarInventario" prefHeight="45.0" prefWidth="160.0" styleClass="button" text="📋  _Inventario">
+                      <tooltip><Tooltip text="Ver inventario de piezas por vehículo (Alt+I)" /></tooltip>
+                  </Button>
+                  <Button fx:id="btnNavEstadisticas" mnemonicParsing="true" onAction="#mostrarEstadisticas" prefHeight="45.0" prefWidth="160.0" styleClass="button" text="📊  _Estadísticas">
+                      <tooltip><Tooltip text="Ver estadísticas y gráficos (Alt+E)" /></tooltip>
+                  </Button>
+
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </top>
+   <center>
+      <StackPane fx:id="stackPaneContenido" BorderPane.alignment="CENTER" styleClass="glass-pane">
+         <BorderPane.margin>
+            <Insets left="20" right="20" bottom="20"/>
+         </BorderPane.margin>
+         <children>
+            <TableView fx:id="tableVehiculos" prefHeight="480.0" prefWidth="1150.0" visible="true">
+              <columns>
+                  <TableColumn fx:id="colVehiculoId" prefWidth="60.0" text="ID" />
+                <TableColumn fx:id="colMarca" prefWidth="150.0" text="Marca" />
+                <TableColumn fx:id="colModelo" prefWidth="150.0" text="Modelo" />
+                  <TableColumn fx:id="colAnio" text="Año" />
+                  <TableColumn fx:id="colKm" prefWidth="100.0" text="KM" />
+                  <TableColumn fx:id="colEstado" prefWidth="120.0" text="Estado" />
+              </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
+            </TableView>
+
+            <TableView fx:id="tablePiezas" prefHeight="480.0" prefWidth="1150.0" visible="false">
+              <columns>
+                  <TableColumn fx:id="colPiezaId" prefWidth="60.0" text="ID" />
+                <TableColumn fx:id="colCodigo" prefWidth="150.0" text="Código" />
+                <TableColumn fx:id="colNombre" prefWidth="150.0" text="Nombre" />
+                  <TableColumn fx:id="colCategoria" prefWidth="120.0" text="Categoría" />
+                  <TableColumn fx:id="colPrecio" prefWidth="100.0" text="Precio" />
+                  <TableColumn fx:id="colStock" text="Stock" />
+                  <TableColumn fx:id="colUbicacion" prefWidth="120.0" text="Ubicación" />
+              </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
+            </TableView>
+
+            <TableView fx:id="tableInventario" prefHeight="480.0" prefWidth="1150.0" visible="false">
+              <columns>
+                  <TableColumn fx:id="colInventarioId" prefWidth="200.0" text="Vehículo" />
+                <TableColumn fx:id="colProducto" prefWidth="200.0" text="Pieza" />
+                <TableColumn fx:id="colCantidad" prefWidth="80.0" text="Cantidad" />
+                  <TableColumn fx:id="colFechaIngreso" prefWidth="120.0" text="Fecha Extracción" />
+                  <TableColumn fx:id="colAlmacen" prefWidth="100.0" text="Estado" />
+              </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
+            </TableView>
+
+            <Label fx:id="lblErrorConexion"
+                   text="⚠ Error al conectar con la base de datos"
+                   visible="false"
+                   styleClass="error-label"
+                   style="-fx-font-size: 18px; -fx-text-fill: #e74c3c; -fx-font-weight: bold; -fx-padding: 20px;"
+                   alignment="CENTER"/>
+         </children>
+      </StackPane>
+   </center>
+   <bottom>
+      <HBox alignment="CENTER" prefHeight="60.0" prefWidth="200.0" spacing="20.0" BorderPane.alignment="CENTER">
+         <padding>
+            <Insets bottom="15.0" left="15.0" right="15.0" top="5.0" />
+         </padding>
+         <children>
+            <Button fx:id="btnAnterior" mnemonicParsing="true" prefWidth="120.0" text="◀ _Anterior" styleClass="button-primary">
+                <tooltip><Tooltip text="Ir a la página anterior (Alt+A)" /></tooltip>
+            </Button>
+            <Button fx:id="btnSiguiente" mnemonicParsing="true" prefWidth="120.0" text="_Siguiente ▶" styleClass="button-primary">
+                <tooltip><Tooltip text="Ir a la página siguiente (Alt+S)" /></tooltip>
+            </Button>
+         </children>
+      </HBox>
+   </bottom>
+   </BorderPane>
+</StackPane>

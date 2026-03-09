@@ -1,0 +1,17 @@
+/* =================================================================
+   ESTILOS PARA LA PANTALLA DE CARGA - EFECTO CRISTAL/GLASS
+   ================================================================= */
+
+/* Indicador de progreso circular (Spinner) */
+.progress-indicator {
+    -fx-progress-color: rgb(0, 180, 255);
+    -fx-min-width: 60px;
+    -fx-min-height: 60px;
+}
+
+/* En modo indeterminado JavaFX usa .spinner pero se estiliza via .progress-indicator generalmente o .segment */
+/* Aseguramos que sea visible */
+.progress-indicator:indeterminate {
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+}

@@ -1,0 +1,124 @@
+plugins {
+  id 'application'
+  id 'org.openjfx.javafxplugin' version '0.1.0' //Plugin que ayuda a construir proyectos JAVAFX
+}
+
+repositories {
+	mavenCentral()
+}
+
+javafx {
+    version = "21.0.5"
+    modules = [ 'javafx.base', 'javafx.graphics', 'javafx.controls', 'javafx.fxml', 'javafx.media']
+}
+
+dependencies {
+  // Driver MySQL
+    implementation 'com.mysql:mysql-connector-j:8.2.0'
+    implementation 'com.zaxxer:HikariCP:5.1.0'
+
+    // AnimateFX removed due to build issues
+    // implementation 'io.github.typhon0:AnimateFX:1.3.0'
+
+    // Ikonli
+    implementation 'org.kordamp.ikonli:ikonli-javafx:12.3.1'
+    implementation 'org.kordamp.ikonli:ikonli-materialdesign2-pack:12.3.1'
+
+    // Gson
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    // JavaFX para Windows (necesario para el instalador Windows)
+    runtimeOnly 'org.openjfx:javafx-base:21.0.5:win'
+    runtimeOnly 'org.openjfx:javafx-graphics:21.0.5:win'
+    runtimeOnly 'org.openjfx:javafx-controls:21.0.5:win'
+    runtimeOnly 'org.openjfx:javafx-fxml:21.0.5:win'
+    runtimeOnly 'org.openjfx:javafx-media:21.0.5:win'
+}
+
+java { //Se indica la versión de JDK que ha de utilizar
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+application { //Definimos clase principal del proyecto
+    mainClass = 'com.autociclo.Main'
+    
+    // Agregar JVM args para permitir acceso de javafx.web a clases internas
+    applicationDefaultJvmArgs = []
+}
+
+
+sourceSets {
+  main {
+    resources {
+        srcDirs = ["src/main/resources"]
+        includes = ["**/*.fxml","**/*.png","**/*.properties","**/*.css","**/*.jpg","**/*.jpeg","**/*.json"]  //Importante para poder abrir una extensión no reconocida
+    }
+  }
+}
+
+// Configurar el JAR ejecutable
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'com.autociclo.Main',
+            'Class-Path': configurations.runtimeClasspath.files.collect { 'lib/' + it.name }.join(' ')
+        )
+    }
+    archiveBaseName = 'AutoCiclo'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Tarea para regenerar la carpeta de instalación
+task regenerarCarpetaInstalacion(type: Copy) {
+    group = 'distribution'
+    description = 'Regenera la carpeta de instalación con JAR, dependencias y scripts'
+    
+    dependsOn jar
+    
+    // Directorio de destino
+    def instalacionDir = file('../Instaladores/CarpetaInstalacion')
+    
+    // Limpiar carpeta existente excepto run.sh y run.bat (ya tienen la configuración correcta)
+    doFirst {
+        delete(instalacionDir.listFiles().findAll { 
+            it.name != 'run.sh' && it.name != 'run.bat' && it.name != 'iconos'
+        })
+    }
+    
+    // Copiar JAR principal
+    from(jar.archiveFile) {
+        rename { 'AutoCiclo.jar' }
+        into instalacionDir
+    }
+    
+    // Copiar dependencias a lib/
+    from(configurations.runtimeClasspath) {
+        into "${instalacionDir}/lib"
+    }
+    
+    // Copiar LICENSE.txt si existe
+    from(projectDir) {
+        include 'LICENSE.txt'
+        into instalacionDir
+    }
+    
+    // Si no existe LICENSE.txt, crear uno genérico
+    doLast {
+        def licenseFile = new File(instalacionDir, 'LICENSE.txt')
+        if (!licenseFile.exists()) {
+            licenseFile.text = """AutoCiclo - Sistema de Gestión de Desguace
+Copyright (c) 2026 SoftCrown
+
+Todos los derechos reservados.
+"""
+        }
+        
+        println "Carpeta de instalación regenerada en: ${instalacionDir.absolutePath}"
+        println "Ahora puedes usar InstallBuilder para generar el instalador .run"
+    }
+}
+
+
+

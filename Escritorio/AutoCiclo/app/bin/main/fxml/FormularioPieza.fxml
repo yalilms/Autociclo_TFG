@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="650.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.autociclo.controllers.FormularioPiezaController">
+   <top>
+      <HBox alignment="CENTER" minHeight="50.0" spacing="0.0" style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;" BorderPane.alignment="CENTER">
+         <children>
+            <Region HBox.hgrow="ALWAYS" />
+            <Label alignment="CENTER" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="NUEVA PIEZA">
+               <font>
+                  <Font name="System Bold" size="16.0" />
+               </font>
+            </Label>
+            <Region HBox.hgrow="ALWAYS" />
+         </children>
+         <padding>
+            <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+         </padding>
+      </HBox>
+   </top>
+   <center>
+      <GridPane alignment="TOP_CENTER" hgap="15.0" vgap="8.0" BorderPane.alignment="CENTER">
+        <children>
+            <Label style="-fx-text-fill: #333333;" text="Código *" GridPane.rowIndex="0">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+            <TextField fx:id="txtCodigo" prefHeight="28.0" prefWidth="250.0" promptText="Ej: MOT-001, CAR-025..." style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.rowIndex="1">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </TextField>
+            
+            <Label style="-fx-text-fill: #333333;" text="Categoría *" GridPane.rowIndex="2">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+            <TextField fx:id="txtCategoria" prefHeight="28.0" prefWidth="250.0" promptText="motor, carroceria, interior, electronica, ruedas, otros" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.rowIndex="3">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </TextField>
+            
+            <Label style="-fx-text-fill: #333333;" text="Stock Disponible" GridPane.rowIndex="4">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+            <TextField fx:id="txtStockDisponible" prefHeight="28.0" prefWidth="250.0" promptText="Ej: 5" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.rowIndex="5">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </TextField>
+            
+            <Label style="-fx-text-fill: #333333;" text="Ubicación Almacén *" GridPane.rowIndex="6">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+            <TextField fx:id="txtUbicacionAlmacen" prefHeight="28.0" prefWidth="250.0" promptText="Ej: Estantería A, nivel 2" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.rowIndex="7">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </TextField>
+            
+            <Label style="-fx-text-fill: #333333;" text="Materiales Compatibles" GridPane.rowIndex="8">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+            <TextField fx:id="txtMaterialesCompatibles" prefHeight="28.0" prefWidth="250.0" promptText="Marcas compatibles (opcional)" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.rowIndex="9">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </TextField>
+            
+            <Label style="-fx-text-fill: #333333;" text="Nombre *" GridPane.columnIndex="1" GridPane.rowIndex="0">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+            <TextField fx:id="txtNombre" prefHeight="28.0" prefWidth="250.0" promptText="Ej: Motor 1.6 TDI" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.columnIndex="1" GridPane.rowIndex="1">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </TextField>
+            
+            <Label style="-fx-text-fill: #333333;" text="Precio de compra *" GridPane.columnIndex="1" GridPane.rowIndex="2">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+            <TextField fx:id="txtPrecioCompra" prefHeight="28.0" prefWidth="250.0" promptText="Ej: 2500.00" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.columnIndex="1" GridPane.rowIndex="3">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </TextField>
+            
+            <Label style="-fx-text-fill: #333333;" text="Stock Mínimo" GridPane.columnIndex="1" GridPane.rowIndex="4">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+            <TextField fx:id="txtStockMinimo" prefHeight="28.0" prefWidth="250.0" promptText="Ej: 1" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.columnIndex="1" GridPane.rowIndex="5">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </TextField>
+            
+            <Label style="-fx-text-fill: #333333;" text="Descripción" GridPane.columnSpan="2" GridPane.rowIndex="10">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+            <TextArea fx:id="txtDescripcion" prefHeight="70.0" prefWidth="515.0" promptText="Descripción de la pieza (opcional)..." style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="11">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </TextArea>
+        </children>
+         <padding>
+            <Insets bottom="10.0" left="30.0" right="30.0" top="20.0" />
+         </padding>
+         <columnConstraints>
+            <ColumnConstraints />
+            <ColumnConstraints />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+         </rowConstraints>
+      </GridPane>
+   </center>
+   <bottom>
+      <HBox alignment="CENTER_RIGHT" minHeight="60.0" spacing="10.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button fx:id="btnCancelar" mnemonicParsing="false" prefHeight="32.0" prefWidth="100.0" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-background-radius: 3; -fx-cursor: hand; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" text="Cancelar">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Button>
+            <Button fx:id="btnGuardar" mnemonicParsing="false" prefHeight="32.0" prefWidth="100.0" style="-fx-background-color: #5cb85c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3; -fx-cursor: hand;" text="Guardar">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Button>
+         </children>
+         <padding>
+            <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+         </padding>
+      </HBox>
+   </bottom>
+</BorderPane>
