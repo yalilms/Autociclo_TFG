@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__trello__set_active_board",
+      "mcp__trello__get_lists",
+      "mcp__trello__get_cards_by_list_id",
+      "mcp__trello__get_checklist_items",
+      "mcp__trello__get_checklist_by_name",
+      "mcp__trello__update_checklist_item",
+      "mcp__trello__add_checklist_item"
+    ]
+  }
+}
