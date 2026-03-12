@@ -161,11 +161,14 @@ CREATE TABLE `USUARIOS` (
     KEY `fk_usuarios_rol` (`id_rol`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Contraseñas de prueba: todas son "Autociclo2026!" hasheadas con BCrypt
+-- Contraseñas de prueba: todas son "Autociclo2026!" hasheadas con BCrypt (cost 12)
 INSERT INTO `USUARIOS` (`nombre`, `email`, `password_hash`, `id_rol`, `activo`) VALUES
-    ('Admin AutoCiclo',  'admin@autociclo.es',    '$2a$12$Qn9X8fTmWkZvL3pUoY1sGeKjHdNb5cRiVwAx7yEz0qIuPsTlMrOF2', 1, 1),
-    ('Pedro Empleado',   'pedro@autociclo.es',    '$2a$12$Qn9X8fTmWkZvL3pUoY1sGeKjHdNb5cRiVwAx7yEz0qIuPsTlMrOF2', 2, 1),
-    ('María García',     'maria.garcia@email.com','$2a$12$Qn9X8fTmWkZvL3pUoY1sGeKjHdNb5cRiVwAx7yEz0qIuPsTlMrOF2', 3, 1);
+    ('Admin AutoCiclo',  'admin@autociclo.es',      '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 1, 1),
+    ('Pedro Empleado',   'pedro@autociclo.es',      '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 2, 1),
+    ('María García',     'maria.garcia@email.com',  '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 3, 1),
+    ('Admin Sistema',    'admin@autociclo.com',     '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 1, 1),
+    ('Operario Taller',  'operario@autociclo.com',  '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 2, 1),
+    ('Cliente Demo',     'cliente@autociclo.com',   '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 3, 1);
 
 -- ============================================================
 -- 6. CLIENTES  (nueva)
@@ -182,9 +185,10 @@ CREATE TABLE `CLIENTES` (
     KEY `fk_clientes_usuario` (`id_usuario`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- El usuario con rol CLIENTE (id=3) tiene su perfil de cliente
+-- Usuarios con rol CLIENTE tienen perfil de cliente (id=3 maría, id=6 cliente demo)
 INSERT INTO `CLIENTES` (`id_usuario`, `telefono`, `direccion`, `nif`) VALUES
-    (3, '611223344', 'Calle Gran Vía 12, Granada', '12345678A');
+    (3, '611223344', 'Calle Gran Vía 12, Granada', '12345678A'),
+    (6, '699000001', 'Calle Demo 1, Granada',      '87654321B');
 
 -- ============================================================
 -- 7. SOLICITUDES_PRESUPUESTO  (nueva)
@@ -350,6 +354,3 @@ ALTER TABLE `NOTIFICACIONES`    MODIFY `id_notif`      INT NOT NULL AUTO_INCREME
 
 COMMIT;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
