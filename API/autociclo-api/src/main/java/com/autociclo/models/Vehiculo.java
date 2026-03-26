@@ -35,7 +35,7 @@ public class Vehiculo {
     private LocalDate fechaEntrada;
 
     // 'completo','desguazando','desguazado'
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, columnDefinition = "enum('completo','desguazando','desguazado')")
     private String estado;
 
     @Column(name = "precio_compra", nullable = false, precision = 10, scale = 2)

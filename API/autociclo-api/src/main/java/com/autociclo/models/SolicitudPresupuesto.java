@@ -25,7 +25,7 @@ public class SolicitudPresupuesto {
     private LocalDateTime fechaSolicitud;
 
     // 'pendiente','en_revision','aprobada','rechazada'
-    @Column(nullable = false, length = 15)
+    @Column(nullable = false, columnDefinition = "enum('pendiente','en_revision','aprobada','rechazada')")
     private String estado = "pendiente";
 
     @Column(name = "respuesta_admin", columnDefinition = "TEXT")

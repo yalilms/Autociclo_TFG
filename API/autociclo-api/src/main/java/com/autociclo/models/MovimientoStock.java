@@ -20,7 +20,7 @@ public class MovimientoStock {
     private Pieza pieza;
 
     // 'entrada','salida'
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, columnDefinition = "enum('entrada','salida')")
     private String tipo;
 
     @Column(nullable = false)

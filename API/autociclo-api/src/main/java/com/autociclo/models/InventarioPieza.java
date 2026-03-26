@@ -28,7 +28,7 @@ public class InventarioPieza {
     private Integer cantidad;
 
     // 'nueva','usada','reparada'
-    @Column(name = "estado_pieza", nullable = false, length = 10)
+    @Column(name = "estado_pieza", nullable = false, columnDefinition = "enum('nueva','usada','reparada')")
     private String estadoPieza;
 
     @Column(name = "fecha_extraccion", nullable = false)

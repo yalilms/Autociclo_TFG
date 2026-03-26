@@ -22,7 +22,7 @@ public class Pieza {
     private String nombre;
 
     // 'motor','carroceria','interior','electronica','ruedas','otros'
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, columnDefinition = "enum('motor','carroceria','interior','electronica','ruedas','otros')")
     private String categoria;
 
     @Column(name = "precio_venta", nullable = false, precision = 10, scale = 2)

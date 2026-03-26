@@ -20,7 +20,7 @@ public class Notificacion {
     private Usuario usuario;
 
     // 'stock_bajo','solicitud_nueva','solicitud_actualizada','general'
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, columnDefinition = "enum('stock_bajo','solicitud_nueva','solicitud_actualizada','general')")
     private String tipo;
 
     @Column(nullable = false, columnDefinition = "TEXT")

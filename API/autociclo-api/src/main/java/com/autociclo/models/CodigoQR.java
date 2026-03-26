@@ -19,7 +19,7 @@ public class CodigoQR {
     private String codigoUnico;
 
     // 'pieza','vehiculo'
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, columnDefinition = "enum('pieza','vehiculo')")
     private String tipo;
 
     @Column(name = "id_referencia", nullable = false)
