@@ -2,6 +2,7 @@ com/autociclo/repositories/RolRepository.class
 com/autociclo/config/RabbitMQConfig.class
 com/autociclo/dto/VehiculoRequest.class
 com/autociclo/security/UserDetailsServiceImpl.class
+com/autociclo/utils/OdooClient.class
 com/autociclo/controllers/SolicitudController.class
 com/autociclo/repositories/CodigoQRRepository.class
 com/autociclo/services/SolicitudService.class

@@ -27,6 +27,9 @@ dependencies {
     // Gson
     implementation 'com.google.code.gson:gson:2.10.1'
 
+    // RabbitMQ AMQP client (notificaciones en tiempo real)
+    implementation 'com.rabbitmq:amqp-client:5.20.0'
+
     // JavaFX para Windows (necesario para el instalador Windows)
     runtimeOnly 'org.openjfx:javafx-base:21.0.5:win'
     runtimeOnly 'org.openjfx:javafx-graphics:21.0.5:win'

@@ -5,12 +5,14 @@ import com.autociclo.dto.SolicitudRequest;
 import com.autociclo.messaging.RabbitMQPublisher;
 import com.autociclo.models.*;
 import com.autociclo.repositories.*;
+import com.autociclo.utils.OdooClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +25,7 @@ public class SolicitudService {
     private final UsuarioRepository usuarioRepository;
     private final NotificacionService notificacionService;
     private final RabbitMQPublisher rabbitMQPublisher;
+    private final OdooClient odooClient;
 
     public List<SolicitudPresupuesto> findAll() {
         return solicitudRepository.findAll();
@@ -92,11 +95,37 @@ public class SolicitudService {
         solicitud.setPrecioTotal(req.getPrecioTotal());
         SolicitudPresupuesto saved = solicitudRepository.save(solicitud);
 
+        // Notificar al cliente
         notificacionService.crearNotificacion(
                 solicitud.getCliente().getUsuario().getIdUsuario(),
                 "solicitud_actualizada",
                 "Tu solicitud #" + id + " ha sido aprobada. Precio total: " + req.getPrecioTotal() + "€"
         );
+
+        // Crear pedido de venta en Odoo (fallo silencioso si Odoo no está disponible)
+        try {
+            String nombreCliente = solicitud.getCliente().getUsuario().getNombre();
+            String emailCliente  = solicitud.getCliente().getUsuario().getEmail();
+
+            List<Map<String, Object>> lineas = solicitud.getDetalles().stream()
+                    .map(d -> Map.<String, Object>of(
+                            "nombre",         d.getPieza().getNombre(),
+                            "cantidad",       d.getCantidad(),
+                            "precioUnitario", d.getPieza().getPrecioVenta()
+                    )).toList();
+
+            String refOdoo = odooClient.crearPedidoVenta(nombreCliente, emailCliente, lineas);
+            if (refOdoo != null) {
+                notificacionService.crearNotificacion(
+                        solicitud.getCliente().getUsuario().getIdUsuario(),
+                        "odoo_pedido",
+                        "Pedido de venta creado en Odoo: " + refOdoo
+                );
+            }
+        } catch (Exception e) {
+            // Odoo puede no estar disponible en desarrollo
+            System.err.println("[SolicitudService] Odoo no disponible: " + e.getMessage());
+        }
 
         return saved;
     }

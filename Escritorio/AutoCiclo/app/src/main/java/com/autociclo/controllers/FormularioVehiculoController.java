@@ -1,6 +1,7 @@
 package com.autociclo.controllers;
 
-import com.autociclo.database.ConexionBD;
+import com.autociclo.api.ApiClient;
+import com.google.gson.JsonObject;
 import com.autociclo.models.Vehiculo;
 import com.autociclo.utils.ValidationUtils;
 import com.autociclo.utils.LoggerUtil;
@@ -17,8 +18,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 
+import javafx.application.Platform;
 import java.net.URL;
-import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -288,102 +289,44 @@ public class FormularioVehiculoController implements Initializable {
             return;
         }
 
-        // Comprobar si la matrícula ya existe (solo en modo inserción)
-        if (!modoEdicion && existeMatricula(txtMatricula.getText().trim())) {
-            ValidationUtils.showError("Matrícula duplicada",
-                    "Ya existe un vehículo con esa matrícula en el sistema");
-            return;
-        }
+        try {
+            JsonObject body = new JsonObject();
+            body.addProperty("matricula",    txtMatricula.getText().trim().toUpperCase());
+            body.addProperty("marca",        cmbMarca.getValue());
+            body.addProperty("modelo",       cmbModelo.getValue());
+            body.addProperty("anio",         Integer.parseInt(txtAnio.getText().trim()));
+            body.addProperty("color",        txtColor.getText().trim());
+            body.addProperty("fechaEntrada", LocalDate.now().toString());
+            body.addProperty("estado",       cmbEstado.getValue());
+            body.addProperty("precioCompra", Double.parseDouble(txtPrecioCompra.getText().trim().replace(",", ".")));
+            body.addProperty("kilometraje",  txtKilometraje.getText().trim().isEmpty() ? 0
+                    : Integer.parseInt(txtKilometraje.getText().trim()));
+            body.addProperty("ubicacionGps", cmbUbicacion.getValue() != null ? cmbUbicacion.getValue() : "");
+            body.addProperty("observaciones", txtObservaciones.getText().trim());
 
-        try (Connection conn = ConexionBD.getConexion()) {
-            String sql;
-
-            if (modoEdicion) {
-                // UPDATE con PreparedStatement (antiinyección SQL)
-                sql = "UPDATE VEHICULOS SET marca=?, modelo=?, anio=?, color=?, fecha_entrada=?, " +
-                        "estado=?, precio_compra=?, kilometraje=?, ubicacion_gps=?, observaciones=? " +
-                        "WHERE matricula=?";
-            } else {
-                // INSERT con PreparedStatement (antiinyección SQL)
-                sql = "INSERT INTO VEHICULOS (matricula, marca, modelo, anio, color, fecha_entrada, " +
-                        "estado, precio_compra, kilometraje, ubicacion_gps, observaciones) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            }
-
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-
-            if (modoEdicion) {
-                // UPDATE: asignar parámetros
-                pstmt.setString(1, cmbMarca.getValue());
-                pstmt.setString(2, cmbModelo.getValue());
-                pstmt.setInt(3, Integer.parseInt(txtAnio.getText().trim()));
-                pstmt.setString(4, txtColor.getText().trim());
-                pstmt.setDate(5, Date.valueOf(LocalDate.now())); // fecha actual
-                pstmt.setString(6, cmbEstado.getValue());
-                pstmt.setDouble(7, Double.parseDouble(txtPrecioCompra.getText().trim().replace(",", ".")));
-                pstmt.setInt(8, txtKilometraje.getText().trim().isEmpty() ? 0
-                        : Integer.parseInt(txtKilometraje.getText().trim()));
-                pstmt.setString(9, cmbUbicacion.getValue() != null ? cmbUbicacion.getValue() : "");
-                pstmt.setString(10, txtObservaciones.getText().trim());
-                pstmt.setString(11, txtMatricula.getText().trim()); // WHERE matricula
-            } else {
-                // INSERT: asignar parámetros
-                pstmt.setString(1, txtMatricula.getText().trim().toUpperCase());
-                pstmt.setString(2, cmbMarca.getValue());
-                pstmt.setString(3, cmbModelo.getValue());
-                pstmt.setInt(4, Integer.parseInt(txtAnio.getText().trim()));
-                pstmt.setString(5, txtColor.getText().trim());
-                pstmt.setDate(6, Date.valueOf(LocalDate.now())); // fecha actual
-                pstmt.setString(7, cmbEstado.getValue());
-                pstmt.setDouble(8, Double.parseDouble(txtPrecioCompra.getText().trim().replace(",", ".")));
-                pstmt.setInt(9, txtKilometraje.getText().trim().isEmpty() ? 0
-                        : Integer.parseInt(txtKilometraje.getText().trim()));
-                pstmt.setString(10, cmbUbicacion.getValue() != null ? cmbUbicacion.getValue() : "");
-                pstmt.setString(11, txtObservaciones.getText().trim());
-            }
-
-            int filasAfectadas = pstmt.executeUpdate();
-
-            if (filasAfectadas > 0) {
-                String mensaje = modoEdicion ? "Vehículo actualizado correctamente"
-                        : "Vehículo registrado correctamente con matrícula: "
-                                + txtMatricula.getText().trim().toUpperCase();
-
-                ValidationUtils.showSuccess("Operación exitosa", mensaje);
-
-                // Actualizar el listado del controlador padre
-                if (controladorPadre != null) {
-                    controladorPadre.actualizarListado();
-                }
-
-                // Cerrar ventana
-                cerrarVentana();
-            }
-
-        } catch (SQLException e) {
-            ErrorHandler.handleSaveError(e, "vehículo");
+            btnGuardar.setDisable(true);
+            new Thread(() -> {
+                ApiClient.ApiResponse resp = modoEdicion
+                        ? ApiClient.getInstance().put("/api/vehiculos/" + vehiculoEditar.getIdVehiculo(), body)
+                        : ApiClient.getInstance().post("/api/vehiculos", body);
+                Platform.runLater(() -> {
+                    btnGuardar.setDisable(false);
+                    if (resp.isSuccess()) {
+                        String msg = modoEdicion ? "Vehículo actualizado correctamente"
+                                : "Vehículo registrado con matrícula: " + body.get("matricula").getAsString();
+                        ValidationUtils.showSuccess("Operación exitosa", msg);
+                        if (controladorPadre != null) controladorPadre.actualizarListado();
+                        cerrarVentana();
+                    } else if (resp.getStatusCode() == 409) {
+                        ValidationUtils.showError("Matrícula duplicada", "Ya existe un vehículo con esa matrícula.");
+                    } else {
+                        ValidationUtils.showError("Error al guardar", "Código: " + resp.getStatusCode());
+                    }
+                });
+            }).start();
         } catch (NumberFormatException e) {
             ErrorHandler.handleNumberFormatError("formulario de vehículo");
         }
-    }
-
-    /**
-     * Comprueba si ya existe un vehículo con la matrícula indicada
-     */
-    private boolean existeMatricula(String matricula) {
-        try (Connection conn = ConexionBD.getConexion()) {
-            String sql = "SELECT COUNT(*) FROM VEHICULOS WHERE matricula = ?";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, matricula.toUpperCase());
-
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            LoggerUtil.error("Error al verificar existencia de matrícula", e);
-        }
-        return false;
     }
 
     private void cerrarVentana() {

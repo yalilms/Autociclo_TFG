@@ -46,8 +46,12 @@ public final class AppConstants {
     // ==================== RUTAS DE RECURSOS ====================
     public static final String PATH_APP_ICON = "/imagenes/logo_autociclo.png";
     public static final String PATH_SPLASH_FXML = "/fxml/PantallaDeCarga.fxml";
-    public static final String PATH_MAIN_FXML = "/fxml/ListadosController.fxml";
-    public static final String PATH_STYLES_CSS = "/css/styles.css";
+    public static final String PATH_LOGIN_FXML  = "/fxml/Login.fxml";
+    public static final String PATH_MAIN_FXML   = "/fxml/ListadosController.fxml";
+    public static final String PATH_STYLES_CSS  = "/css/styles.css";
+
+    // ==================== API REST ====================
+    public static final String API_BASE_URL = "http://109.123.247.31:8080";
 
     // ==================== RUTAS FXML DE FORMULARIOS ====================
     public static final String FXML_FORM_VEHICULO = "/fxml/FormularioVehiculo.fxml";
@@ -56,7 +60,9 @@ public final class AppConstants {
     public static final String FXML_DETAIL_VEHICULO = "/fxml/DetalleVehiculo.fxml";
     public static final String FXML_DETAIL_PIEZA = "/fxml/DetallePieza.fxml";
     public static final String FXML_DETAIL_INVENTARIO = "/fxml/DetalleInventario.fxml";
-    public static final String FXML_ESTADISTICAS = "/fxml/Estadisticas.fxml";
+    public static final String FXML_ESTADISTICAS  = "/fxml/Estadisticas.fxml";
+    public static final String FXML_USUARIOS      = "/fxml/Usuarios.fxml";
+    public static final String FXML_SOLICITUDES   = "/fxml/Solicitudes.fxml";
     public static final String FXML_INFORMES = "/fxml/Informes.fxml";
     public static final String FXML_ABOUT = "/fxml/AcercaDe.fxml";
 

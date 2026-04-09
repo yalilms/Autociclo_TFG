@@ -1,6 +1,7 @@
 package com.autociclo.controllers;
 
-import com.autociclo.database.ConexionBD;
+import com.autociclo.api.ApiClient;
+import com.google.gson.JsonObject;
 import com.autociclo.models.Pieza;
 import com.autociclo.utils.ValidationUtils;
 import com.autociclo.utils.LoggerUtil;
@@ -15,11 +16,11 @@ import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import javafx.application.Platform;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.sql.*;
 import java.util.ResourceBundle;
 
 /**
@@ -258,107 +259,49 @@ public class FormularioPiezaController implements Initializable {
             return;
         }
 
-        // Comprobar si el código ya existe (solo en modo inserción)
-        if (!modoEdicion && existeCodigo(txtCodigo.getText().trim())) {
-            ValidationUtils.showError("Código duplicado",
-                    "Ya existe una pieza con ese código en el sistema");
-            return;
-        }
-
         // Convertir imagen a Base64 si se seleccionó una
         String imagenBase64 = convertirImagenABase64();
 
-        try (Connection conn = ConexionBD.getConexion()) {
-            String sql;
+        try {
+            JsonObject body = new JsonObject();
+            body.addProperty("codigoPieza",       txtCodigo.getText().trim().toUpperCase());
+            body.addProperty("nombre",             txtNombre.getText().trim());
+            body.addProperty("categoria",          cmbCategoria.getValue());
+            body.addProperty("precioVenta",        Double.parseDouble(txtPrecioCompra.getText().trim().replace(",", ".")));
+            body.addProperty("stockDisponible",    txtStockDisponible.getText().trim().isEmpty() ? 0
+                    : Integer.parseInt(txtStockDisponible.getText().trim()));
+            body.addProperty("stockMinimo",        txtStockMinimo.getText().trim().isEmpty() ? 1
+                    : Integer.parseInt(txtStockMinimo.getText().trim()));
+            body.addProperty("ubicacionAlmacen",   cmbUbicacion.getValue() != null ? cmbUbicacion.getValue() : "");
+            body.addProperty("compatibleMarcas",   txtMaterialesCompatibles.getText().trim());
+            body.addProperty("descripcion",        txtDescripcion.getText().trim());
+            String imagenFinal = imagenBase64 != null ? imagenBase64
+                    : (piezaEditar != null ? piezaEditar.getImagen() : null);
+            if (imagenFinal != null) body.addProperty("imagen", imagenFinal);
 
-            if (modoEdicion) {
-                // UPDATE con PreparedStatement (antiinyección SQL)
-                sql = "UPDATE PIEZAS SET nombre=?, categoria=?, precio_venta=?, stock_disponible=?, " +
-                        "stock_minimo=?, ubicacion_almacen=?, compatible_marcas=?, imagen=?, descripcion=? " +
-                        "WHERE codigo_pieza=?";
-            } else {
-                // INSERT con PreparedStatement (antiinyección SQL)
-                sql = "INSERT INTO PIEZAS (codigo_pieza, nombre, categoria, precio_venta, stock_disponible, " +
-                        "stock_minimo, ubicacion_almacen, compatible_marcas, imagen, descripcion) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            }
-
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-
-            if (modoEdicion) {
-                // UPDATE: asignar parámetros
-                pstmt.setString(1, txtNombre.getText().trim());
-                pstmt.setString(2, cmbCategoria.getValue());
-                pstmt.setDouble(3, Double.parseDouble(txtPrecioCompra.getText().trim().replace(",", ".")));
-                pstmt.setInt(4, txtStockDisponible.getText().trim().isEmpty() ? 0
-                        : Integer.parseInt(txtStockDisponible.getText().trim()));
-                pstmt.setInt(5, txtStockMinimo.getText().trim().isEmpty() ? 1
-                        : Integer.parseInt(txtStockMinimo.getText().trim()));
-                pstmt.setString(6, cmbUbicacion.getValue() != null ? cmbUbicacion.getValue() : "");
-                pstmt.setString(7, txtMaterialesCompatibles.getText().trim());
-                // Si se seleccionó nueva imagen (Base64), actualizarla; si no, mantener la
-                // existente
-                pstmt.setString(8,
-                        imagenBase64 != null ? imagenBase64 : (piezaEditar != null ? piezaEditar.getImagen() : null));
-                pstmt.setString(9, txtDescripcion.getText().trim());
-                pstmt.setString(10, txtCodigo.getText().trim()); // WHERE codigo_pieza
-            } else {
-                // INSERT: asignar parámetros
-                pstmt.setString(1, txtCodigo.getText().trim().toUpperCase());
-                pstmt.setString(2, txtNombre.getText().trim());
-                pstmt.setString(3, cmbCategoria.getValue());
-                pstmt.setDouble(4, Double.parseDouble(txtPrecioCompra.getText().trim().replace(",", ".")));
-                pstmt.setInt(5, txtStockDisponible.getText().trim().isEmpty() ? 0
-                        : Integer.parseInt(txtStockDisponible.getText().trim()));
-                pstmt.setInt(6, txtStockMinimo.getText().trim().isEmpty() ? 1
-                        : Integer.parseInt(txtStockMinimo.getText().trim()));
-                pstmt.setString(7, cmbUbicacion.getValue() != null ? cmbUbicacion.getValue() : "");
-                pstmt.setString(8, txtMaterialesCompatibles.getText().trim());
-                pstmt.setString(9, imagenBase64); // imagen en Base64
-                pstmt.setString(10, txtDescripcion.getText().trim());
-            }
-
-            int filasAfectadas = pstmt.executeUpdate();
-
-            if (filasAfectadas > 0) {
-                String mensaje = modoEdicion ? "Pieza actualizada correctamente"
-                        : "Pieza registrada correctamente con código: " + txtCodigo.getText().trim().toUpperCase();
-
-                ValidationUtils.showSuccess("Operación exitosa", mensaje);
-
-                // Actualizar el listado del controlador padre
-                if (controladorPadre != null) {
-                    controladorPadre.actualizarListado();
-                }
-
-                // Cerrar ventana
-                cerrarVentana();
-            }
-
-        } catch (SQLException e) {
-            ErrorHandler.handleSaveError(e, "pieza");
+            btnGuardar.setDisable(true);
+            new Thread(() -> {
+                ApiClient.ApiResponse resp = modoEdicion
+                        ? ApiClient.getInstance().put("/api/piezas/" + piezaEditar.getIdPieza(), body)
+                        : ApiClient.getInstance().post("/api/piezas", body);
+                Platform.runLater(() -> {
+                    btnGuardar.setDisable(false);
+                    if (resp.isSuccess()) {
+                        String msg = modoEdicion ? "Pieza actualizada correctamente"
+                                : "Pieza registrada con código: " + body.get("codigoPieza").getAsString();
+                        ValidationUtils.showSuccess("Operación exitosa", msg);
+                        if (controladorPadre != null) controladorPadre.actualizarListado();
+                        cerrarVentana();
+                    } else if (resp.getStatusCode() == 409) {
+                        ValidationUtils.showError("Código duplicado", "Ya existe una pieza con ese código.");
+                    } else {
+                        ValidationUtils.showError("Error al guardar", "Código: " + resp.getStatusCode());
+                    }
+                });
+            }).start();
         } catch (NumberFormatException e) {
             ErrorHandler.handleNumberFormatError("formulario de pieza");
         }
-    }
-
-    /**
-     * Comprueba si ya existe una pieza con el código indicado
-     */
-    private boolean existeCodigo(String codigo) {
-        try (Connection conn = ConexionBD.getConexion()) {
-            String sql = "SELECT COUNT(*) FROM PIEZAS WHERE codigo_pieza = ?";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, codigo.toUpperCase());
-
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            LoggerUtil.error("Error al verificar existencia de código de pieza", e);
-        }
-        return false;
     }
 
     private void cerrarVentana() {

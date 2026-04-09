@@ -1,6 +1,9 @@
 package com.autociclo.controllers;
 
-import com.autociclo.database.ConexionBD;
+import com.autociclo.api.ApiClient;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.autociclo.utils.LoggerUtil;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -15,9 +18,11 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class EstadisticasController implements Initializable {
@@ -46,18 +51,14 @@ public class EstadisticasController implements Initializable {
     }
 
     public void actualizarDatos() {
-        // Mostrar indicador de carga
         if (loadingOverlay != null) {
             loadingOverlay.setVisible(true);
         }
 
-        // Cargar datos en hilo separado para no bloquear la UI
         new Thread(() -> {
-            cargarDatosVehiculosPorMarca();
-            cargarDatosPiezasPorCategoria();
-            cargarDatosKilometraje();
+            cargarDatosVehiculos();
+            cargarDatosPiezas();
 
-            // Ocultar indicador de carga en el hilo de JavaFX
             Platform.runLater(() -> {
                 if (loadingOverlay != null) {
                     loadingOverlay.setVisible(false);
@@ -66,86 +67,83 @@ public class EstadisticasController implements Initializable {
         }).start();
     }
 
-    private void cargarDatosVehiculosPorMarca() {
-        XYChart.Series<String, Integer> series = new XYChart.Series<>();
-        series.setName("Vehículos");
-
-        String sql = "SELECT marca, COUNT(*) as cantidad FROM VEHICULOS GROUP BY marca";
-
-        try (Connection conn = ConexionBD.getConexion();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                String marca = rs.getString("marca");
-                int cantidad = rs.getInt("cantidad");
-                series.getData().add(new XYChart.Data<>(marca, cantidad));
-            }
-
-            // Actualizar UI en el hilo de JavaFX
-            final XYChart.Series<String, Integer> finalSeries = series;
-            Platform.runLater(() -> {
-                barChartVehiculos.getData().clear();
-                barChartVehiculos.getData().add(finalSeries);
-            });
-
-        } catch (Exception e) {
-            LoggerUtil.error("Error al cargar estadísticas de vehículos", e);
+    private void cargarDatosVehiculos() {
+        ApiClient.ApiResponse resp = ApiClient.getInstance().get("/api/vehiculos");
+        if (!resp.isSuccess()) {
+            LoggerUtil.error("Error API al cargar estadísticas de vehículos: " + resp.getStatusCode(), null);
+            return;
         }
+
+        JsonArray arr = JsonParser.parseString(resp.getBody()).getAsJsonArray();
+
+        // Agrupar por marca
+        Map<String, Integer> porMarca = new LinkedHashMap<>();
+        // Top 5 por kilometraje
+        List<JsonObject> vehiculos = new ArrayList<>();
+
+        arr.forEach(e -> {
+            JsonObject v = e.getAsJsonObject();
+            String marca = getStr(v, "marca");
+            porMarca.merge(marca, 1, Integer::sum);
+            vehiculos.add(v);
+        });
+
+        // Top 5 por kilometraje descendente
+        vehiculos.sort((a, b) -> {
+            int kmA = a.has("kilometraje") && !a.get("kilometraje").isJsonNull() ? a.get("kilometraje").getAsInt() : 0;
+            int kmB = b.has("kilometraje") && !b.get("kilometraje").isJsonNull() ? b.get("kilometraje").getAsInt() : 0;
+            return Integer.compare(kmB, kmA);
+        });
+        List<JsonObject> top5 = vehiculos.subList(0, Math.min(5, vehiculos.size()));
+
+        // Series por marca
+        XYChart.Series<String, Integer> seriesMarca = new XYChart.Series<>();
+        seriesMarca.setName("Vehículos");
+        porMarca.forEach((marca, cnt) -> seriesMarca.getData().add(new XYChart.Data<>(marca, cnt)));
+
+        // Series por kilometraje
+        XYChart.Series<String, Integer> seriesKm = new XYChart.Series<>();
+        seriesKm.setName("Kilometraje");
+        top5.forEach(v -> {
+            String label = getStr(v, "marca") + " " + getStr(v, "modelo");
+            int km = v.has("kilometraje") && !v.get("kilometraje").isJsonNull() ? v.get("kilometraje").getAsInt() : 0;
+            seriesKm.getData().add(new XYChart.Data<>(label, km));
+        });
+
+        Platform.runLater(() -> {
+            barChartVehiculos.getData().clear();
+            barChartVehiculos.getData().add(seriesMarca);
+            barChartKilometraje.getData().clear();
+            barChartKilometraje.getData().add(seriesKm);
+        });
     }
 
-    private void cargarDatosPiezasPorCategoria() {
-        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
-
-        String sql = "SELECT categoria, COUNT(*) as cantidad FROM PIEZAS GROUP BY categoria";
-
-        try (Connection conn = ConexionBD.getConexion();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                String categoria = rs.getString("categoria");
-                int cantidad = rs.getInt("cantidad");
-                pieChartData.add(new PieChart.Data(categoria, cantidad));
-            }
-
-            // Actualizar UI en el hilo de JavaFX
-            Platform.runLater(() -> {
-                // Limpiar datos anteriores para evitar texto superpuesto
-                pieChartPiezas.getData().clear();
-                pieChartPiezas.setData(pieChartData);
-            });
-
-        } catch (Exception e) {
-            LoggerUtil.error("Error al cargar estadísticas de piezas", e);
+    private void cargarDatosPiezas() {
+        ApiClient.ApiResponse resp = ApiClient.getInstance().get("/api/piezas");
+        if (!resp.isSuccess()) {
+            LoggerUtil.error("Error API al cargar estadísticas de piezas: " + resp.getStatusCode(), null);
+            return;
         }
+
+        JsonArray arr = JsonParser.parseString(resp.getBody()).getAsJsonArray();
+
+        Map<String, Integer> porCategoria = new LinkedHashMap<>();
+        arr.forEach(e -> {
+            JsonObject p = e.getAsJsonObject();
+            String cat = getStr(p, "categoria");
+            porCategoria.merge(cat, 1, Integer::sum);
+        });
+
+        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+        porCategoria.forEach((cat, cnt) -> pieData.add(new PieChart.Data(cat, cnt)));
+
+        Platform.runLater(() -> {
+            pieChartPiezas.getData().clear();
+            pieChartPiezas.setData(pieData);
+        });
     }
 
-    private void cargarDatosKilometraje() {
-        XYChart.Series<String, Integer> series = new XYChart.Series<>();
-        series.setName("Kilometraje");
-
-        String sql = "SELECT marca, modelo, kilometraje FROM VEHICULOS ORDER BY kilometraje DESC LIMIT 5";
-
-        try (Connection conn = ConexionBD.getConexion();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                String label = rs.getString("marca") + " " + rs.getString("modelo");
-                int km = rs.getInt("kilometraje");
-                series.getData().add(new XYChart.Data<>(label, km));
-            }
-
-            // Actualizar UI en el hilo de JavaFX
-            final XYChart.Series<String, Integer> finalSeries = series;
-            Platform.runLater(() -> {
-                barChartKilometraje.getData().clear();
-                barChartKilometraje.getData().add(finalSeries);
-            });
-
-        } catch (Exception e) {
-            LoggerUtil.error("Error al cargar estadísticas de kilometraje", e);
-        }
+    private String getStr(JsonObject obj, String key) {
+        return obj.has(key) && !obj.get(key).isJsonNull() ? obj.get(key).getAsString() : "";
     }
 }

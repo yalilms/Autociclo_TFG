@@ -60,3 +60,4 @@
 /home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/services/StockService.java
 /home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/services/UsuarioService.java
 /home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/services/VehiculoService.java
+/home/yalilms/Documentos/Superior/TFG/API/autociclo-api/src/main/java/com/autociclo/utils/OdooClient.java

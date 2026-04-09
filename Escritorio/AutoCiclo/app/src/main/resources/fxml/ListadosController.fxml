@@ -82,18 +82,32 @@
 
             <HBox alignment="CENTER" prefHeight="80.0" prefWidth="200.0" spacing="20.0" style="-fx-padding: 10;">
                <children>
-                  <Button fx:id="btnNavVehiculos" mnemonicParsing="true" onAction="#mostrarVehiculos" prefHeight="45.0" prefWidth="160.0" styleClass="button-primary" text="🚗  _Vehículos">
+                  <Button fx:id="btnNavVehiculos" mnemonicParsing="true" onAction="#mostrarVehiculos" prefHeight="45.0" prefWidth="145.0" styleClass="button-primary" text="🚗  _Vehículos">
                       <tooltip><Tooltip text="Gestionar vehículos del desguace (Alt+V)" /></tooltip>
                   </Button>
-                  <Button fx:id="btnNavPiezas" mnemonicParsing="true" onAction="#mostrarPiezas" prefHeight="45.0" prefWidth="160.0" styleClass="button" text="🔩  _Piezas">
+                  <Button fx:id="btnNavPiezas" mnemonicParsing="true" onAction="#mostrarPiezas" prefHeight="45.0" prefWidth="145.0" styleClass="button" text="🔩  _Piezas">
                       <tooltip><Tooltip text="Gestionar piezas disponibles (Alt+P)" /></tooltip>
                   </Button>
-                  <Button fx:id="btnNavInventario" mnemonicParsing="true" onAction="#mostrarInventario" prefHeight="45.0" prefWidth="160.0" styleClass="button" text="📋  _Inventario">
+                  <Button fx:id="btnNavInventario" mnemonicParsing="true" onAction="#mostrarInventario" prefHeight="45.0" prefWidth="145.0" styleClass="button" text="📋  _Inventario">
                       <tooltip><Tooltip text="Ver inventario de piezas por vehículo (Alt+I)" /></tooltip>
                   </Button>
-                  <Button fx:id="btnNavEstadisticas" mnemonicParsing="true" onAction="#mostrarEstadisticas" prefHeight="45.0" prefWidth="160.0" styleClass="button" text="📊  _Estadísticas">
+                  <Button fx:id="btnNavEstadisticas" mnemonicParsing="true" onAction="#mostrarEstadisticas" prefHeight="45.0" prefWidth="145.0" styleClass="button" text="📊  _Estadísticas">
                       <tooltip><Tooltip text="Ver estadísticas y gráficos (Alt+E)" /></tooltip>
                   </Button>
+                  <Button fx:id="btnNavUsuarios" mnemonicParsing="true" onAction="#mostrarUsuarios" prefHeight="45.0" prefWidth="145.0" styleClass="button" text="👤  _Usuarios">
+                      <tooltip><Tooltip text="Gestión de usuarios del sistema (Alt+U)" /></tooltip>
+                  </Button>
+                  <!-- Botón Solicitudes con badge de notificaciones -->
+                  <StackPane>
+                      <Button fx:id="btnNavSolicitudes" mnemonicParsing="true" onAction="#mostrarSolicitudes" prefHeight="45.0" prefWidth="145.0" styleClass="button" text="📩  _Solicitudes">
+                          <tooltip><Tooltip text="Solicitudes de presupuesto (Alt+O)" /></tooltip>
+                      </Button>
+                      <Label fx:id="lblBadgeNotificaciones" text="0"
+                             visible="false"
+                             style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 1 5 1 5;"
+                             StackPane.alignment="TOP_RIGHT"
+                             translateX="-5" translateY="3" />
+                  </StackPane>
 
                </children>
             </HBox>

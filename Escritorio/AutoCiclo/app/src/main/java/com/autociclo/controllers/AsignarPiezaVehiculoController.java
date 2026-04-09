@@ -1,6 +1,9 @@
 package com.autociclo.controllers;
 
-import com.autociclo.database.ConexionBD;
+import com.autociclo.api.ApiClient;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.autociclo.models.InventarioPieza;
 import com.autociclo.models.Vehiculo;
 import com.autociclo.models.Pieza;
@@ -14,8 +17,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
+import javafx.application.Platform;
 import java.net.URL;
-import java.sql.*;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
 
@@ -163,74 +166,61 @@ public class AsignarPiezaVehiculoController implements Initializable {
     }
 
     /**
-     * Carga los vehículos disponibles en el ComboBox
+     * Carga los vehículos disponibles en el ComboBox via API
      */
     private void cargarVehiculos() {
         listaVehiculos.clear();
-        String sql = "SELECT * FROM VEHICULOS ORDER BY matricula";
-
-        try (Connection conn = ConexionBD.getConexion();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                Vehiculo v = new Vehiculo(
-                    rs.getInt("id_vehiculo"),
-                    rs.getString("matricula"),
-                    rs.getString("marca"),
-                    rs.getString("modelo"),
-                    rs.getInt("anio"),
-                    rs.getString("color"),
-                    rs.getString("fecha_entrada"),
-                    rs.getString("estado"),
-                    rs.getDouble("precio_compra"),
-                    rs.getInt("kilometraje"),
-                    rs.getString("ubicacion_gps"),
-                    rs.getString("observaciones")
-                );
-                listaVehiculos.add(v);
-            }
-
-            // No establecer items aquí, se hace en configurarFiltradoVehiculos()
-
-        } catch (Exception e) {
-            LoggerUtil.error("Error al cargar vehículos para asignación", e);
-        }
+        new Thread(() -> {
+            ApiClient.ApiResponse resp = ApiClient.getInstance().get("/api/vehiculos");
+            Platform.runLater(() -> {
+                if (resp.isSuccess()) {
+                    JsonArray arr = JsonParser.parseString(resp.getBody()).getAsJsonArray();
+                    arr.forEach(e -> {
+                        JsonObject v = e.getAsJsonObject();
+                        listaVehiculos.add(new Vehiculo(
+                            v.get("idVehiculo").getAsInt(),
+                            getStr(v,"matricula"), getStr(v,"marca"), getStr(v,"modelo"),
+                            v.get("anio").getAsInt(), getStr(v,"color"),
+                            getStr(v,"fechaEntrada"), getStr(v,"estado"),
+                            v.has("precioCompra") && !v.get("precioCompra").isJsonNull() ? v.get("precioCompra").getAsDouble() : 0.0,
+                            v.has("kilometraje") && !v.get("kilometraje").isJsonNull() ? v.get("kilometraje").getAsInt() : 0,
+                            getStr(v,"ubicacionGps"), getStr(v,"observaciones")));
+                    });
+                } else {
+                    LoggerUtil.error("Error API al cargar vehículos para asignación: " + resp.getStatusCode(), null);
+                }
+            });
+        }).start();
+        // No establecer items aquí, se hace en configurarFiltradoVehiculos()
     }
 
     /**
-     * Carga las piezas disponibles en el ComboBox
+     * Carga las piezas disponibles en el ComboBox via API
      */
     private void cargarPiezas() {
         listaPiezas.clear();
-        String sql = "SELECT * FROM PIEZAS ORDER BY codigo_pieza";
-
-        try (Connection conn = ConexionBD.getConexion();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                Pieza p = new Pieza(
-                    rs.getInt("id_pieza"),
-                    rs.getString("codigo_pieza"),
-                    rs.getString("nombre"),
-                    rs.getString("categoria"),
-                    rs.getDouble("precio_venta"),
-                    rs.getInt("stock_disponible"),
-                    rs.getInt("stock_minimo"),
-                    rs.getString("ubicacion_almacen"),
-                    rs.getString("compatible_marcas"),
-                    rs.getString("imagen"),
-                    rs.getString("descripcion")
-                );
-                listaPiezas.add(p);
-            }
-
-            // No establecer items aquí, se hace en configurarFiltradoPiezas()
-
-        } catch (Exception e) {
-            LoggerUtil.error("Error al cargar piezas para asignación", e);
-        }
+        new Thread(() -> {
+            ApiClient.ApiResponse resp = ApiClient.getInstance().get("/api/piezas");
+            Platform.runLater(() -> {
+                if (resp.isSuccess()) {
+                    JsonArray arr = JsonParser.parseString(resp.getBody()).getAsJsonArray();
+                    arr.forEach(e -> {
+                        JsonObject p = e.getAsJsonObject();
+                        listaPiezas.add(new Pieza(
+                            p.get("idPieza").getAsInt(),
+                            getStr(p,"codigoPieza"), getStr(p,"nombre"), getStr(p,"categoria"),
+                            p.has("precioVenta") && !p.get("precioVenta").isJsonNull() ? p.get("precioVenta").getAsDouble() : 0.0,
+                            p.has("stockDisponible") && !p.get("stockDisponible").isJsonNull() ? p.get("stockDisponible").getAsInt() : 0,
+                            p.has("stockMinimo") && !p.get("stockMinimo").isJsonNull() ? p.get("stockMinimo").getAsInt() : 1,
+                            getStr(p,"ubicacionAlmacen"), getStr(p,"compatibleMarcas"),
+                            getStr(p,"imagen"), getStr(p,"descripcion")));
+                    });
+                } else {
+                    LoggerUtil.error("Error API al cargar piezas para asignación: " + resp.getStatusCode(), null);
+                }
+            });
+        }).start();
+        // No establecer items aquí, se hace en configurarFiltradoPiezas()
     }
 
     /**
@@ -361,98 +351,42 @@ public class AsignarPiezaVehiculoController implements Initializable {
         LocalDate fechaExtraccion = dpFechaAsignacion.getValue();
         String notas = txtNotas.getText().trim();
 
-        // Comprobar si ya existe la asignación (solo en modo inserción)
-        if (!modoEdicion && existeAsignacion(idVehiculo, idPieza)) {
-            ValidationUtils.showError("Asignación duplicada",
-                "Ya existe esta pieza asignada a este vehículo.\n" +
-                "Use la opción Editar para modificar la cantidad o estado.");
-            return;
-        }
+        JsonObject body = new JsonObject();
+        body.addProperty("idVehiculo",       idVehiculo);
+        body.addProperty("idPieza",          idPieza);
+        body.addProperty("cantidad",         cantidad);
+        body.addProperty("estadoPieza",      estado);
+        body.addProperty("fechaExtraccion",  fechaExtraccion.toString());
+        body.addProperty("precioUnitario",   precioUnitario);
+        body.addProperty("notas",            notas);
 
-        try (Connection conn = ConexionBD.getConexion()) {
-            String sql;
-
-            if (modoEdicion) {
-                // UPDATE con PreparedStatement (antiinyección SQL)
-                sql = "UPDATE INVENTARIO_PIEZAS SET cantidad=?, estado_pieza=?, " +
-                      "fecha_extraccion=?, precio_unitario=?, notas=? " +
-                      "WHERE id_vehiculo=? AND id_pieza=?";
-            } else {
-                // INSERT con PreparedStatement (antiinyección SQL)
-                sql = "INSERT INTO INVENTARIO_PIEZAS (id_vehiculo, id_pieza, cantidad, " +
-                      "estado_pieza, fecha_extraccion, precio_unitario, notas) " +
-                      "VALUES (?, ?, ?, ?, ?, ?, ?)";
-            }
-
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-
-            if (modoEdicion) {
-                // UPDATE: asignar parámetros
-                pstmt.setInt(1, cantidad);
-                pstmt.setString(2, estado);
-                pstmt.setDate(3, Date.valueOf(fechaExtraccion));
-                pstmt.setDouble(4, precioUnitario);
-                pstmt.setString(5, notas);
-                pstmt.setInt(6, idVehiculo);
-                pstmt.setInt(7, idPieza);
-            } else {
-                // INSERT: asignar parámetros
-                pstmt.setInt(1, idVehiculo);
-                pstmt.setInt(2, idPieza);
-                pstmt.setInt(3, cantidad);
-                pstmt.setString(4, estado);
-                pstmt.setDate(5, Date.valueOf(fechaExtraccion));
-                pstmt.setDouble(6, precioUnitario);
-                pstmt.setString(7, notas);
-            }
-
-            int filasAfectadas = pstmt.executeUpdate();
-
-            if (filasAfectadas > 0) {
-                String mensaje = modoEdicion ?
-                    "Asignación actualizada correctamente" :
-                    "Pieza asignada correctamente al vehículo";
-
-                ValidationUtils.showSuccess("Operación exitosa", mensaje);
-
-                // Actualizar el listado del controlador padre
-                if (controladorPadre != null) {
-                    controladorPadre.actualizarListado();
+        btnAsignar.setDisable(true);
+        new Thread(() -> {
+            ApiClient.ApiResponse resp = modoEdicion
+                    ? ApiClient.getInstance().put("/api/inventario/" + idVehiculo + "/" + idPieza, body)
+                    : ApiClient.getInstance().post("/api/inventario", body);
+            Platform.runLater(() -> {
+                btnAsignar.setDisable(false);
+                if (resp.isSuccess()) {
+                    String mensaje = modoEdicion
+                            ? "Asignación actualizada correctamente"
+                            : "Pieza asignada correctamente al vehículo";
+                    ValidationUtils.showSuccess("Operación exitosa", mensaje);
+                    if (controladorPadre != null) controladorPadre.actualizarListado();
+                    cerrarVentana();
+                } else if (resp.getStatusCode() == 409) {
+                    ValidationUtils.showError("Asignación duplicada",
+                            "Ya existe esta pieza asignada a este vehículo.\n" +
+                            "Use la opción Editar para modificar la cantidad o estado.");
+                } else {
+                    ValidationUtils.showError("Error al guardar", "Código: " + resp.getStatusCode());
                 }
-
-                // Cerrar ventana
-                cerrarVentana();
-            }
-
-        } catch (SQLException e) {
-            LoggerUtil.error("Error al guardar asignación de pieza a vehículo", e);
-            ValidationUtils.showError("Error de base de datos",
-                "No se pudo guardar la asignación: " + e.getMessage());
-        } catch (NumberFormatException e) {
-            LoggerUtil.warning("Error de formato en campos numéricos de asignación");
-            ValidationUtils.showError("Error de formato",
-                "Verifique que los campos numéricos tengan el formato correcto");
-        }
+            });
+        }).start();
     }
 
-    /**
-     * Comprueba si ya existe la asignación de esa pieza a ese vehículo
-     */
-    private boolean existeAsignacion(int idVehiculo, int idPieza) {
-        try (Connection conn = ConexionBD.getConexion()) {
-            String sql = "SELECT COUNT(*) FROM INVENTARIO_PIEZAS WHERE id_vehiculo = ? AND id_pieza = ?";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, idVehiculo);
-            pstmt.setInt(2, idPieza);
-
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            LoggerUtil.error("Error al verificar asignación existente", e);
-        }
-        return false;
+    private String getStr(JsonObject obj, String key) {
+        return obj.has(key) && !obj.get(key).isJsonNull() ? obj.get(key).getAsString() : "";
     }
 
     /**

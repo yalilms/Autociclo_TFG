@@ -31,13 +31,13 @@ public class Main extends Application {
         // Configurar icono de la aplicación
         primaryStage.getIcons().add(AppResources.getIcon());
 
-        // Cargar ambas pantallas desde el inicio
+        // Cargar splash y login (el login empieza oculto)
         Parent pantallaCarga = FXMLLoader.load(getClass().getResource(AppConstants.PATH_SPLASH_FXML));
-        Parent listado = FXMLLoader.load(getClass().getResource(AppConstants.PATH_MAIN_FXML));
-        listado.setOpacity(0.0);
+        Parent login = FXMLLoader.load(getClass().getResource(AppConstants.PATH_LOGIN_FXML));
+        login.setOpacity(0.0);
 
-        // Contenedor con ambas pantallas superpuestas
-        StackPane contenedor = new StackPane(listado, pantallaCarga);
+        // Contenedor: login debajo, splash encima
+        StackPane contenedor = new StackPane(login, pantallaCarga);
 
         // Configurar escena
         Scene escena = new Scene(contenedor, AppConstants.DEFAULT_WINDOW_WIDTH, AppConstants.DEFAULT_WINDOW_HEIGHT);
@@ -53,8 +53,8 @@ public class Main extends Application {
         // Configurar confirmación al cerrar
         configurarCierreVentana(primaryStage);
 
-        // Animación de splash screen
-        iniciarAnimacionSplash(contenedor, pantallaCarga, listado, primaryStage);
+        // Animación de splash → login
+        iniciarAnimacionSplash(contenedor, pantallaCarga, login, primaryStage);
     }
 
     private void configurarCierreVentana(Stage stage) {

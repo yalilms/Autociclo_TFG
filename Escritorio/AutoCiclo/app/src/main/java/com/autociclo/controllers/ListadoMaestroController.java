@@ -14,10 +14,15 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
-import com.autociclo.database.ConexionBD;
+import com.autociclo.api.ApiClient;
+import com.autociclo.api.SessionManager;
 import com.autociclo.models.Vehiculo;
 import com.autociclo.models.Pieza;
 import com.autociclo.models.InventarioPieza;
+import com.autociclo.rabbitmq.RabbitMQListener;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import com.autociclo.utils.ValidationUtils;
 import com.autociclo.utils.LoggerUtil;
@@ -35,8 +40,8 @@ import org.kordamp.ikonli.materialdesign2.MaterialDesignE;
 
 import org.kordamp.ikonli.materialdesign2.MaterialDesignM;
 
+import javafx.application.Platform;
 import java.net.URL;
-import java.sql.*;
 import java.util.ResourceBundle;
 
 public class ListadoMaestroController implements Initializable {
@@ -73,14 +78,17 @@ public class ListadoMaestroController implements Initializable {
     private Button btnBuscar;
 
     // Navegación
-    @FXML
-    private Button btnNavVehiculos;
-    @FXML
-    private Button btnNavPiezas;
-    @FXML
-    private Button btnNavInventario;
-    @FXML
-    private Button btnNavEstadisticas;
+    @FXML private Button btnNavVehiculos;
+    @FXML private Button btnNavPiezas;
+    @FXML private Button btnNavInventario;
+    @FXML private Button btnNavEstadisticas;
+    @FXML private Button btnNavUsuarios;
+    @FXML private Button btnNavSolicitudes;
+    @FXML private Label  lblBadgeNotificaciones;
+
+    // RabbitMQ listener para notificaciones en tiempo real
+    private final RabbitMQListener rabbitMQListener = new RabbitMQListener();
+    private int contadorNotificaciones = 0;
 
     // StackPane y TableViews
     @FXML
@@ -187,7 +195,7 @@ public class ListadoMaestroController implements Initializable {
         colFechaIngreso.setCellValueFactory(new PropertyValueFactory<>("fechaExtraccion"));
         colAlmacen.setCellValueFactory(new PropertyValueFactory<>("estadoPieza"));
 
-        // Cargar datos desde la base de datos
+        // Cargar datos desde la API REST
         cargarVehiculos();
         cargarPiezas();
         cargarInventario();
@@ -219,84 +227,170 @@ public class ListadoMaestroController implements Initializable {
         configurarEventosTeclado();
         configurarEventosRaton();
         configurarMenusContextuales();
+
+        // ENTREGA 3: Nuevos módulos
+        if (btnNavUsuarios != null)
+            btnNavUsuarios.setOnAction(e -> mostrarUsuarios());
+        if (btnNavSolicitudes != null)
+            btnNavSolicitudes.setOnAction(e -> mostrarSolicitudes());
+
+        // ENTREGA 3: RabbitMQ — escucha cola solicitudes.nueva
+        iniciarRabbitMQ();
     }
 
     private void cargarVehiculos() {
-        listaVehiculos.clear();
-        String sql = "SELECT * FROM VEHICULOS";
-
-        try (Connection conn = ConexionBD.getConexion();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                listaVehiculos.add(new Vehiculo(
-                        rs.getInt("id_vehiculo"), rs.getString("matricula"),
-                        rs.getString("marca"), rs.getString("modelo"),
-                        rs.getInt("anio"), rs.getString("color"),
-                        rs.getString("fecha_entrada"), rs.getString("estado"),
-                        rs.getDouble("precio_compra"), rs.getInt("kilometraje"),
-                        rs.getString("ubicacion_gps"), rs.getString("observaciones")));
-            }
-            LoggerUtil.logDatosCargados("Vehículos", listaVehiculos.size());
-            if (lblErrorConexion != null) lblErrorConexion.setVisible(false);
-        } catch (Exception e) {
-            LoggerUtil.error("Error al cargar vehículos", e);
-            if (lblErrorConexion != null) lblErrorConexion.setVisible(true);
-        }
+        new Thread(() -> {
+            ApiClient.ApiResponse resp = ApiClient.getInstance().get("/api/vehiculos");
+            Platform.runLater(() -> {
+                listaVehiculos.clear();
+                if (resp.isSuccess()) {
+                    JsonArray arr = JsonParser.parseString(resp.getBody()).getAsJsonArray();
+                    arr.forEach(e -> {
+                        JsonObject v = e.getAsJsonObject();
+                        listaVehiculos.add(new Vehiculo(
+                            v.get("idVehiculo").getAsInt(),
+                            getStr(v, "matricula"), getStr(v, "marca"), getStr(v, "modelo"),
+                            v.get("anio").getAsInt(), getStr(v, "color"),
+                            getStr(v, "fechaEntrada"), getStr(v, "estado"),
+                            v.has("precioCompra") && !v.get("precioCompra").isJsonNull() ? v.get("precioCompra").getAsDouble() : 0.0,
+                            v.has("kilometraje") && !v.get("kilometraje").isJsonNull() ? v.get("kilometraje").getAsInt() : 0,
+                            getStr(v, "ubicacionGps"), getStr(v, "observaciones")));
+                    });
+                    LoggerUtil.logDatosCargados("Vehículos", listaVehiculos.size());
+                    if (lblErrorConexion != null) lblErrorConexion.setVisible(false);
+                } else {
+                    LoggerUtil.error("Error API vehículos: " + resp.getStatusCode(), null);
+                    if (lblErrorConexion != null) lblErrorConexion.setVisible(true);
+                }
+            });
+        }).start();
     }
 
     private void cargarPiezas() {
-        listaPiezas.clear();
-        String sql = "SELECT p.*, COALESCE(SUM(ip.cantidad), 0) as stock_real " +
-                "FROM PIEZAS p LEFT JOIN INVENTARIO_PIEZAS ip ON p.id_pieza = ip.id_pieza GROUP BY p.id_pieza";
-
-        try (Connection conn = ConexionBD.getConexion();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                listaPiezas.add(new Pieza(
-                        rs.getInt("id_pieza"), rs.getString("codigo_pieza"),
-                        rs.getString("nombre"), rs.getString("categoria"),
-                        rs.getDouble("precio_venta"), rs.getInt("stock_real"),
-                        rs.getInt("stock_minimo"), rs.getString("ubicacion_almacen"),
-                        rs.getString("compatible_marcas"), rs.getString("imagen"),
-                        rs.getString("descripcion")));
-            }
-            LoggerUtil.logDatosCargados("Piezas", listaPiezas.size());
-            if (lblErrorConexion != null) lblErrorConexion.setVisible(false);
-        } catch (Exception e) {
-            LoggerUtil.error("Error al cargar piezas", e);
-            if (lblErrorConexion != null) lblErrorConexion.setVisible(true);
-        }
+        new Thread(() -> {
+            ApiClient.ApiResponse resp = ApiClient.getInstance().get("/api/piezas");
+            Platform.runLater(() -> {
+                listaPiezas.clear();
+                if (resp.isSuccess()) {
+                    JsonArray arr = JsonParser.parseString(resp.getBody()).getAsJsonArray();
+                    arr.forEach(e -> {
+                        JsonObject p = e.getAsJsonObject();
+                        listaPiezas.add(new Pieza(
+                            p.get("idPieza").getAsInt(),
+                            getStr(p, "codigoPieza"), getStr(p, "nombre"), getStr(p, "categoria"),
+                            p.has("precioVenta") && !p.get("precioVenta").isJsonNull() ? p.get("precioVenta").getAsDouble() : 0.0,
+                            p.has("stockDisponible") && !p.get("stockDisponible").isJsonNull() ? p.get("stockDisponible").getAsInt() : 0,
+                            p.has("stockMinimo") && !p.get("stockMinimo").isJsonNull() ? p.get("stockMinimo").getAsInt() : 1,
+                            getStr(p, "ubicacionAlmacen"), getStr(p, "compatibleMarcas"),
+                            getStr(p, "imagen"), getStr(p, "descripcion")));
+                    });
+                    LoggerUtil.logDatosCargados("Piezas", listaPiezas.size());
+                    if (lblErrorConexion != null) lblErrorConexion.setVisible(false);
+                } else {
+                    LoggerUtil.error("Error API piezas: " + resp.getStatusCode(), null);
+                    if (lblErrorConexion != null) lblErrorConexion.setVisible(true);
+                }
+            });
+        }).start();
     }
 
     private void cargarInventario() {
-        listaInventario.clear();
-        String sql = "SELECT ip.*, CONCAT(v.marca, ' ', v.modelo, ' (', v.anio, ')') as vehiculo_info, " +
-                "p.nombre as pieza_nombre FROM INVENTARIO_PIEZAS ip " +
-                "INNER JOIN VEHICULOS v ON ip.id_vehiculo = v.id_vehiculo " +
-                "INNER JOIN PIEZAS p ON ip.id_pieza = p.id_pieza";
+        new Thread(() -> {
+            ApiClient.ApiResponse resp = ApiClient.getInstance().get("/api/inventario");
+            Platform.runLater(() -> {
+                listaInventario.clear();
+                if (resp.isSuccess()) {
+                    JsonArray arr = JsonParser.parseString(resp.getBody()).getAsJsonArray();
+                    arr.forEach(e -> {
+                        JsonObject inv = e.getAsJsonObject();
+                        // La API devuelve objetos con vehiculo y pieza anidados
+                        String vehiculoInfo = "";
+                        String piezaNombre  = "";
+                        try {
+                            JsonObject veh = inv.getAsJsonObject("vehiculo");
+                            vehiculoInfo = veh.get("marca").getAsString() + " " +
+                                           veh.get("modelo").getAsString() + " (" +
+                                           veh.get("anio").getAsInt() + ")";
+                        } catch (Exception ex) { vehiculoInfo = getStr(inv, "idVehiculo"); }
+                        try { piezaNombre = inv.getAsJsonObject("pieza").get("nombre").getAsString(); }
+                        catch (Exception ex) { piezaNombre = getStr(inv, "idPieza"); }
 
-        try (Connection conn = ConexionBD.getConexion();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
+                        listaInventario.add(new InventarioPieza(
+                            inv.has("idVehiculo") ? inv.get("idVehiculo").getAsInt() : 0,
+                            inv.has("idPieza")    ? inv.get("idPieza").getAsInt()    : 0,
+                            vehiculoInfo, piezaNombre,
+                            inv.has("cantidad")       ? inv.get("cantidad").getAsInt()          : 0,
+                            getStr(inv, "estadoPieza"),
+                            getStr(inv, "fechaExtraccion"),
+                            inv.has("precioUnitario") ? inv.get("precioUnitario").getAsDouble()  : 0.0,
+                            getStr(inv, "notas")));
+                    });
+                    LoggerUtil.logDatosCargados("Inventario", listaInventario.size());
+                    if (lblErrorConexion != null) lblErrorConexion.setVisible(false);
+                } else {
+                    LoggerUtil.error("Error API inventario: " + resp.getStatusCode(), null);
+                    if (lblErrorConexion != null) lblErrorConexion.setVisible(true);
+                }
+            });
+        }).start();
+    }
 
-            while (rs.next()) {
-                listaInventario.add(new InventarioPieza(
-                        rs.getInt("id_vehiculo"), rs.getInt("id_pieza"),
-                        rs.getString("vehiculo_info"), rs.getString("pieza_nombre"),
-                        rs.getInt("cantidad"), rs.getString("estado_pieza"),
-                        rs.getString("fecha_extraccion"), rs.getDouble("precio_unitario"),
-                        rs.getString("notas")));
-            }
-            LoggerUtil.logDatosCargados("Inventario", listaInventario.size());
-            if (lblErrorConexion != null) lblErrorConexion.setVisible(false);
+    // ─── Nuevos módulos (Entrega 3) ──────────────────────────
+
+    @FXML
+    public void mostrarUsuarios() {
+        try {
+            Parent vista = FXMLLoader.load(getClass().getResource(AppConstants.FXML_USUARIOS));
+            stackPaneContenido.getChildren().setAll(vista);
+            tableVehiculos.setVisible(false);
+            tablePiezas.setVisible(false);
+            tableInventario.setVisible(false);
         } catch (Exception e) {
-            LoggerUtil.error("Error al cargar inventario", e);
-            if (lblErrorConexion != null) lblErrorConexion.setVisible(true);
+            LoggerUtil.error("Error al cargar Usuarios.fxml", e);
         }
+    }
+
+    @FXML
+    public void mostrarSolicitudes() {
+        try {
+            Parent vista = FXMLLoader.load(getClass().getResource(AppConstants.FXML_SOLICITUDES));
+            stackPaneContenido.getChildren().setAll(vista);
+            tableVehiculos.setVisible(false);
+            tablePiezas.setVisible(false);
+            tableInventario.setVisible(false);
+            // Resetear badge al abrir solicitudes
+            resetearBadge();
+        } catch (Exception e) {
+            LoggerUtil.error("Error al cargar Solicitudes.fxml", e);
+        }
+    }
+
+    // ─── RabbitMQ (Entrega 3) ────────────────────────────────
+
+    private void iniciarRabbitMQ() {
+        rabbitMQListener.iniciar(mensaje -> {
+            contadorNotificaciones++;
+            actualizarBadge(contadorNotificaciones);
+        });
+    }
+
+    private void actualizarBadge(int count) {
+        if (lblBadgeNotificaciones != null) {
+            lblBadgeNotificaciones.setText(String.valueOf(count));
+            lblBadgeNotificaciones.setVisible(count > 0);
+        }
+    }
+
+    private void resetearBadge() {
+        contadorNotificaciones = 0;
+        actualizarBadge(0);
+    }
+
+    // ─── Helper JSON ─────────────────────────────────────────
+
+    private String getStr(JsonObject obj, String key) {
+        try { return obj.get(key).isJsonNull() ? "" : obj.get(key).getAsString(); }
+        catch (Exception e) { return ""; }
     }
 
     /**
@@ -623,35 +717,45 @@ public class ListadoMaestroController implements Initializable {
     }
 
     private void eliminarVehiculo(int idVehiculo) {
-        ejecutarEliminacion("DELETE FROM VEHICULOS WHERE id_vehiculo = ?",
-                new int[]{idVehiculo}, "Vehículo", "vehículo");
+        new Thread(() -> {
+            ApiClient.ApiResponse resp = ApiClient.getInstance().delete("/api/vehiculos/" + idVehiculo);
+            Platform.runLater(() -> {
+                if (resp.isSuccess()) {
+                    ValidationUtils.showSuccess("Vehículo eliminado", "El vehículo ha sido eliminado correctamente");
+                    actualizarListado();
+                } else {
+                    ValidationUtils.showError("Error al eliminar", "No se pudo eliminar el vehículo (código " + resp.getStatusCode() + ")");
+                }
+            });
+        }).start();
     }
 
     private void eliminarPieza(int idPieza) {
-        ejecutarEliminacion("DELETE FROM PIEZAS WHERE id_pieza = ?",
-                new int[]{idPieza}, "Pieza", "pieza");
+        new Thread(() -> {
+            ApiClient.ApiResponse resp = ApiClient.getInstance().delete("/api/piezas/" + idPieza);
+            Platform.runLater(() -> {
+                if (resp.isSuccess()) {
+                    ValidationUtils.showSuccess("Pieza eliminada", "La pieza ha sido eliminada correctamente");
+                    actualizarListado();
+                } else {
+                    ValidationUtils.showError("Error al eliminar", "No se pudo eliminar la pieza (código " + resp.getStatusCode() + ")");
+                }
+            });
+        }).start();
     }
 
     private void eliminarInventario(int idVehiculo, int idPieza) {
-        ejecutarEliminacion("DELETE FROM INVENTARIO_PIEZAS WHERE id_vehiculo = ? AND id_pieza = ?",
-                new int[]{idVehiculo, idPieza}, "Asignación", "asignación");
-    }
-
-    private void ejecutarEliminacion(String sql, int[] params, String tipoMayus, String tipoMinus) {
-        try (Connection conn = ConexionBD.getConexion()) {
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            for (int i = 0; i < params.length; i++) {
-                pstmt.setInt(i + 1, params[i]);
-            }
-
-            if (pstmt.executeUpdate() > 0) {
-                ValidationUtils.showSuccess(tipoMayus + " eliminado/a",
-                        "El/La " + tipoMinus + " ha sido eliminado/a correctamente");
-                actualizarListado();
-            }
-        } catch (SQLException e) {
-            ErrorHandler.handleDeleteError(e, tipoMinus);
-        }
+        new Thread(() -> {
+            ApiClient.ApiResponse resp = ApiClient.getInstance().delete("/api/inventario/" + idVehiculo + "/" + idPieza);
+            Platform.runLater(() -> {
+                if (resp.isSuccess()) {
+                    ValidationUtils.showSuccess("Asignación eliminada", "La asignación ha sido eliminada correctamente");
+                    actualizarListado();
+                } else {
+                    ValidationUtils.showError("Error al eliminar", "No se pudo eliminar la asignación (código " + resp.getStatusCode() + ")");
+                }
+            });
+        }).start();
     }
 
     public void actualizarListado() {
