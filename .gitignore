@@ -1,0 +1,16 @@
+# Maven / Spring Boot build output
+**/target/
+
+# Gradle build output
+**/.gradle/
+**/build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Instaladores grandes (se entregan por Moodle)
+*.exe
+*.run
