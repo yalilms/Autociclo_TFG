@@ -77,6 +77,13 @@ public class LoginController implements Initializable {
                         String nombre = json.get("nombre").getAsString();
                         String rol    = json.get("rol").getAsString();
 
+                        // El Desktop es solo para ADMIN y EMPLEADO
+                        if ("CLIENTE".equals(rol)) {
+                            mostrarError("Acceso denegado. Esta aplicación es solo para empleados.");
+                            txtPassword.clear();
+                            return;
+                        }
+
                         SessionManager.getInstance().iniciarSesion(token, email, nombre, rol);
                         abrirPantallaPrincipal();
                     } else {

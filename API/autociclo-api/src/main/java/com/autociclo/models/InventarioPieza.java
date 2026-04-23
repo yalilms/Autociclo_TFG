@@ -14,12 +14,12 @@ public class InventarioPieza {
     @EmbeddedId
     private InventarioPiezaId id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("idVehiculo")
     @JoinColumn(name = "id_vehiculo")
     private Vehiculo vehiculo;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("idPieza")
     @JoinColumn(name = "id_pieza")
     private Pieza pieza;

@@ -22,6 +22,7 @@ public class InventarioService {
     private final VehiculoRepository vehiculoRepository;
     private final PiezaRepository piezaRepository;
 
+    @Transactional(readOnly = true)
     public List<InventarioPieza> findAll() {
         return inventarioRepository.findAll();
     }

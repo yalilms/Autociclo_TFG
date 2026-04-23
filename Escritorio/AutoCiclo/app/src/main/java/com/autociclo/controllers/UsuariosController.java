@@ -118,11 +118,10 @@ public class UsuariosController implements Initializable {
 
     private void crearUsuario(String nombre, String email, String password, String rol) {
         JsonObject body = new JsonObject();
-        body.addProperty("nombre",   nombre);
-        body.addProperty("email",    email);
-        body.addProperty("password", password);
-        // idRol: 1=ADMIN, 2=EMPLEADO, 3=CLIENTE
-        body.addProperty("idRol", "ADMIN".equals(rol) ? 1 : 2);
+        body.addProperty("nombre",    nombre);
+        body.addProperty("email",     email);
+        body.addProperty("password",  password);
+        body.addProperty("rolNombre", rol); // API espera: ADMIN, EMPLEADO o CLIENTE
 
         new Thread(() -> {
             ApiClient.ApiResponse resp = ApiClient.getInstance().post("/api/usuarios", body);
@@ -160,9 +159,9 @@ public class UsuariosController implements Initializable {
             if (bt == ButtonType.OK) {
                 int id = sel.get("idUsuario").getAsInt();
                 JsonObject body = new JsonObject();
-                body.addProperty("nombre", fNombre.getText().trim());
-                body.addProperty("email",  getStr(sel, "email"));
-                body.addProperty("idRol",  getRolId(sel));
+                body.addProperty("nombre",    fNombre.getText().trim());
+                body.addProperty("email",     getStr(sel, "email"));
+                body.addProperty("rolNombre", getRol(sel)); // API espera nombre del rol
 
                 new Thread(() -> {
                     ApiClient.ApiResponse resp = ApiClient.getInstance().put("/api/usuarios/" + id, body);
@@ -231,12 +230,6 @@ public class UsuariosController implements Initializable {
         } catch (Exception e) { return ""; }
     }
 
-    private int getRolId(JsonObject obj) {
-        try {
-            JsonObject rol = obj.getAsJsonObject("rol");
-            return rol != null ? rol.get("idRol").getAsInt() : 2;
-        } catch (Exception e) { return 2; }
-    }
 
     private boolean isActivo(JsonObject obj) {
         try { return obj.get("activo").getAsBoolean(); }

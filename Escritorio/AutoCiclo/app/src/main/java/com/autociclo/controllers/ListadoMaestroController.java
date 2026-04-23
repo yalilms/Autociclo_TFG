@@ -234,6 +234,15 @@ public class ListadoMaestroController implements Initializable {
         if (btnNavSolicitudes != null)
             btnNavSolicitudes.setOnAction(e -> mostrarSolicitudes());
 
+        // ENTREGA 3: Ocultar módulos exclusivos de ADMIN para EMPLEADO
+        boolean esAdmin = SessionManager.getInstance().isAdmin();
+        if (btnNavUsuarios != null)
+            btnNavUsuarios.setVisible(esAdmin);
+        if (btnNavEstadisticas != null)
+            btnNavEstadisticas.setVisible(esAdmin);
+        if (menuEstadisticas != null)
+            menuEstadisticas.setVisible(esAdmin);
+
         // ENTREGA 3: RabbitMQ — escucha cola solicitudes.nueva
         iniciarRabbitMQ();
     }

@@ -21,7 +21,7 @@ public class ApiClient {
 
     private final HttpClient httpClient;
     private final Gson gson;
-    private static final String BASE_URL = "http://localhost:8080";
+    private static final String BASE_URL = com.autociclo.utils.AppConstants.API_BASE_URL;
 
     private ApiClient() {
         this.httpClient = HttpClient.newBuilder()
