@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "mcp__trello__list_boards",
-      "mcp__trello__set_active_board",
-      "mcp__trello__get_lists"
-    ]
-  }
-}
