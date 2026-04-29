@@ -16,11 +16,13 @@ export interface Pieza {
   id: number
   codigoPieza: string
   nombre: string
-  descripcion: string
+  descripcion?: string
   categoria: string
   precio: number
-  stockMinimo: number
-  ubicacion: string
+  stockDisponible?: number
+  stockMinimo?: number
+  ubicacion?: string
+  compatibleMarcas?: string
   foto?: string
 }
 
@@ -39,9 +41,22 @@ export interface Vehiculo {
   marca: string
   modelo: string
   anio: number
+  color?: string
   estado: string
-  precio: number
-  ubicacion: string
+  precioCompra?: number
+  kilometraje?: number
+  ubicacionGps?: string
+  observaciones?: string
+  fechaEntrada?: string
+}
+
+export interface UsuarioAdmin {
+  idUsuario: number
+  nombre: string
+  email: string
+  rol: string
+  activo: boolean
+  fechaAlta?: string
 }
 
 export interface SolicitudPresupuesto {

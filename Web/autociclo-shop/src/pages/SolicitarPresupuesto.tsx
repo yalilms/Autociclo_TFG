@@ -1,22 +1,24 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Plus, X, AlertCircle, CheckCircle, ListPlus } from 'lucide-react'
+import { Plus, X, AlertCircle, CheckCircle2, ListPlus, ShieldCheck, Truck } from 'lucide-react'
+import { formatPrice } from '../lib/utils'
+import { motion } from 'motion/react'
 import client from '../api/client'
 import type { Pieza } from '../types'
 
 interface Linea { piezaId: number; cantidad: number; nombre: string; precio: number }
 
 export default function SolicitarPresupuesto() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [piezas, setPiezas] = useState<Pieza[]>([])
-  const [lineas, setLineas] = useState<Linea[]>([])
-  const [notas, setNotas] = useState('')
+  const navigate  = useNavigate()
+  const location  = useLocation()
+  const [piezas, setPiezas]     = useState<Pieza[]>([])
+  const [lineas, setLineas]     = useState<Linea[]>([])
+  const [notas, setNotas]       = useState('')
   const [seleccion, setSeleccion] = useState<number | ''>('')
   const [cantidad, setCantidad] = useState(1)
-  const [loading, setLoading] = useState(false)
-  const [enviado, setEnviado] = useState(false)
-  const [error, setError] = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [enviado, setEnviado]   = useState(false)
+  const [error, setError]       = useState('')
 
   useEffect(() => {
     client.get('/piezas').then(res => setPiezas(res.data)).catch(() => {})
@@ -34,8 +36,11 @@ export default function SolicitarPresupuesto() {
     const p = piezas.find(x => x.id === Number(seleccion))
     if (!p) return
     const existe = lineas.find(l => l.piezaId === p.id)
-    if (existe) setLineas(prev => prev.map(l => l.piezaId === p.id ? { ...l, cantidad: l.cantidad + cantidad } : l))
-    else setLineas(prev => [...prev, { piezaId: p.id, cantidad, nombre: p.nombre, precio: p.precio }])
+    if (existe) {
+      setLineas(prev => prev.map(l => l.piezaId === p.id ? { ...l, cantidad: l.cantidad + cantidad } : l))
+    } else {
+      setLineas(prev => [...prev, { piezaId: p.id, cantidad, nombre: p.nombre, precio: p.precio }])
+    }
     setSeleccion(''); setCantidad(1)
   }
 
@@ -47,134 +52,165 @@ export default function SolicitarPresupuesto() {
     if (lineas.length === 0) { setError('Añade al menos una pieza.'); return }
     setLoading(true)
     try {
-      await client.post('/solicitudes', { notas, detalles: lineas.map(l => ({ piezaId: l.piezaId, cantidad: l.cantidad })) })
+      await client.post('/solicitudes', {
+        notas,
+        detalles: lineas.map(l => ({ piezaId: l.piezaId, cantidad: l.cantidad })),
+      })
       setEnviado(true)
     } catch { setError('Error al enviar. Inténtalo de nuevo.') }
     finally { setLoading(false) }
   }
 
-  if (enviado) return (
-    <div className="h-full flex items-center justify-center">
-      <div className="card p-12 text-center max-w-md w-full">
-        <CheckCircle className="w-14 h-14 text-green-500 mx-auto mb-4" />
-        <h2 className="text-h2 mb-2">¡Solicitud enviada!</h2>
-        <p className="text-body-sm mb-6">Te responderemos en menos de 24h con el presupuesto definitivo.</p>
-        <div className="flex flex-col gap-2">
-          <button onClick={() => navigate('/mis-solicitudes')}
-            className="w-full py-2.5 bg-primary text-white text-[12px] font-bold rounded hover:bg-blue-600 transition-colors uppercase tracking-widest">
+  if (enviado) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-24 text-center">
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 glow-green"
+        >
+          <CheckCircle2 className="w-12 h-12 text-white" />
+        </motion.div>
+        <h2 className="text-4xl font-black text-white mb-4">¡Solicitud enviada!</h2>
+        <p className="text-slate-400 mb-10 text-lg">
+          Te responderemos en menos de 24h con el presupuesto definitivo.
+        </p>
+        <div className="space-y-4">
+          <button onClick={() => navigate('/mis-solicitudes')} className="btn-primary w-full h-14 text-lg font-bold">
             Ver mis solicitudes
           </button>
-          <button onClick={() => navigate('/catalogo')}
-            className="w-full py-2.5 border border-primary text-primary text-[12px] font-bold rounded hover:bg-primary-container transition-colors uppercase tracking-widest">
+          <button
+            onClick={() => navigate('/catalogo')}
+            className="btn-secondary w-full h-14 text-lg font-bold"
+          >
             Seguir buscando
           </button>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   return (
-    <div className="h-full flex flex-col gap-5">
-      <form onSubmit={handleSubmit} className="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-5 overflow-hidden">
-        {/* Piezas — 3 cols */}
-        <div className="lg:col-span-3 flex flex-col gap-5 overflow-y-auto">
-          <div className="card overflow-hidden">
-            <div className="card-header">
-              <span className="card-title">Añadir piezas</span>
-            </div>
-            <div className="p-4">
-              <div className="flex gap-2 mb-4">
-                <select
-                  value={seleccion}
-                  onChange={e => setSeleccion(e.target.value ? Number(e.target.value) : '')}
-                  className="flex-1 py-2 px-3 text-[12px] bg-surface-dim border border-outline-variant rounded outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="">Selecciona una pieza...</option>
-                  {piezas.map(p => <option key={p.id} value={p.id}>{p.nombre} — {p.precio.toFixed(2)} €</option>)}
-                </select>
-                <input
-                  type="number" min={1} value={cantidad}
-                  onChange={e => setCantidad(Math.max(1, Number(e.target.value)))}
-                  className="w-16 py-2 px-2 text-[12px] bg-surface-dim border border-outline-variant rounded text-center outline-none focus:ring-1 focus:ring-primary"
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-10">
+      <div className="mb-10">
+        <h1 className="text-4xl font-black text-white mb-2">Solicitar Presupuesto</h1>
+        <p className="text-slate-400">Añade las piezas que necesitas y te enviamos un precio en 24h.</p>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+
+          {/* Piezas + notas */}
+          <div className="lg:col-span-2 space-y-8">
+
+            {/* Selector */}
+            <section>
+              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">1</span>
+                Selecciona las piezas
+              </h2>
+              <div className="glass-card p-6 space-y-6">
+                <div className="flex gap-3">
+                  <select
+                    value={seleccion}
+                    onChange={e => setSeleccion(e.target.value ? Number(e.target.value) : '')}
+                    className="flex-1 bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Selecciona una pieza...</option>
+                    {piezas.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.nombre} — {formatPrice(p.precio)}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number" min={1} value={cantidad}
+                    onChange={e => setCantidad(Math.max(1, Number(e.target.value)))}
+                    className="w-20 bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={agregarLinea}
+                    disabled={!seleccion}
+                    className="btn-primary flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Plus className="w-4 h-4" /> Añadir
+                  </button>
+                </div>
+
+                {lineas.length === 0 ? (
+                  <div className="text-center py-12 text-slate-600">
+                    <ListPlus className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm">Selecciona piezas arriba para añadirlas</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {lineas.map(l => (
+                      <div key={l.piezaId} className="flex items-center justify-between p-4 glass rounded-xl border-white/5">
+                        <div>
+                          <p className="text-white font-bold">{l.nombre}</p>
+                          <p className="text-slate-500 text-xs mt-0.5">{formatPrice(l.precio)} × {l.cantidad}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-white font-mono font-bold">{formatPrice(l.precio * l.cantidad)}</span>
+                          <button
+                            type="button"
+                            onClick={() => setLineas(prev => prev.filter(x => x.piezaId !== l.piezaId))}
+                            className="text-slate-500 hover:text-red-400 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Notas */}
+            <section>
+              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">2</span>
+                Notas adicionales
+              </h2>
+              <div className="glass-card p-6">
+                <textarea
+                  value={notas}
+                  onChange={e => setNotas(e.target.value)}
+                  placeholder="Ej: Necesito la pieza para un Seat León 2012 1.6 TDI..."
+                  rows={4}
+                  className="w-full bg-slate-900 border border-white/10 rounded-xl p-4 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
                 />
-                <button type="button" onClick={agregarLinea} disabled={!seleccion}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white text-[12px] font-bold rounded hover:bg-blue-600 transition-colors disabled:opacity-40">
-                  <Plus className="w-3.5 h-3.5" /> Añadir
-                </button>
               </div>
-
-              {lineas.length === 0 ? (
-                <div className="text-center py-10 text-on-surface-variant">
-                  <ListPlus className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                  <p className="text-body-sm">Selecciona piezas arriba para añadirlas</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {lineas.map(l => (
-                    <div key={l.piezaId} className="flex items-center justify-between p-3 bg-surface-dim rounded border border-outline-variant">
-                      <div>
-                        <p className="text-[13px] font-semibold text-on-surface">{l.nombre}</p>
-                        <p className="text-body-sm">{l.precio.toFixed(2)} € × {l.cantidad}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[13px] font-bold font-mono text-on-surface">{(l.precio * l.cantidad).toFixed(2)} €</span>
-                        <button type="button" onClick={() => setLineas(prev => prev.filter(x => x.piezaId !== l.piezaId))}
-                          className="text-on-surface-variant hover:text-red-600 transition-colors">
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            </section>
           </div>
 
-          <div className="card overflow-hidden">
-            <div className="card-header">
-              <span className="card-title">Notas adicionales</span>
-            </div>
-            <div className="p-4">
-              <textarea
-                value={notas}
-                onChange={e => setNotas(e.target.value)}
-                placeholder="Ej: Necesito la pieza para un Seat León 2012 1.6 TDI..."
-                rows={3}
-                className="w-full py-2 px-3 text-[12px] bg-surface-dim border border-outline-variant rounded outline-none focus:ring-1 focus:ring-primary resize-none"
-              />
-            </div>
-          </div>
-        </div>
+          {/* Resumen sticky */}
+          <div className="lg:sticky lg:top-32 h-fit">
+            <div className="glass-card p-8 border-white/20 glow-blue">
+              <h2 className="text-xl font-bold text-white mb-6">Resumen del Pedido</h2>
 
-        {/* Resumen — 2 cols */}
-        <div className="lg:col-span-2">
-          <div className="card overflow-hidden sticky top-0">
-            <div className="card-header">
-              <span className="card-title">Resumen del pedido</span>
-            </div>
-            <div className="p-5 flex flex-col gap-4">
-              {lineas.length === 0 ? (
-                <p className="text-body-sm text-center py-4">Sin piezas añadidas</p>
-              ) : (
-                <div className="space-y-2">
-                  {lineas.map(l => (
-                    <div key={l.piezaId} className="flex justify-between text-[12px]">
-                      <span className="text-on-surface-variant truncate mr-2">{l.nombre} ×{l.cantidad}</span>
-                      <span className="whitespace-nowrap font-mono font-bold text-on-surface">{(l.precio * l.cantidad).toFixed(2)} €</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex justify-between items-baseline pt-3 border-t border-outline-variant">
-                <span className="text-label-caps">Total estimado</span>
-                <span className="text-2xl font-mono font-bold text-primary">{total.toFixed(2)} €</span>
+              <div className="space-y-3 mb-8 min-h-24">
+                {lineas.length === 0 ? (
+                  <p className="text-slate-500 text-sm text-center py-4">Sin piezas añadidas</p>
+                ) : lineas.map(l => (
+                  <div key={l.piezaId} className="flex justify-between text-sm">
+                    <span className="text-slate-400 truncate mr-3">{l.nombre} ×{l.cantidad}</span>
+                    <span className="text-white font-mono whitespace-nowrap">{formatPrice(l.precio * l.cantidad)}</span>
+                  </div>
+                ))}
               </div>
-              <p className="text-[11px] text-on-surface-variant -mt-2">* Precio orientativo. Puede variar.</p>
+
+              <div className="border-t border-white/10 pt-6 mb-4 flex justify-between items-end">
+                <span className="text-slate-400 text-sm">Total estimado</span>
+                <span className="text-3xl font-black text-white">{formatPrice(total)}</span>
+              </div>
+              <p className="text-xs text-slate-600 mb-8">* Precio orientativo. Puede variar.</p>
 
               {error && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded bg-red-50 border border-red-200 text-red-700 text-[12px]">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm mb-6">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
                   {error}
                 </div>
               )}
@@ -182,10 +218,19 @@ export default function SolicitarPresupuesto() {
               <button
                 type="submit"
                 disabled={loading || lineas.length === 0}
-                className="w-full py-3 bg-primary text-white text-[12px] font-bold rounded hover:bg-blue-600 transition-colors uppercase tracking-widest disabled:opacity-40"
+                className="btn-primary w-full h-14 flex items-center justify-center gap-3 text-lg font-bold disabled:opacity-40 disabled:cursor-not-allowed"
               >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <ShieldCheck className="w-6 h-6" />
+                )}
                 {loading ? 'Enviando...' : 'Enviar solicitud'}
               </button>
+
+              <p className="text-[10px] text-slate-500 text-center mt-6 uppercase tracking-widest font-bold flex items-center justify-center gap-2">
+                <Truck className="w-3 h-3" /> Respuesta en menos de 24h
+              </p>
             </div>
           </div>
         </div>
