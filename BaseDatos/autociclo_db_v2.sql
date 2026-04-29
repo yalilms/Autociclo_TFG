@@ -87,18 +87,18 @@ CREATE TABLE `PIEZAS` (
 INSERT INTO `PIEZAS`
     (`id_pieza`,`codigo_pieza`,`nombre`,`categoria`,`precio_venta`,`stock_disponible`,`stock_minimo`,`ubicacion_almacen`,`compatible_marcas`,`imagen`,`descripcion`)
 VALUES
-    (1,  'MOT-001', 'Motor 1.6 TDI',              'motor',      2500.00, 0, 1,  'Estantería A, nivel 2',     'Volkswagen Golf 2015-2020, Audi A3 2014-2019', '/imagenes/piezas/motor123.png', 'Motor diésel en perfecto estado, 80.000 km reales'),
-    (2,  'MOT-002', 'Motor 2.0 HDI',              'motor',      1800.00, 0, 1,  'Zona motores, pasillo 3',   'Peugeot 308 2012-2018, Citroën C4',            NULL,                           'Motor diésel 120CV, revisado y garantizado'),
-    (3,  'CAR-025', 'Puerta delantera izquierda', 'carroceria',  200.00, 0, 2,  'Estantería A, nivel 2',     'Renault Clio III generación',                  '/img/MOT001.jpg',              'Puerta completa con cristal y mecanismos'),
-    (4,  'CAR-026', 'Capó delantero',             'carroceria',  150.00, 0, 2,  'Zona carrocería, pasillo 1','Seat Ibiza 2012-2016',                         NULL,                           'Capó en buen estado, sin golpes'),
-    (5,  'CAR-027', 'Parachoques trasero',        'carroceria',  120.00, 0, 3,  'Estantería C, nivel 1',     'Ford Focus 2010-2015, Seat León 2012-2016',    NULL,                           'Parachoques original, con enganche'),
-    (6,  'INT-340', 'Volante multifunción',       'interior',     80.00, 0, 5,  'Zona motores, pasillo 3',   'Universal (adaptable)',                        NULL,                           'Volante con controles de audio y crucero'),
-    (7,  'INT-341', 'Asientos delanteros',        'interior',    120.00, 0, 2,  'Zona interior, pasillo 2',  'Seat Ibiza FR, León FR',                       NULL,                           'Par de asientos deportivos, tapicería en buen estado'),
-    (8,  'ELE-455', 'Faro delantero LED',         'electronica', 450.00, 0, 1,  'Estantería D, nivel 3',     'Ford Transit 2016-2020',                       NULL,                           'Faro con tecnología LED, lado derecho'),
-    (9,  'ELE-456', 'Alternador 120A',            'electronica',  90.00, 0, 3,  'Zona electrónica, pasillo 4','Universal (Bosch)',                            NULL,                           'Alternador 14V 120A, funciona perfectamente'),
-    (10, 'RUE-550', 'Disco de freno ventilado 280mm','ruedas',   150.00, 0, 5,  'Zona frenos, estante bajo', 'Universal deportivo',                          NULL,                           'Disco de competición Brembo'),
-    (11, 'RUE-551', 'Neumático 205/55 R16',       'ruedas',       85.00, 0, 10, 'Almacén exterior',          'Universal',                                    NULL,                           'Neumático seminuevo con 6mm de profundidad'),
-    (12, 'OTR-700', 'Turbocompresor',             'otros',       800.00, 0, 1,  'Caja fuerte, estante especial','Honda CBR 600-1000',                         NULL,                           'Turbo reparado y certificado, garantía 6 meses');
+    (1,  'MOT-001', 'Motor 1.6 TDI',              'motor',      2500.00, 2, 1,  'Estantería A, nivel 2',     'Volkswagen Golf 2015-2020, Audi A3 2014-2019', '/imagenes/piezas/motor123.png', 'Motor diésel en perfecto estado, 80.000 km reales'),
+    (2,  'MOT-002', 'Motor 2.0 HDI',              'motor',      1800.00, 1, 1,  'Zona motores, pasillo 3',   'Peugeot 308 2012-2018, Citroën C4',            NULL,                           'Motor diésel 120CV, revisado y garantizado'),
+    (3,  'CAR-025', 'Puerta delantera izquierda', 'carroceria',  200.00, 3, 2,  'Estantería A, nivel 2',     'Renault Clio III generación',                  '/img/MOT001.jpg',              'Puerta completa con cristal y mecanismos'),
+    (4,  'CAR-026', 'Capó delantero',             'carroceria',  150.00, 4, 2,  'Zona carrocería, pasillo 1','Seat Ibiza 2012-2016',                         NULL,                           'Capó en buen estado, sin golpes'),
+    (5,  'CAR-027', 'Parachoques trasero',        'carroceria',  120.00, 1, 3,  'Estantería C, nivel 1',     'Ford Focus 2010-2015, Seat León 2012-2016',    NULL,                           'Parachoques original, con enganche'),
+    (6,  'INT-340', 'Volante multifunción',       'interior',     80.00, 1, 5,  'Zona motores, pasillo 3',   'Universal (adaptable)',                        NULL,                           'Volante con controles de audio y crucero'),
+    (7,  'INT-341', 'Asientos delanteros',        'interior',    120.00, 2, 2,  'Zona interior, pasillo 2',  'Seat Ibiza FR, León FR',                       NULL,                           'Par de asientos deportivos, tapicería en buen estado'),
+    (8,  'ELE-455', 'Faro delantero LED',         'electronica', 450.00, 2, 1,  'Estantería D, nivel 3',     'Ford Transit 2016-2020',                       NULL,                           'Faro con tecnología LED, lado derecho'),
+    (9,  'ELE-456', 'Alternador 120A',            'electronica',  90.00, 5, 3,  'Zona electrónica, pasillo 4','Universal (Bosch)',                            NULL,                           'Alternador 14V 120A, funciona perfectamente'),
+    (10, 'RUE-550', 'Disco de freno ventilado 280mm','ruedas',   150.00, 2, 5,  'Zona frenos, estante bajo', 'Universal deportivo',                          NULL,                           'Disco de competición Brembo'),
+    (11, 'RUE-551', 'Neumático 205/55 R16',       'ruedas',       85.00,12, 10, 'Almacén exterior',          'Universal',                                    NULL,                           'Neumático seminuevo con 6mm de profundidad'),
+    (12, 'OTR-700', 'Turbocompresor',             'otros',       800.00, 1, 1,  'Caja fuerte, estante especial','Honda CBR 600-1000',                         NULL,                           'Turbo reparado y certificado, garantía 6 meses');
 
 -- 4. INVENTARIO_PIEZAS
 CREATE TABLE `INVENTARIO_PIEZAS` (
