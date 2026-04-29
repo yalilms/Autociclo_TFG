@@ -63,7 +63,7 @@ export interface SolicitudPresupuesto {
   id: number
   clienteId: number
   fechaSolicitud: string
-  estado: 'PENDIENTE' | 'APROBADA' | 'RECHAZADA'
+  estado: 'pendiente' | 'en_revision' | 'aprobada' | 'rechazada'
   notas: string
   referenciaOdoo?: string
   precioTotal?: number

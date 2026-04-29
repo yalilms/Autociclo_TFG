@@ -34,6 +34,9 @@ public class SolicitudPresupuesto {
     @Column(name = "precio_total", precision = 10, scale = 2)
     private BigDecimal precioTotal;
 
+    @Column(name = "referencia_odoo", length = 50)
+    private String referenciaOdoo;
+
     @OneToMany(mappedBy = "solicitud", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DetalleSolicitud> detalles;
 }

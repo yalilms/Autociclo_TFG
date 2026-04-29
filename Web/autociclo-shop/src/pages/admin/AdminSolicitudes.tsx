@@ -6,9 +6,10 @@ import client from '../../api/client'
 import type { SolicitudPresupuesto } from '../../types'
 
 const ESTADO_CFG = {
-  PENDIENTE: { label: 'Pendiente',  Icon: Clock,         cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
-  APROBADA:  { label: 'Aprobada',   Icon: CheckCircle,   cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
-  RECHAZADA: { label: 'Rechazada',  Icon: XCircle,       cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
+  pendiente:   { label: 'Pendiente',   Icon: Clock,         cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
+  en_revision: { label: 'En revisión', Icon: Clock,         cls: 'bg-blue-500/10 border-blue-500/20 text-blue-400' },
+  aprobada:    { label: 'Aprobada',    Icon: CheckCircle,   cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
+  rechazada:   { label: 'Rechazada',   Icon: XCircle,       cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
 } as const
 
 interface ModalState {
@@ -76,8 +77,8 @@ export default function AdminSolicitudes() {
   const fmt = (d: string) =>
     new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
 
-  const pendientes = solicitudes.filter(s => s.estado === 'PENDIENTE')
-  const resto      = solicitudes.filter(s => s.estado !== 'PENDIENTE')
+  const pendientes = solicitudes.filter(s => s.estado === 'pendiente')
+  const resto      = solicitudes.filter(s => s.estado !== 'pendiente')
 
   return (
     <div className="p-8">
@@ -100,7 +101,7 @@ export default function AdminSolicitudes() {
       ) : (
         <div className="space-y-4">
           {[...pendientes, ...resto].map((sol, idx) => {
-            const cfg = ESTADO_CFG[sol.estado] ?? ESTADO_CFG.PENDIENTE
+            const cfg = ESTADO_CFG[sol.estado] ?? ESTADO_CFG.pendiente
             return (
               <motion.div
                 key={sol.id}
@@ -128,7 +129,7 @@ export default function AdminSolicitudes() {
                       <cfg.Icon className="w-3.5 h-3.5" />
                       {cfg.label}
                     </div>
-                    {sol.estado === 'PENDIENTE' && (
+                    {sol.estado === 'pendiente' && (
                       <div className="flex gap-2">
                         <button
                           onClick={() => openModal(sol, 'aprobar')}

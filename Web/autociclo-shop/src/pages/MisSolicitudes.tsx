@@ -7,9 +7,10 @@ import client from '../api/client'
 import type { SolicitudPresupuesto } from '../types'
 
 const ESTADO_CFG = {
-  PENDIENTE: { label: 'Pendiente',  Icon: Clock,         cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
-  APROBADA:  { label: 'Aprobada',   Icon: CheckCircle,   cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
-  RECHAZADA: { label: 'Rechazada',  Icon: XCircle,       cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
+  pendiente:   { label: 'Pendiente',   Icon: Clock,         cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
+  en_revision: { label: 'En revisión', Icon: Clock,         cls: 'bg-blue-500/10 border-blue-500/20 text-blue-400' },
+  aprobada:    { label: 'Aprobada',    Icon: CheckCircle,   cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
+  rechazada:   { label: 'Rechazada',   Icon: XCircle,       cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
 } as const
 
 export default function MisSolicitudes() {
@@ -75,7 +76,7 @@ export default function MisSolicitudes() {
       ) : (
         <div className="space-y-6">
           {solicitudes.map((sol, idx) => {
-            const cfg = ESTADO_CFG[sol.estado] ?? ESTADO_CFG.PENDIENTE
+            const cfg = ESTADO_CFG[sol.estado] ?? ESTADO_CFG.pendiente
             return (
               <motion.div
                 key={sol.id}
@@ -135,7 +136,7 @@ export default function MisSolicitudes() {
                       </div>
                     )}
 
-                    {sol.estado === 'APROBADA' && sol.referenciaOdoo && (
+                    {sol.estado === 'aprobada' && sol.referenciaOdoo && (
                       <a
                         href="http://109.123.247.31:8069"
                         target="_blank" rel="noopener noreferrer"
@@ -146,7 +147,7 @@ export default function MisSolicitudes() {
                       </a>
                     )}
 
-                    {sol.estado === 'RECHAZADA' && (
+                    {sol.estado === 'rechazada' && (
                       <button
                         onClick={() => navigate('/solicitar')}
                         className="text-xs text-slate-400 hover:text-blue-400 transition-colors"

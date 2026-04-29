@@ -172,6 +172,7 @@ CREATE TABLE `SOLICITUDES_PRESUPUESTO` (
     `estado`          ENUM('pendiente','en_revision','aprobada','rechazada') NOT NULL DEFAULT 'pendiente',
     `respuesta_admin` TEXT          DEFAULT NULL,
     `precio_total`    DECIMAL(10,2) DEFAULT NULL,
+    `referencia_odoo` VARCHAR(50)   DEFAULT NULL,
     PRIMARY KEY (`id_solicitud`),
     KEY `fk_solicitudes_cliente` (`id_cliente`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -230,7 +231,7 @@ INSERT INTO `MOVIMIENTOS_STOCK` (`id_pieza`, `tipo`, `cantidad`, `id_usuario`, `
 CREATE TABLE `NOTIFICACIONES` (
     `id_notif`       INT          NOT NULL AUTO_INCREMENT,
     `id_usuario`     INT          NOT NULL,
-    `tipo`           ENUM('stock_bajo','solicitud_nueva','solicitud_actualizada','general') NOT NULL,
+    `tipo`           ENUM('stock_bajo','solicitud_nueva','solicitud_actualizada','odoo_pedido','general') NOT NULL,
     `mensaje`        TEXT         NOT NULL,
     `leida`          TINYINT(1)   NOT NULL DEFAULT 0,
     `fecha_creacion` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,

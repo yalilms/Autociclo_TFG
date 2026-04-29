@@ -116,6 +116,8 @@ public class SolicitudService {
 
             String refOdoo = odooClient.crearPedidoVenta(nombreCliente, emailCliente, lineas);
             if (refOdoo != null) {
+                saved.setReferenciaOdoo(refOdoo);
+                solicitudRepository.save(saved);
                 notificacionService.crearNotificacion(
                         solicitud.getCliente().getUsuario().getIdUsuario(),
                         "odoo_pedido",
