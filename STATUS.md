@@ -1,5 +1,5 @@
 # STATUS — AutoCiclo TFG
-**Última actualización:** 29/04/2026  
+**Última actualización:** 29/04/2026 (v2 — post intervención servidor)  
 **Autor:** Yalil Musa Talhaoui
 
 ---
@@ -29,7 +29,7 @@
 - [x] 6 usuarios de prueba (2 admin, 2 empleado, 2 cliente)
 - [x] Migración ejecutada en servidor
 - [x] `autociclo_db_v2.sql` actualizado con stock real en PIEZAS *(fix 29/04)*
-- [ ] **⚠️ LOGIN ROTO** — ver Acción 1 más abajo
+- [x] **Login arreglado en servidor** — hash BCrypt regenerado, 6 usuarios actualizados *(29/04)*
 
 ### Entrega 2 — API completa + RabbitMQ ✅
 - [x] CRUD completo: Vehículos, Piezas, Inventario, Usuarios, Solicitudes
@@ -61,11 +61,13 @@
 - [x] Mis Solicitudes — estado + precio aprobado + enlace Odoo
 - [x] Panel admin: Dashboard, Piezas, Solicitudes, Usuarios, Vehículos
 - [x] `nginx.conf` configurado, dist desplegado en `/var/www/autociclo-shop`
-- [x] **FIX:** campo `referencia_odoo` añadido al modelo Java + SQL *(fix 29/04)*
-- [x] **FIX:** `SolicitudService` guarda referencia Odoo en la solicitud *(fix 29/04)*
-- [x] **FIX:** `odoo_pedido` añadido al ENUM de NOTIFICACIONES *(fix 29/04)*
-- [x] **FIX:** estado minúsculas corregido en MisSolicitudes y AdminSolicitudes *(fix 29/04)*
-- [ ] **⚠️ REDEPLOY PENDIENTE** — ver Acción 2 más abajo
+- [x] **FIX código:** campo `referencia_odoo` añadido al modelo Java + SQL *(29/04)*
+- [x] **FIX código:** `SolicitudService` guarda referencia Odoo en la solicitud *(29/04)*
+- [x] **FIX código:** `odoo_pedido` añadido al ENUM de NOTIFICACIONES *(29/04)*
+- [x] **FIX código:** estado minúsculas corregido en MisSolicitudes y AdminSolicitudes *(29/04)*
+- [x] **FIX BD:** `ALTER TABLE referencia_odoo` ejecutado en servidor *(29/04)*
+- [x] **FIX BD:** stock de las 12 piezas actualizado en servidor *(29/04)*
+- [ ] **⚠️ REDEPLOY PENDIENTE** — compilar JAR y dist en local y subir al servidor
 
 ### Entrega 5 — App Móvil Worker ❌ NO INICIADA
 - [ ] Inicializar `App_Movil/autociclo-worker/` (React Native + Expo)
@@ -89,65 +91,57 @@
 
 ---
 
-## 3. Acciones Urgentes en el Servidor
+## 3. Acciones en el Servidor
 
-### Acción 1 — LOGIN ROTO (CRÍTICO)
+### ✅ Acción 1 — LOGIN — RESUELTA (29/04)
+Hash BCrypt regenerado con Python en el servidor. 6 usuarios actualizados.
+Hash aplicado: `$2b$12$ySLfFUnmv/ULlvtz.ZB.Zup1PqYC8sMdKP3t9qlQRrPWAeeY7uLcW`
+Login verificado: JWT devuelto correctamente para `admin@autociclo.es`.
 
-El hash `$2y$12$...` del SQL no valida contra "Autociclo2026!" en Spring Security.
-
-**Diagnóstico en el servidor:**
-```bash
-# Verificar con un hash generado en el momento
-# Registra un usuario de prueba con contraseña conocida y copia su hash
-curl -s -X POST http://localhost:8080/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"nombre":"HashTest","email":"hashtest@test.com","password":"Test1234","telefono":"","direccion":"","nif":"00000000T"}'
-# Luego obtén su hash de la BD:
-mysql autociclo_db -e "SELECT password_hash FROM USUARIOS WHERE email='hashtest@test.com';"
-```
-
-**Solución — genera el hash correcto en el servidor:**
-```bash
-# Opción A (Python con bcrypt):
-python3 -c "import bcrypt; print(bcrypt.hashpw(b'Autociclo2026!', bcrypt.gensalt(12)).decode())"
-
-# Opción B (si no tiene bcrypt instalado):
-pip3 install bcrypt && python3 -c "import bcrypt; print(bcrypt.hashpw(b'Autociclo2026!', bcrypt.gensalt(12)).decode())"
-```
-
-**Una vez tengas el hash, actualiza la BD:**
-```sql
-UPDATE USUARIOS
-SET password_hash = '$2a$12$HASH_GENERADO_AQUI'
-WHERE password_hash = '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK';
-```
-
-> Esto actualiza los 6 usuarios originales del SQL (los demás ya tienen hashes correctos).
-
-**Actualizar también el SQL del repo** con el nuevo hash para que próximas instalaciones funcionen.
+> **Actualizar el SQL del repo** con este hash para que próximas instalaciones funcionen:
+> reemplaza todos los `$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK`
+> por `$2b$12$ySLfFUnmv/ULlvtz.ZB.Zup1PqYC8sMdKP3t9qlQRrPWAeeY7uLcW`
 
 ---
 
-### Acción 2 — REDEPLOY API + WEB (con los fixes del 29/04)
+### ✅ Acción 3 — ALTER TABLE referencia_odoo — RESUELTA (29/04)
+Columna creada correctamente. Verificado en INFORMATION_SCHEMA.
 
-Los commits `248dbed` y `8a03d50` arreglan bugs críticos (estado de solicitudes, referencia Odoo, panel admin). El servidor sigue corriendo el binario antiguo.
+---
+
+### ✅ Acción 4 — Stock piezas — RESUELTA (29/04)
+12 piezas actualizadas. Verificado via API: stocks [2, 1, 3, ...].
+
+---
+
+### ⚠️ Acción 2 — REDEPLOY API + WEB (pendiente desde PC local)
+
+El servidor NO tiene el código fuente, solo el JAR compilado y el dist.
+Hay que compilar en local (tu PC) y subir los artefactos por SCP.
 
 ```bash
-# En el servidor, en el directorio del repo:
-git pull
+# ── Desde tu PC, en la raíz del proyecto ──────────────────────────────
 
-# Rebuild y redeploy API:
+# 1. Compilar API (genera el JAR)
 cd API/autociclo-api
 ./gradlew bootJar
-sudo systemctl stop autociclo-api   # o como lo tengas configurado
-sudo cp build/libs/autociclo-api.jar /opt/autociclo/autociclo-api.jar
-sudo systemctl start autociclo-api
+# El JAR quedará en: build/libs/autociclo-api-*.jar
 
-# Rebuild y redeploy Web:
-cd Web/autociclo-shop
-npm install
+# 2. Subir JAR al servidor y reiniciar
+scp build/libs/autociclo-api-*.jar root@109.123.247.31:/opt/autociclo/autociclo-api.jar
+ssh root@109.123.247.31 "systemctl restart autociclo-api && sleep 10 && \
+  curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/api/piezas"
+# Debe devolver 200
+
+# 3. Compilar web shop
+cd ../../Web/autociclo-shop
 npm run build
-sudo cp -r dist/* /var/www/autociclo-shop/
+# El dist quedará en: dist/
+
+# 4. Subir dist al servidor
+scp -r dist/* root@109.123.247.31:/var/www/autociclo-shop/
+ssh root@109.123.247.31 "curl -s -o /dev/null -w '%{http_code}' http://localhost:8090"
+# Debe devolver 200
 ```
 
 ---
@@ -218,14 +212,14 @@ docker exec autociclo_rabbitmq rabbitmqctl change_password guest NUEVA_CONTRASE�
 
 ## 5. Resumen de Acciones por Prioridad
 
-| # | Prioridad | Acción | Tipo |
-|---|---|---|---|
-| 1 | 🔴 CRÍTICO | Arreglar login — regenerar hash BCrypt | BD servidor |
-| 2 | 🔴 CRÍTICO | Redeploy API + Web con commits recientes | Servidor |
-| 3 | 🟠 ALTO | `ALTER TABLE SOLICITUDES_PRESUPUESTO ADD COLUMN referencia_odoo` | BD servidor |
-| 4 | 🟠 ALTO | UPDATE stock de piezas a valores reales | BD servidor |
-| 5 | 🟡 MEDIO | Cerrar puertos RabbitMQ al exterior | Servidor |
-| 6 | 🔵 SIGUIENTE | Iniciar Entrega 5 — App Móvil Worker | Desarrollo |
+| # | Prioridad | Acción | Tipo | Estado |
+|---|---|---|---|---|
+| 1 | 🔴 CRÍTICO | Arreglar login — hash BCrypt | BD servidor | ✅ Hecho 29/04 |
+| 2 | 🔴 CRÍTICO | Redeploy API + Web (desde PC local) | Local → servidor | ⚠️ Pendiente |
+| 3 | 🟠 ALTO | `ALTER TABLE referencia_odoo` | BD servidor | ✅ Hecho 29/04 |
+| 4 | 🟠 ALTO | UPDATE stock de piezas | BD servidor | ✅ Hecho 29/04 |
+| 5 | 🟡 MEDIO | Cerrar puertos RabbitMQ al exterior | Servidor | ⚠️ Pendiente |
+| 6 | 🔵 SIGUIENTE | Iniciar Entrega 5 — App Móvil Worker | Desarrollo | ❌ No iniciado |
 
 ---
 

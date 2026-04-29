@@ -140,12 +140,12 @@ CREATE TABLE `USUARIOS` (
 
 -- Contraseña de todos los usuarios de prueba: Autociclo2026!
 INSERT INTO `USUARIOS` (`nombre`, `email`, `password_hash`, `id_rol`, `activo`) VALUES
-    ('Admin AutoCiclo',  'admin@autociclo.es',     '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 1, 1),
-    ('Pedro Empleado',   'pedro@autociclo.es',     '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 2, 1),
-    ('María García',     'maria.garcia@email.com', '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 3, 1),
-    ('Admin Sistema',    'admin@autociclo.com',    '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 1, 1),
-    ('Operario Taller',  'operario@autociclo.com', '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 2, 1),
-    ('Cliente Demo',     'cliente@autociclo.com',  '$2y$12$dID1XlvbZRlMayXZuJrrsuaH87YB8fojymyYGVfsHqtLBGV8dYGaK', 3, 1);
+    ('Admin AutoCiclo',  'admin@autociclo.es',     '$2b$12$ySLfFUnmv/ULlvtz.ZB.Zup1PqYC8sMdKP3t9qlQRrPWAeeY7uLcW', 1, 1),
+    ('Pedro Empleado',   'pedro@autociclo.es',     '$2b$12$ySLfFUnmv/ULlvtz.ZB.Zup1PqYC8sMdKP3t9qlQRrPWAeeY7uLcW', 2, 1),
+    ('María García',     'maria.garcia@email.com', '$2b$12$ySLfFUnmv/ULlvtz.ZB.Zup1PqYC8sMdKP3t9qlQRrPWAeeY7uLcW', 3, 1),
+    ('Admin Sistema',    'admin@autociclo.com',    '$2b$12$ySLfFUnmv/ULlvtz.ZB.Zup1PqYC8sMdKP3t9qlQRrPWAeeY7uLcW', 1, 1),
+    ('Operario Taller',  'operario@autociclo.com', '$2b$12$ySLfFUnmv/ULlvtz.ZB.Zup1PqYC8sMdKP3t9qlQRrPWAeeY7uLcW', 2, 1),
+    ('Cliente Demo',     'cliente@autociclo.com',  '$2b$12$ySLfFUnmv/ULlvtz.ZB.Zup1PqYC8sMdKP3t9qlQRrPWAeeY7uLcW', 3, 1);
 
 -- 6. CLIENTES
 CREATE TABLE `CLIENTES` (
