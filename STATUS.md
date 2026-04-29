@@ -67,7 +67,7 @@
 - [x] **FIX código:** estado minúsculas corregido en MisSolicitudes y AdminSolicitudes *(29/04)*
 - [x] **FIX BD:** `ALTER TABLE referencia_odoo` ejecutado en servidor *(29/04)*
 - [x] **FIX BD:** stock de las 12 piezas actualizado en servidor *(29/04)*
-- [ ] **⚠️ REDEPLOY PENDIENTE** — compilar JAR y dist en local y subir al servidor
+- [x] **Redeploy completado** — JAR y dist subidos por SCP, API en PID 692352, 468 MB RAM *(29/04)*
 
 ### Entrega 5 — App Móvil Worker ❌ NO INICIADA
 - [ ] Inicializar `App_Movil/autociclo-worker/` (React Native + Expo)
@@ -215,7 +215,7 @@ docker exec autociclo_rabbitmq rabbitmqctl change_password guest NUEVA_CONTRASE�
 | # | Prioridad | Acción | Tipo | Estado |
 |---|---|---|---|---|
 | 1 | 🔴 CRÍTICO | Arreglar login — hash BCrypt | BD servidor | ✅ Hecho 29/04 |
-| 2 | 🔴 CRÍTICO | Redeploy API + Web (desde PC local) | Local → servidor | ⚠️ Pendiente |
+| 2 | 🔴 CRÍTICO | Redeploy API + Web (desde PC local) | Local → servidor | ✅ Hecho 29/04 |
 | 3 | 🟠 ALTO | `ALTER TABLE referencia_odoo` | BD servidor | ✅ Hecho 29/04 |
 | 4 | 🟠 ALTO | UPDATE stock de piezas | BD servidor | ✅ Hecho 29/04 |
 | 5 | 🟡 MEDIO | Cerrar puertos RabbitMQ al exterior | Servidor | ⚠️ Pendiente |
