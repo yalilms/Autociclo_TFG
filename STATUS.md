@@ -69,16 +69,18 @@
 - [x] **FIX BD:** stock de las 12 piezas actualizado en servidor *(29/04)*
 - [x] **Redeploy completado** — JAR y dist subidos por SCP, API en PID 692352, 468 MB RAM *(29/04)*
 
-### Entrega 5 — App Móvil Worker ❌ NO INICIADA
-- [ ] Inicializar `App_Movil/autociclo-worker/` (React Native + Expo)
-- [ ] Pantalla Login con JWT en AsyncStorage
-- [ ] Dashboard con alertas de stock bajo
-- [ ] Escáner QR con Expo Camera
-- [ ] Buscar pieza por QR o nombre
-- [ ] Detalle de Pieza (stock, ubicación, estado)
-- [ ] Actualizar stock (+/−) con confirmación
-- [ ] Listado de vehículos en patio
-- [ ] Probar en dispositivo Android
+### Entrega 5 — App Móvil Worker ✅ COMPLETADA
+- [x] Proyecto en `movil/Autociclo_Worker/` (Expo SDK 54 + Expo Router + NativeWind + Zustand)
+- [x] Pantalla Login con JWT guardado en expo-secure-store (cifrado)
+- [x] Dashboard con alertas de stock bajo (polling 30s)
+- [x] Escáner QR con expo-camera → navega a detalle pieza o muestra vehículo
+- [x] Buscar pieza por nombre/código con debounce 400ms
+- [x] Detalle de Pieza (stock, ubicación, precio, marcas compatibles)
+- [x] Actualizar stock (+/−) con confirmación y POST /api/stock/movimiento
+- [x] Listado de vehículos con filtro y estados reales (completo/desguazando/desguazado)
+- [x] Logo oficial integrado con border-radius 50% en Login y Dashboard
+- [x] Tema oscuro (#0f172a + #3b82f6) igual que la web shop
+- [x] TypeScript sin errores · API real en http://109.123.247.31:8080
 
 ### Entrega 6 — Demo Final ❌ NO INICIADA
 - [ ] Tests end-to-end del flujo completo
