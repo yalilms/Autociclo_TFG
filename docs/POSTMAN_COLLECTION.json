@@ -1,0 +1,373 @@
+{
+  "info": {
+    "_postman_id": "autociclo-tfg-2026",
+    "name": "AutoCiclo API",
+    "description": "Colección completa de la API REST de AutoCiclo. Base URL: http://109.123.247.31:8080. Autenticación JWT: usar el endpoint Login primero y copiar el token en la variable {{token}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://109.123.247.31:8080" },
+    { "key": "token",   "value": "" }
+  ],
+  "item": [
+    {
+      "name": "🔐 Autenticación",
+      "item": [
+        {
+          "name": "Login",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["const r = pm.response.json();", "if(r.token) pm.collectionVariables.set('token', r.token);"] }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@autociclo.es\",\n  \"password\": \"Autociclo2026!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+          }
+        },
+        {
+          "name": "Login Empleado",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"pedro@autociclo.es\",\n  \"password\": \"Autociclo2026!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+          }
+        },
+        {
+          "name": "Login Cliente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"cliente@autociclo.com\",\n  \"password\": \"Autociclo2026!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+          }
+        },
+        {
+          "name": "Registro nuevo cliente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Nuevo Cliente\",\n  \"email\": \"nuevo@test.com\",\n  \"password\": \"Test1234!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 Piezas",
+      "item": [
+        {
+          "name": "Listar todas las piezas",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/piezas", "host": ["{{baseUrl}}"], "path": ["api","piezas"] }
+          }
+        },
+        {
+          "name": "Buscar piezas por texto",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/piezas/buscar?q=motor", "host": ["{{baseUrl}}"], "path": ["api","piezas","buscar"], "query": [{"key":"q","value":"motor"}] }
+          }
+        },
+        {
+          "name": "Buscar piezas por categoría",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/piezas/buscar?categoria=motor", "host": ["{{baseUrl}}"], "path": ["api","piezas","buscar"], "query": [{"key":"categoria","value":"motor"}] }
+          }
+        },
+        {
+          "name": "Detalle de una pieza",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/piezas/1", "host": ["{{baseUrl}}"], "path": ["api","piezas","1"] }
+          }
+        },
+        {
+          "name": "Crear pieza (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"codigoPieza\": \"MOT-099\",\n  \"nombre\": \"Motor 1.4 TSI\",\n  \"categoria\": \"motor\",\n  \"precioVenta\": 1200.00,\n  \"stockDisponible\": 1,\n  \"stockMinimo\": 1,\n  \"ubicacionAlmacen\": \"Estantería A, nivel 3\",\n  \"compatibleMarcas\": \"Seat Ibiza 2018-2022, Volkswagen Polo\",\n  \"descripcion\": \"Motor gasolina 1.4 TSI 125CV, 70.000 km\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/piezas", "host": ["{{baseUrl}}"], "path": ["api","piezas"] }
+          }
+        },
+        {
+          "name": "Actualizar pieza (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"codigoPieza\": \"MOT-001\",\n  \"nombre\": \"Motor 1.6 TDI\",\n  \"categoria\": \"motor\",\n  \"precioVenta\": 2600.00,\n  \"stockDisponible\": 2,\n  \"stockMinimo\": 1,\n  \"ubicacionAlmacen\": \"Estantería A, nivel 2\",\n  \"compatibleMarcas\": \"Volkswagen Golf 2015-2020\",\n  \"descripcion\": \"Motor diésel actualizado\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/piezas/1", "host": ["{{baseUrl}}"], "path": ["api","piezas","1"] }
+          }
+        },
+        {
+          "name": "Eliminar pieza (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/piezas/99", "host": ["{{baseUrl}}"], "path": ["api","piezas","99"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚗 Vehículos",
+      "item": [
+        {
+          "name": "Listar vehículos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/vehiculos", "host": ["{{baseUrl}}"], "path": ["api","vehiculos"] }
+          }
+        },
+        {
+          "name": "Detalle vehículo",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/vehiculos/3", "host": ["{{baseUrl}}"], "path": ["api","vehiculos","3"] }
+          }
+        },
+        {
+          "name": "Crear vehículo (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"matricula\": \"1234ABC\",\n  \"marca\": \"Seat\",\n  \"modelo\": \"Ibiza\",\n  \"anio\": 2018,\n  \"color\": \"Blanco\",\n  \"fechaEntrada\": \"2026-05-01\",\n  \"estado\": \"completo\",\n  \"precioCompra\": 3500.00,\n  \"kilometraje\": 95000,\n  \"ubicacionGps\": \"Patio norte, fila 2\",\n  \"observaciones\": \"Sin incidencias\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/vehiculos", "host": ["{{baseUrl}}"], "path": ["api","vehiculos"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Stock",
+      "item": [
+        {
+          "name": "Alertas de stock bajo",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/stock/alertas", "host": ["{{baseUrl}}"], "path": ["api","stock","alertas"] }
+          }
+        },
+        {
+          "name": "Registrar entrada de stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"idPieza\": 1,\n  \"tipo\": \"entrada\",\n  \"cantidad\": 2,\n  \"notas\": \"Reposición de stock Motor 1.6 TDI\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/stock/movimiento", "host": ["{{baseUrl}}"], "path": ["api","stock","movimiento"] }
+          }
+        },
+        {
+          "name": "Registrar salida de stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"idPieza\": 11,\n  \"tipo\": \"salida\",\n  \"cantidad\": 1,\n  \"notas\": \"Venta directa en mostrador\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/stock/movimiento", "host": ["{{baseUrl}}"], "path": ["api","stock","movimiento"] }
+          }
+        },
+        {
+          "name": "Historial movimientos de una pieza",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/stock/movimientos/1", "host": ["{{baseUrl}}"], "path": ["api","stock","movimientos","1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Solicitudes",
+      "item": [
+        {
+          "name": "Ver todas las solicitudes (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/solicitudes", "host": ["{{baseUrl}}"], "path": ["api","solicitudes"] }
+          }
+        },
+        {
+          "name": "Crear solicitud (CLIENTE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"piezas\": [\n    { \"idPieza\": 1, \"cantidad\": 1, \"notas\": \"Para VW Golf 2016\" },\n    { \"idPieza\": 9, \"cantidad\": 2, \"notas\": null }\n  ]\n}" },
+            "url": { "raw": "{{baseUrl}}/api/solicitudes", "host": ["{{baseUrl}}"], "path": ["api","solicitudes"] }
+          }
+        },
+        {
+          "name": "Aprobar solicitud (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"respuestaAdmin\": \"Solicitud aprobada. Motor en perfecto estado.\",\n  \"precioTotal\": 2700.00\n}" },
+            "url": { "raw": "{{baseUrl}}/api/solicitudes/1/aprobar", "host": ["{{baseUrl}}"], "path": ["api","solicitudes","1","aprobar"] }
+          }
+        },
+        {
+          "name": "Rechazar solicitud (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"respuestaAdmin\": \"Lo sentimos, la pieza ya no está disponible.\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/solicitudes/1/rechazar", "host": ["{{baseUrl}}"], "path": ["api","solicitudes","1","rechazar"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Inventario",
+      "item": [
+        {
+          "name": "Ver inventario completo",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/inventario", "host": ["{{baseUrl}}"], "path": ["api","inventario"] }
+          }
+        },
+        {
+          "name": "Inventario de un vehículo",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/inventario/vehiculo/3", "host": ["{{baseUrl}}"], "path": ["api","inventario","vehiculo","3"] }
+          }
+        },
+        {
+          "name": "Vehículo de origen de una pieza",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/inventario/pieza/6", "host": ["{{baseUrl}}"], "path": ["api","inventario","pieza","6"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📱 Códigos QR",
+      "item": [
+        {
+          "name": "Buscar por código QR — pieza",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/codigos-qr/QR-PIE-00001", "host": ["{{baseUrl}}"], "path": ["api","codigos-qr","QR-PIE-00001"] }
+          }
+        },
+        {
+          "name": "Buscar por código QR — vehículo",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/codigos-qr/QR-VEH-00003", "host": ["{{baseUrl}}"], "path": ["api","codigos-qr","QR-VEH-00003"] }
+          }
+        },
+        {
+          "name": "Listar todos los QR",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/codigos-qr", "host": ["{{baseUrl}}"], "path": ["api","codigos-qr"] }
+          }
+        },
+        {
+          "name": "Generar QR para pieza (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"tipo\": \"pieza\",\n  \"idReferencia\": 1\n}" },
+            "url": { "raw": "{{baseUrl}}/api/codigos-qr", "host": ["{{baseUrl}}"], "path": ["api","codigos-qr"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Usuarios",
+      "item": [
+        {
+          "name": "Listar usuarios (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/usuarios", "host": ["{{baseUrl}}"], "path": ["api","usuarios"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notificaciones",
+      "item": [
+        {
+          "name": "Ver mis notificaciones",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/notificaciones", "host": ["{{baseUrl}}"], "path": ["api","notificaciones"] }
+          }
+        },
+        {
+          "name": "Marcar notificación como leída",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/notificaciones/1/leer", "host": ["{{baseUrl}}"], "path": ["api","notificaciones","1","leer"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚫 Tests de seguridad",
+      "item": [
+        {
+          "name": "Sin token → 401",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/stock/alertas", "host": ["{{baseUrl}}"], "path": ["api","stock","alertas"] }
+          }
+        },
+        {
+          "name": "Token de cliente en endpoint ADMIN → 403",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE_AQUI" }],
+            "url": { "raw": "{{baseUrl}}/api/usuarios", "host": ["{{baseUrl}}"], "path": ["api","usuarios"] }
+          }
+        }
+      ]
+    }
+  ]
+}
