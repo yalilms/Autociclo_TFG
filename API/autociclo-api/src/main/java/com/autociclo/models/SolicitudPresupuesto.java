@@ -1,5 +1,7 @@
 package com.autociclo.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -8,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "SOLICITUDES_PRESUPUESTO")
 public class SolicitudPresupuesto {
@@ -17,6 +20,7 @@ public class SolicitudPresupuesto {
     @Column(name = "id_solicitud")
     private Integer idSolicitud;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;

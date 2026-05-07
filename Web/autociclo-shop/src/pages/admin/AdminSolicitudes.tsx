@@ -54,13 +54,13 @@ export default function AdminSolicitudes() {
     setSaving(true)
     try {
       if (modal.tipo === 'aprobar') {
-        await client.put(`/solicitudes/${modal.sol.id}/aprobar`, {
+        await client.put(`/solicitudes/${modal.sol.idSolicitud}/aprobar`, {
           respuestaAdmin: respuesta || 'Solicitud aprobada.',
           precioTotal: parseFloat(precio),
         })
         showToast('Solicitud aprobada y enviada a Odoo.')
       } else {
-        await client.put(`/solicitudes/${modal.sol.id}/rechazar`, {
+        await client.put(`/solicitudes/${modal.sol.idSolicitud}/rechazar`, {
           respuestaAdmin: respuesta || 'Solicitud rechazada.',
         })
         showToast('Solicitud rechazada.')
@@ -104,7 +104,7 @@ export default function AdminSolicitudes() {
             const cfg = ESTADO_CFG[sol.estado] ?? ESTADO_CFG.pendiente
             return (
               <motion.div
-                key={sol.id}
+                key={sol.idSolicitud}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.04 }}
@@ -114,7 +114,7 @@ export default function AdminSolicitudes() {
                   <div className="flex items-center gap-4">
                     <div>
                       <p className="text-xs text-slate-500 uppercase tracking-widest font-black mb-0.5">
-                        Solicitud #{sol.id}
+                        Solicitud #{sol.idSolicitud}
                       </p>
                       <span className="text-slate-400 text-sm">{fmt(sol.fechaSolicitud)}</span>
                     </div>
@@ -153,12 +153,12 @@ export default function AdminSolicitudes() {
                     {sol.detalles?.map((d, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
                         <ChevronRight className="w-3 h-3 text-blue-500 shrink-0" />
-                        <span className="text-white">{d.pieza?.nombre || `Pieza #${d.piezaId}`}</span>
+                        <span className="text-white">{d.pieza?.nombre || `Pieza #${d.id?.idPieza}`}</span>
                         <span className="text-slate-500">× {d.cantidad}</span>
                       </div>
                     ))}
-                    {sol.notas && (
-                      <p className="text-xs italic text-slate-500 mt-2">"{sol.notas}"</p>
+                    {sol.respuestaAdmin && (
+                      <p className="text-xs italic text-slate-500 mt-2">"{sol.respuestaAdmin}"</p>
                     )}
                   </div>
                   <div className="shrink-0 text-right flex flex-col items-end gap-2">
@@ -203,7 +203,7 @@ export default function AdminSolicitudes() {
               className="glass-card p-8 w-full max-w-md border-white/20"
             >
               <h2 className="text-xl font-black text-white mb-2">
-                {modal.tipo === 'aprobar' ? '✅ Aprobar solicitud' : '❌ Rechazar solicitud'} #{modal.sol.id}
+                {modal.tipo === 'aprobar' ? '✅ Aprobar solicitud' : '❌ Rechazar solicitud'} #{modal.sol.idSolicitud}
               </h2>
               <p className="text-slate-400 text-sm mb-6">
                 {modal.sol.detalles?.map(d => `${d.pieza?.nombre || 'Pieza'} ×${d.cantidad}`).join(', ')}

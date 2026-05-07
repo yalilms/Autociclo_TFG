@@ -28,7 +28,7 @@ export default function DetallePieza() {
       setPieza(p)
       setInventario(ir.data as InventarioPieza[])
       client.get('/piezas').then(r => {
-        setRelacionadas((r.data as Pieza[]).filter(x => x.categoria === p.categoria && x.id !== p.id).slice(0, 3))
+        setRelacionadas((r.data as Pieza[]).filter(x => x.categoria === p.categoria && x.idPieza !== p.idPieza).slice(0, 3))
       }).catch(() => {})
     }).catch(() => setError('No se pudo cargar la pieza.'))
       .finally(() => setLoading(false))
@@ -57,7 +57,7 @@ export default function DetallePieza() {
     )
   }
 
-  const stockTotal = inventario.reduce((acc, i) => acc + i.cantidad, 0)
+  const stockTotal = pieza.stockDisponible ?? 0
   const enStock = stockTotal > 0
 
   return (
@@ -84,8 +84,8 @@ export default function DetallePieza() {
           animate={{ opacity: 1, scale: 1 }}
           className="glass rounded-3xl overflow-hidden aspect-square flex items-center justify-center bg-slate-800/30"
         >
-          {pieza.foto ? (
-            <img src={pieza.foto} alt={pieza.nombre} className="w-full h-full object-cover" />
+          {pieza.imagen ? (
+            <img src={pieza.imagen} alt={pieza.nombre} className="w-full h-full object-cover" />
           ) : (
             <div className="flex flex-col items-center gap-4 text-slate-600">
               <Tag className="w-20 h-20 opacity-20" />
@@ -124,8 +124,9 @@ export default function DetallePieza() {
           <div className="glass-card p-6 mb-8 space-y-6 border-white/20">
             <div className="flex items-end justify-between">
               <div>
-                <span className="text-slate-500 text-sm block mb-1">Precio cotizado</span>
-                <div className="text-5xl font-black text-white">{formatPrice(pieza.precio)}</div>
+                <span className="text-slate-500 text-sm block mb-1">Precio orientativo</span>
+                <div className="text-5xl font-black text-white">{formatPrice(Number(pieza.precioVenta))}</div>
+                <span className="text-xs text-amber-400/80 mt-1 block">* Precio aproximado. Solicita presupuesto para confirmar.</span>
               </div>
               <div className="text-right">
                 <span className={cn(
@@ -139,7 +140,7 @@ export default function DetallePieza() {
             </div>
 
             <button
-              onClick={() => navigate('/solicitar', { state: { piezaId: pieza.id, nombre: pieza.nombre } })}
+              onClick={() => navigate('/solicitar?piezaId=' + pieza.idPieza)}
               className="btn-primary w-full h-14 flex items-center justify-center gap-3 text-lg font-bold"
             >
               <FileText className="w-6 h-6" />
@@ -170,7 +171,7 @@ export default function DetallePieza() {
               { label: 'Referencia',    value: pieza.codigoPieza },
               { label: 'Categoría',     value: pieza.categoria },
               { label: 'Stock mínimo',  value: `${pieza.stockMinimo} ud.` },
-              ...(pieza.ubicacion ? [{ label: 'Ubicación', value: pieza.ubicacion }] : []),
+              ...(pieza.ubicacionAlmacen ? [{ label: 'Ubicación', value: pieza.ubicacionAlmacen }] : []),
             ].map((item, i) => (
               <div key={i} className="flex items-center justify-between p-4 glass rounded-xl border-white/5">
                 <span className="text-slate-500 text-sm">{item.label}</span>
@@ -209,7 +210,7 @@ export default function DetallePieza() {
         <section className="mt-20">
           <h2 className="text-3xl font-bold text-white mb-8">Piezas Relacionadas</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {relacionadas.map(p => <PiezaCard key={p.id} pieza={p} />)}
+            {relacionadas.map(p => <PiezaCard key={p.idPieza} pieza={p} />)}
           </div>
         </section>
       )}

@@ -1,0 +1,33 @@
+/* =================================================================
+   AUTOCICLO - ANIMACIONES PERSONALIZADAS
+   ================================================================= */
+
+@keyframes float {
+    0% { -fx-translate-y: 0px; }
+    50% { -fx-translate-y: -10px; }
+    100% { -fx-translate-y: 0px; }
+}
+
+.floating {
+    -fx-animation: float 3s infinite ease-in-out;
+}
+
+@keyframes glow {
+    0% { -fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.4), 10, 0, 0, 0); }
+    50% { -fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.8), 20, 0, 0, 0); }
+    100% { -fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.4), 10, 0, 0, 0); }
+}
+
+.glowing {
+    -fx-animation: glow 2s infinite ease-in-out;
+}
+
+@keyframes pulse-border {
+    0% { -fx-border-color: rgba(52, 152, 219, 0.4); }
+    50% { -fx-border-color: rgba(52, 152, 219, 0.9); }
+    100% { -fx-border-color: rgba(52, 152, 219, 0.4); }
+}
+
+.pulsing-border {
+    -fx-animation: pulse-border 2s infinite ease-in-out;
+}

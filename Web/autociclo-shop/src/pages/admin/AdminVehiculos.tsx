@@ -5,21 +5,60 @@ import { motion, AnimatePresence } from 'motion/react'
 import client from '../../api/client'
 import type { Vehiculo } from '../../types'
 
-const ESTADOS = ['EN_PROCESO', 'DISPONIBLE', 'VENDIDO', 'BAJA']
+const ESTADOS = ['completo', 'desguazando', 'desguazado']
+
+const UBICACIONES_VEHICULO = [
+  'Patio principal, zona A','Patio principal, zona B','Patio principal, zona C',
+  'Parking exterior, fila 1','Parking exterior, fila 2','Parking exterior, fila 3',
+  'Nave 1, pasillo central','Nave 2, entrada','Zona de desguace activo','Zona de espera',
+]
+
+const VEHICULOS_DATA: Record<string, string[]> = {
+  'Audi':          ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','R8','e-tron','S3','RS4'],
+  'BMW':           ['Serie 1','Serie 2','Serie 3','Serie 4','Serie 5','Serie 7','X1','X2','X3','X4','X5','X6','Z4','i3','i4','iX','M3','M5'],
+  'Citroën':       ['C1','C3','C4','C5','C3 Aircross','C5 Aircross','Berlingo','Jumpy','Xsara','Saxo'],
+  'Cupra':         ['Formentor','León','Ateca','Born'],
+  'Dacia':         ['Logan','Sandero','Duster','Lodgy','Spring','Jogger'],
+  'Fiat':          ['500','Panda','Tipo','500X','500L','Punto','Bravo','Grande Punto'],
+  'Ford':          ['Fiesta','Focus','Kuga','Puma','Mondeo','Mustang','Transit','C-Max','S-Max','Ranger'],
+  'Honda':         ['Civic','Jazz','CR-V','HR-V','Accord','Type R'],
+  'Hyundai':       ['i10','i20','i30','Kona','Tucson','Santa Fe','IONIQ 5','Bayon','Elantra'],
+  'Jeep':          ['Wrangler','Cherokee','Grand Cherokee','Renegade','Compass','Avenger'],
+  'Kia':           ['Picanto','Rio','Ceed','Sportage','Niro','Sorento','EV6'],
+  'Land Rover':    ['Defender','Discovery','Freelander','Range Rover Evoque','Range Rover Sport','Range Rover'],
+  'Mazda':         ['Mazda2','Mazda3','Mazda6','CX-3','CX-5','MX-5','CX-30'],
+  'Mercedes-Benz': ['Clase A','Clase C','Clase E','Clase S','GLA','GLC','GLE','Clase V','AMG GT','Clase B'],
+  'MG':            ['ZS','HS','MG4','MG5'],
+  'Mini':          ['Mini 3 Puertas','Mini 5 Puertas','Clubman','Countryman'],
+  'Mitsubishi':    ['ASX','Eclipse Cross','Outlander','Space Star','L200','Colt'],
+  'Nissan':        ['Micra','Juke','Qashqai','X-Trail','Leaf','Navara','370Z'],
+  'Opel':          ['Corsa','Astra','Mokka','Grandland','Insignia','Crossland','Zafira','Vectra'],
+  'Peugeot':       ['208','308','2008','3008','5008','508','Rifter','Partner','106','206'],
+  'Porsche':       ['911','Cayenne','Macan','Panamera','Taycan','718 Boxster'],
+  'Renault':       ['Clio','Mégane','Captur','Kadjar','Twingo','Espace','Scenic','Kangoo','Zoe'],
+  'SEAT':          ['Ibiza','León','Arona','Ateca','Tarraco','Mii','Toledo','Altea'],
+  'Skoda':         ['Fabia','Octavia','Superb','Kamiq','Karoq','Kodiaq','Enyaq','Rapid'],
+  'Subaru':        ['Impreza','Forester','Outback','XV','BRZ'],
+  'Suzuki':        ['Swift','Ignis','Vitara','S-Cross','Jimny','Alto'],
+  'Tesla':         ['Model 3','Model S','Model X','Model Y'],
+  'Toyota':        ['Yaris','Corolla','C-HR','RAV4','Aygo','Land Cruiser','Prius','Hilux','Auris','Supra'],
+  'Volkswagen':    ['Polo','Golf','Passat','T-Cross','T-Roc','Tiguan','Touareg','ID.3','ID.4','Caddy','Transporter'],
+  'Volvo':         ['S60','S90','V60','V90','XC40','XC60','XC90','C40'],
+}
+const MARCAS_VEH = Object.keys(VEHICULOS_DATA).sort()
 
 const EMPTY = {
   matricula: '', marca: '', modelo: '', anio: new Date().getFullYear().toString(),
-  color: '', estado: 'EN_PROCESO', precioCompra: '', kilometraje: '',
+  color: '', estado: 'completo', precioCompra: '', kilometraje: '',
   ubicacionGps: '', observaciones: '', fechaEntrada: new Date().toISOString().split('T')[0],
 }
 
 type FormData = typeof EMPTY
 
 const ESTADO_CLS: Record<string, string> = {
-  EN_PROCESO: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
-  DISPONIBLE: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-  VENDIDO:    'bg-blue-500/10 border-blue-500/20 text-blue-400',
-  BAJA:       'bg-red-500/10 border-red-500/20 text-red-400',
+  completo:    'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+  desguazando: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+  desguazado:  'bg-slate-500/10 border-slate-500/20 text-slate-400',
 }
 
 export default function AdminVehiculos() {
@@ -83,7 +122,7 @@ export default function AdminVehiculos() {
         kilometraje: form.kilometraje ? parseInt(form.kilometraje) : null,
       }
       if (editing) {
-        await client.put(`/vehiculos/${editing.id}`, body)
+        await client.put(`/vehiculos/${editing.idVehiculo}`, body)
         showToast('Vehículo actualizado.')
       } else {
         await client.post('/vehiculos', body)
@@ -97,7 +136,7 @@ export default function AdminVehiculos() {
 
   const handleDelete = async (v: Vehiculo) => {
     try {
-      await client.delete(`/vehiculos/${v.id}`)
+      await client.delete(`/vehiculos/${v.idVehiculo}`)
       showToast('Vehículo eliminado.')
       setConfirmDel(null)
       load()
@@ -138,7 +177,7 @@ export default function AdminVehiculos() {
             </thead>
             <tbody>
               {vehiculos.map((v, i) => (
-                <motion.tr key={v.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
+                <motion.tr key={v.idVehiculo} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                   className="border-b border-white/5 hover:bg-white/3 transition-colors">
                   <td className="px-5 py-4 font-mono text-white font-bold">{v.matricula}</td>
                   <td className="px-5 py-4 text-white">{v.marca} {v.modelo}</td>
@@ -202,11 +241,21 @@ export default function AdminVehiculos() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-black tracking-widest mb-2 block">Marca *</label>
-                    <input {...field('marca')} placeholder="Volkswagen" className={inputCls} />
+                    <select
+                      {...field('marca')}
+                      onChange={e => setForm(p => ({ ...p, marca: e.target.value, modelo: '' }))}
+                      className={inputCls}
+                    >
+                      <option value="">— Selecciona marca —</option>
+                      {MARCAS_VEH.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
                   </div>
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-black tracking-widest mb-2 block">Modelo *</label>
-                    <input {...field('modelo')} placeholder="Golf" className={inputCls} />
+                    <select {...field('modelo')} className={inputCls} disabled={!form.marca}>
+                      <option value="">— Selecciona modelo —</option>
+                      {(VEHICULOS_DATA[form.marca] ?? []).map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
@@ -235,7 +284,10 @@ export default function AdminVehiculos() {
                 </div>
                 <div>
                   <label className="text-xs text-slate-500 uppercase font-black tracking-widest mb-2 block">Ubicación en patio</label>
-                  <input {...field('ubicacionGps')} placeholder="Fila 3, plaza 12" className={inputCls} />
+                  <select {...field('ubicacionGps')} className={inputCls}>
+                    <option value="">— Sin asignar —</option>
+                    {UBICACIONES_VEHICULO.map(u => <option key={u} value={u}>{u}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs text-slate-500 uppercase font-black tracking-widest mb-2 block">Observaciones</label>
@@ -265,7 +317,7 @@ export default function AdminVehiculos() {
               className="glass-card p-8 w-full max-w-sm border-white/20 text-center">
               <Car className="w-12 h-12 text-red-400 mx-auto mb-4" />
               <h2 className="text-xl font-black text-white mb-2">¿Eliminar vehículo?</h2>
-              <p className="text-slate-400 text-sm mb-6">{confirmDel.marca} {confirmDel.modelo} — {confirmDel.matricula}</p>
+              <p className="text-slate-400 text-sm mb-6">{confirmDel.marca} {confirmDel.modelo} · {confirmDel.matricula}</p>
               <div className="flex gap-3">
                 <button onClick={() => setConfirmDel(null)} className="flex-1 h-12 rounded-xl glass border border-white/10 text-slate-400 hover:text-white font-bold">Cancelar</button>
                 <button onClick={() => handleDelete(confirmDel)} className="flex-1 h-12 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold">Eliminar</button>

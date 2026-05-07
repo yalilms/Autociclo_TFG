@@ -24,7 +24,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   loadFromStorage: async () => {
-    const user = await getUserData();
-    set({ user, isLoaded: true });
+    try {
+      const user = await getUserData();
+      set({ user, isLoaded: true });
+    } catch {
+      set({ user: null, isLoaded: true });
+    }
   },
 }));

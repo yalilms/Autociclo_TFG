@@ -5,45 +5,58 @@
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.effect.BoxBlur?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.autociclo.controllers.PantallaDeCargaController">
-   <center>
-      <VBox alignment="CENTER" spacing="40.0" BorderPane.alignment="CENTER">
-         <padding>
-            <Insets bottom="80.0" left="80.0" right="80.0" top="80.0" />
-         </padding>
-         <children>
-            <ImageView fitHeight="308.0" fitWidth="459.0" preserveRatio="true">
-               <image>
-               </image>
-            </ImageView>
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.autociclo.controllers.PantallaDeCargaController"
+           prefHeight="750.0" prefWidth="1150.0"
+           stylesheets="@../css/pantallacarga.css">
 
-            <Label style="-fx-text-fill: black; -fx-font-weight: bold;" text="Cargando AutoCiclo">
-               <font>
-                  <Font size="24.0" />
-               </font>
-            </Label>
+   <ImageView fitHeight="750.0" fitWidth="1150.0" preserveRatio="false">
+      <image>
+         <Image url="@../images/pantalla_carga_background.png" />
+      </image>
+      <effect>
+         <BoxBlur width="8" height="8" iterations="3"/>
+      </effect>
+   </ImageView>
 
-            <VBox alignment="CENTER" spacing="10.0">
-               <children>
-                  <ProgressIndicator fx:id="progressBar" prefHeight="100.0" prefWidth="100.0" progress="0.0" style="-fx-progress-color: #3498db;" />
-                  <Label prefHeight="23.0" prefWidth="123.0" style="-fx-text-fill: black;" text="Inicializando sistema...">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
-                  </Label>
-               </children>
-            </VBox>
+   <VBox alignment="CENTER" spacing="30">
+      <ProgressIndicator
+             fx:id="loadingSpinner"
+             prefWidth="80.0"
+             prefHeight="80.0"
+             styleClass="custom-progress"/>
 
-            <Label style="-fx-text-fill: black;" text="Sistema de Gestión de Desguaces">
-               <font>
-                  <Font size="11.0" />
-               </font>
-            </Label>
-         </children>
-      </VBox>
-   </center>
-</BorderPane>
+      <Label
+             fx:id="loadingText"
+             text="Cargando AutoCiclo..."
+             styleClass="loading-text"
+             style="-fx-font-size: 24px;
+                    -fx-font-weight: bold;
+                    -fx-text-fill: white;
+                    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0, 2, 2);"/>
+
+      <Label
+             fx:id="statusText"
+             text="Inicializando sistema..."
+             styleClass="status-text"
+             style="-fx-font-size: 14px;
+                    -fx-text-fill: rgba(255, 255, 255, 0.9);"/>
+
+      <Label
+             fx:id="versionText"
+             text="Versión 1.0.0"
+             styleClass="version-text"
+             style="-fx-font-size: 12px;
+                    -fx-text-fill: rgba(255, 255, 255, 0.7);">
+         <VBox.margin>
+            <Insets top="-8" />
+         </VBox.margin>
+      </Label>
+
+   </VBox>
+
+</StackPane>

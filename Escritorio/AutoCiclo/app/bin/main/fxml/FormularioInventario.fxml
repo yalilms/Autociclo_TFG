@@ -8,138 +8,88 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="520.0" prefWidth="650.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.autociclo.controllers.FormularioInventarioController">
-   <top>
-      <HBox alignment="CENTER" minHeight="50.0" spacing="0.0" style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;" BorderPane.alignment="CENTER">
-         <children>
-            <Region HBox.hgrow="ALWAYS" />
-            <Label alignment="CENTER" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="EDITAR RELACIÓN DE INVENTARIO">
-               <font>
-                  <Font name="System Bold" size="16.0" />
-               </font>
-            </Label>
-            <Region HBox.hgrow="ALWAYS" />
-         </children>
-         <padding>
-            <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
-         </padding>
-      </HBox>
-   </top>
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+            prefHeight="750.0" prefWidth="850.0"
+            styleClass="root" stylesheets="@../css/styles.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.autociclo.controllers.FormularioInventarioController">
+
    <center>
-      <VBox spacing="10.0" BorderPane.alignment="CENTER">
+      <VBox styleClass="form-container" maxWidth="600" maxHeight="550" alignment="TOP_CENTER" BorderPane.alignment="CENTER">
          <children>
-            <Label style="-fx-text-fill: #666666; -fx-font-style: italic;" text="Modifica los datos de la relación de la pieza del inventario">
-               <font>
-                  <Font size="11.0" />
-               </font>
+            <VBox styleClass="form-header">
+               <Label fx:id="lblTitulo" text="INVENTARIO" styleClass="form-title"/>
+            </VBox>
+
+            <Label text="Modifica los datos de la relación de la pieza del inventario" styleClass="subtitle-label">
+               <VBox.margin>
+                  <Insets bottom="20.0"/>
+               </VBox.margin>
             </Label>
-            
-            <GridPane hgap="15.0" vgap="8.0">
+
+            <GridPane hgap="20.0" vgap="15.0">
               <children>
-                  <Label style="-fx-text-fill: #333333;" text="Vehículo Seleccionado" GridPane.rowIndex="0">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
-                  </Label>
-                  <TextField fx:id="txtVehiculoSeleccionado" prefHeight="28.0" prefWidth="250.0" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.rowIndex="1">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
+                  <Label text="Vehículo Seleccionado" GridPane.rowIndex="0" styleClass="form-label"/>
+                  <TextField fx:id="txtVehiculoSeleccionado" GridPane.rowIndex="1" styleClass="form-input">
+                      <tooltip><Tooltip text="Vehículo asociado a esta pieza del inventario" /></tooltip>
                   </TextField>
-                  
-                  <Label style="-fx-text-fill: #333333;" text="Cantidad" GridPane.rowIndex="2">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
-                  </Label>
-                  <TextField fx:id="txtCantidad" prefHeight="28.0" prefWidth="250.0" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.rowIndex="3">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
+
+                  <Label text="Cantidad" GridPane.rowIndex="2" styleClass="form-label"/>
+                  <TextField fx:id="txtCantidad" GridPane.rowIndex="3" styleClass="form-input" promptText="Ej: 1, 2, 3...">
+                      <tooltip><Tooltip text="Cantidad de piezas extraídas de este vehículo" /></tooltip>
                   </TextField>
-                  
-                  <Label style="-fx-text-fill: #333333;" text="Contenedor" GridPane.rowIndex="4">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
-                  </Label>
-                  <VBox spacing="5.0" GridPane.rowIndex="5">
+
+                  <Label text="Contenedor" GridPane.rowIndex="4" styleClass="form-label"/>
+                  <VBox spacing="8.0" GridPane.rowIndex="5">
                      <children>
-                        <RadioButton fx:id="rbNuevo" mnemonicParsing="false" style="-fx-cursor: hand;" text="Nuevo">
+                        <RadioButton fx:id="rbNuevo" mnemonicParsing="true" text="_Nuevo">
                            <toggleGroup>
                               <ToggleGroup fx:id="grupoContenedor" />
                            </toggleGroup>
-                           <font>
-                              <Font size="12.0" />
-                           </font>
+                           <tooltip><Tooltip text="La pieza está en estado nuevo (Alt+N)" /></tooltip>
                         </RadioButton>
-                        <RadioButton fx:id="rbUsado" mnemonicParsing="false" style="-fx-cursor: hand;" text="Usado" toggleGroup="$grupoContenedor">
-                           <font>
-                              <Font size="12.0" />
-                           </font>
+                        <RadioButton fx:id="rbUsado" mnemonicParsing="true" text="_Usado" toggleGroup="$grupoContenedor">
+                            <tooltip><Tooltip text="La pieza está en estado usado (Alt+U)" /></tooltip>
                         </RadioButton>
-                        <RadioButton fx:id="rbReparado" mnemonicParsing="false" style="-fx-cursor: hand;" text="Reparado" toggleGroup="$grupoContenedor">
-                           <font>
-                              <Font size="12.0" />
-                           </font>
+                        <RadioButton fx:id="rbReparado" mnemonicParsing="true" text="_Reparado" toggleGroup="$grupoContenedor">
+                            <tooltip><Tooltip text="La pieza ha sido reparada (Alt+R)" /></tooltip>
                         </RadioButton>
                      </children>
                   </VBox>
-                  
-                  <Label style="-fx-text-fill: #333333;" text="Pieza" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
-                  </Label>
-                  <TextField fx:id="txtPieza" prefHeight="28.0" prefWidth="250.0" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
+
+                  <Label text="Pieza" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
+                  <TextField fx:id="txtPieza" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="form-input">
+                      <tooltip><Tooltip text="Nombre de la pieza asociada" /></tooltip>
                   </TextField>
-                  
-                  <Label style="-fx-text-fill: #333333;" text="Precio Mecánico" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
-                  </Label>
-                  <TextField fx:id="txtPrecioMecanico" prefHeight="28.0" prefWidth="250.0" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
+
+                  <Label text="Precio Mecánico" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
+                  <TextField fx:id="txtPrecioMecanico" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-input" promptText="Ej: 150.00">
+                      <tooltip><Tooltip text="Precio del trabajo mecánico de extracción (en euros)" /></tooltip>
                   </TextField>
-                  
-                  <Label style="-fx-text-fill: #333333;" text="Fecha de Extracción" GridPane.columnIndex="1" GridPane.rowIndex="4">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
-                  </Label>
-                  <HBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
+
+                  <Label text="Fecha de Extracción" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
+                  <HBox spacing="10.0" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="5">
                      <children>
-                        <DatePicker fx:id="dpFechaExtraccion" prefHeight="28.0" prefWidth="210.0" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;">
-                           <HBox.margin>
-                              <Insets />
-                           </HBox.margin>
+                        <DatePicker fx:id="dpFechaExtraccion" styleClass="form-input">
+                            <tooltip><Tooltip text="Fecha en que se extrajo la pieza del vehículo" /></tooltip>
                         </DatePicker>
-                        <Button fx:id="btnCalendario" mnemonicParsing="false" prefHeight="28.0" prefWidth="35.0" style="-fx-background-color: #e0e0e0; -fx-cursor: hand; -fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" text="📅">
-                           <font>
-                              <Font size="12.0" />
-                           </font>
+                        <Button fx:id="btnCalendario" mnemonicParsing="true" styleClass="button" text="📅">
+                            <tooltip><Tooltip text="Abrir selector de fecha" /></tooltip>
                         </Button>
                      </children>
                   </HBox>
               </children>
                <columnConstraints>
-                  <ColumnConstraints />
-                  <ColumnConstraints />
+                  <ColumnConstraints hgrow="ALWAYS" />
+                  <ColumnConstraints hgrow="ALWAYS" />
                </columnConstraints>
                <rowConstraints>
                   <RowConstraints />
@@ -150,40 +100,27 @@
                   <RowConstraints />
                </rowConstraints>
             </GridPane>
-            
-            <Label style="-fx-text-fill: #333333;" text="Notas">
-               <font>
-                  <Font size="12.0" />
-               </font>
+
+            <Label text="Notas" styleClass="form-label">
+               <VBox.margin>
+                  <Insets top="15.0"/>
+               </VBox.margin>
             </Label>
-            <TextArea fx:id="txtNotas" prefHeight="80.0" prefWidth="590.0" style="-fx-background-radius: 3; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" wrapText="true">
-               <font>
-                  <Font size="12.0" />
-               </font>
+            <TextArea fx:id="txtNotas" prefHeight="80.0" wrapText="true" styleClass="form-input" promptText="Notas adicionales sobre la pieza o extracción...">
+                <tooltip><Tooltip text="Añade notas o comentarios adicionales" /></tooltip>
             </TextArea>
+
+            <HBox styleClass="form-actions">
+               <children>
+                  <Button fx:id="btnCancelar" mnemonicParsing="true" styleClass="button, button-danger" text="_Cancelar">
+                      <tooltip><Tooltip text="Cancelar y cerrar sin guardar (Alt+C)" /></tooltip>
+                  </Button>
+                  <Button fx:id="btnGuardar" mnemonicParsing="true" styleClass="button, button-success" text="_Guardar">
+                      <tooltip><Tooltip text="Guardar los cambios en el inventario (Alt+G)" /></tooltip>
+                  </Button>
+               </children>
+            </HBox>
          </children>
-         <padding>
-            <Insets bottom="10.0" left="30.0" right="30.0" top="20.0" />
-         </padding>
       </VBox>
    </center>
-   <bottom>
-      <HBox alignment="CENTER_RIGHT" minHeight="60.0" spacing="10.0" BorderPane.alignment="CENTER">
-         <children>
-            <Button fx:id="btnCancelar" mnemonicParsing="false" prefHeight="32.0" prefWidth="100.0" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-background-radius: 3; -fx-cursor: hand; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3;" text="Cancelar">
-               <font>
-                  <Font size="12.0" />
-               </font>
-            </Button>
-            <Button fx:id="btnGuardar" mnemonicParsing="false" prefHeight="32.0" prefWidth="100.0" style="-fx-background-color: #5cb85c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3; -fx-cursor: hand;" text="Guardar">
-               <font>
-                  <Font size="12.0" />
-               </font>
-            </Button>
-         </children>
-         <padding>
-            <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
-         </padding>
-      </HBox>
-   </bottom>
 </BorderPane>

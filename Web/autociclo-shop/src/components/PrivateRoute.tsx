@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 
 interface Props {
@@ -7,6 +7,7 @@ interface Props {
 
 export default function PrivateRoute({ children }: Props) {
   const { token } = useAuthStore()
-  if (!token) return <Navigate to="/login" replace />
+  const location = useLocation()
+  if (!token) return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />
   return <>{children}</>
 }

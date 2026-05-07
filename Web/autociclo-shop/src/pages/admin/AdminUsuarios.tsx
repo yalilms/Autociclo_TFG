@@ -29,7 +29,17 @@ export default function AdminUsuarios() {
 
   const load = () => {
     setLoading(true)
-    client.get('/usuarios').then(r => setUsuarios(r.data)).catch(() => {}).finally(() => setLoading(false))
+    client.get('/usuarios')
+      .then(r => {
+        // La API devuelve rol como objeto {idRol, nombre} — lo normalizamos a string
+        const data = (r.data as Array<Record<string, unknown>>).map(u => ({
+          ...u,
+          rol: (u.rol as Record<string, unknown>)?.nombre ?? u.rol,
+        }))
+        setUsuarios(data as unknown as UsuarioAdmin[])
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }
 
   useEffect(load, [])

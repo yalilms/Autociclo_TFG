@@ -1,0 +1,500 @@
+/* =================================================================
+   AUTOCICLO - PREMIUM GLASSMORPHISM THEME
+   ================================================================= */
+
+/* 1. VARIABLES Y RAÍZ */
+.root {
+    /* Colores Principales */
+    -color-bg: #0f172a;
+    /* Slate 900 */
+    -color-bg-overlay: rgba(15, 23, 42, 0.8);
+    -color-primary: #3b82f6;
+    /* Blue 500 */
+    -color-primary-hover: #2563eb;
+    /* Blue 600 */
+    -color-secondary: #10b981;
+    /* Emerald 500 */
+    -color-accent: #8b5cf6;
+    /* Violet 500 */
+    -color-danger: #ef4444;
+    /* Red 500 */
+    -color-text-light: #f8fafc;
+    /* Slate 50 */
+    -color-text-dim: #94a3b8;
+    /* Slate 400 */
+
+    /* Efecto Cristal */
+    -glass-bg: rgba(30, 41, 59, 0.7);
+    /* Slate 800 con opacidad */
+    -glass-border: rgba(255, 255, 255, 0.1);
+    -glass-shadow: rgba(0, 0, 0, 0.5);
+
+    /* Fuentes */
+    -fx-font-family: "Segoe UI", "Inter", sans-serif;
+    -fx-font-size: 14px;
+    -fx-base: -color-bg;
+    -fx-background: -color-bg;
+    -fx-text-fill: -color-text-light;
+}
+
+/* 2. COMPONENTES GENERALES */
+
+.label {
+    -fx-text-fill: -color-text-light;
+}
+
+.title-label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 5, 0, 0, 2);
+}
+
+.subtitle-label {
+    -fx-font-size: 16px;
+    -fx-text-fill: -color-text-dim;
+}
+
+/* 3. BOTONES */
+
+.button {
+    -fx-background-color: linear-gradient(to bottom right, #334155, #1e293b);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-border-color: -glass-border;
+    -fx-border-width: 1px;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 5, 0, 0, 2);
+    -fx-transition: all 0.3s;
+    -fx-font-size: 13px;
+    -fx-min-height: 36px;
+}
+
+.button:hover {
+    -fx-background-color: linear-gradient(to bottom right, #475569, #334155);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.4), 10, 0, 0, 0);
+    /* Brillo azul */
+}
+
+.button:pressed {
+    -fx-background-color: #0f172a;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+/* Botón de Acción Primaria */
+.button-primary {
+    -fx-background-color: linear-gradient(to bottom right, -color-primary, -color-primary-hover);
+}
+
+.button-primary:hover {
+    -fx-background-color: linear-gradient(to bottom right, #60a5fa, -color-primary);
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.6), 15, 0, 0, 0);
+}
+
+/* Botón de Acción Éxito */
+.button-success {
+    -fx-background-color: linear-gradient(to bottom right, -color-secondary, #059669);
+}
+
+.button-success:hover {
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.6), 15, 0, 0, 0);
+}
+
+/* Botón de Acción Peligrosa */
+.button-danger {
+    -fx-background-color: linear-gradient(to bottom right, -color-danger, #dc2626);
+}
+
+.button-danger:hover {
+    -fx-effect: dropshadow(gaussian, rgba(239, 68, 68, 0.6), 15, 0, 0, 0);
+}
+
+/* Botones de Barra de Herramientas - Estilo compacto */
+.tool-bar .button {
+    -fx-padding: 6px 12px;
+    -fx-min-height: 32px;
+    -fx-pref-height: 32px;
+    -fx-font-size: 12px;
+    -fx-graphic-text-gap: 6px;
+}
+
+.tool-bar .button .text {
+    -fx-fill: white;
+}
+
+/* 4. CAMPOS DE TEXTO Y ENTRADAS */
+
+.text-field,
+.password-field,
+.text-area {
+    -fx-background-color: rgba(30, 41, 59, 0.5);
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: -color-text-dim;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: -glass-border;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+}
+
+.text-field:focused,
+.password-field:focused,
+.text-area:focused {
+    -fx-border-color: -color-primary;
+    -fx-background-color: rgba(30, 41, 59, 0.8);
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.3), 8, 0, 0, 0);
+}
+
+/* 5. VISTA DE TABLA (ESTILO CRISTAL) */
+
+.table-view {
+    -fx-background-color: transparent;
+    /* Transparente para mostrar fondo */
+    -fx-table-cell-border-color: transparent;
+    -fx-padding: 10px;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: rgba(30, 41, 59, 0.9);
+    -fx-background-radius: 8px 8px 0 0;
+    -fx-border-color: -glass-border;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-size: 45px;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -color-text-light;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.table-view .table-cell {
+    -fx-text-fill: -color-text-dim;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10px;
+}
+
+.table-row-cell {
+    -fx-background-color: rgba(30, 41, 59, 0.4);
+    -fx-background-insets: 0, 0 0 1 0;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: rgba(30, 41, 59, 0.6);
+}
+
+.table-row-cell:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.2);
+    /* Hover azul sutil */
+}
+
+.table-row-cell:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.4);
+    -fx-table-cell-border-color: transparent;
+}
+
+/* 6. CONTENEDORES Y PANELES */
+
+.glass-pane {
+    -fx-background-color: -glass-bg;
+    -fx-background-radius: 16px;
+    -fx-border-radius: 16px;
+    -fx-border-color: -glass-border;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(gaussian, -glass-shadow, 20, 0.5, 0, 5);
+}
+
+.sidebar {
+    -fx-background-color: rgba(15, 23, 42, 0.95);
+    -fx-border-color: -glass-border;
+    -fx-border-width: 0 1px 0 0;
+}
+
+/* 7. BARRA DE DESPLAZAMIENTO */
+
+.scroll-bar:vertical,
+.scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-background-radius: 10px;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 8. BARRA DE MENÚ Y BARRA DE HERRAMIENTAS */
+
+.menu-bar {
+    -fx-background-color: rgba(15, 23, 42, 0.9);
+    -fx-border-color: -glass-border;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.menu-item:hover {
+    -fx-background-color: -color-primary;
+}
+
+.context-menu {
+    -fx-background-color: #1e293b;
+    -fx-border-color: -glass-border;
+}
+
+/* 9. BARRA DE PROGRESO */
+.progress-bar .track {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-radius: 10px;
+}
+
+.progress-bar .bar {
+    -fx-background-color: linear-gradient(to right, -color-primary, -color-accent);
+    -fx-background-radius: 10px;
+    -fx-effect: dropshadow(gaussian, -color-primary, 10, 0, 0, 0);
+}
+
+/* --- Pantalla de Carga Específicos --- */
+
+.loading-glass-pane {
+    -fx-background-color: rgba(15, 23, 42, 0.65);
+    /* Fondo más oscuro y opaco */
+    -fx-background-radius: 25;
+    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-border-radius: 25;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 30, 0, 0, 15);
+}
+
+.metallic-text {
+    -fx-font-family: "System";
+    /* O una fuente específica si está disponible */
+    -fx-font-weight: bold;
+    -fx-font-size: 48px;
+    -fx-fill: linear-gradient(to bottom, #ffffff 0%, #dcdcdc 50%, #a0a0a0 51%, #ffffff 100%);
+    -fx-effect: dropshadow(one-pass-box, rgba(0, 0, 0, 0.8), 2, 0.0, 1, 1);
+    -fx-stroke: #444444;
+    -fx-stroke-width: 1;
+}
+
+.loading-status-label {
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(one-pass-box, rgba(0, 0, 0, 0.5), 5, 0.0, 0, 1);
+}
+
+.loading-sub-status-label {
+    -fx-text-fill: #cccccc;
+    -fx-font-size: 14px;
+}
+
+.loading-footer-label {
+    -fx-text-fill: #aaaaaa;
+    -fx-font-size: 12px;
+}
+
+/* Barra de Progreso Personalizada para Pantalla de Carga */
+.loading-progress-bar .track {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-radius: 10;
+}
+
+.loading-progress-bar .bar {
+    -fx-background-color: linear-gradient(to right, #007bff, #00d2ff);
+    -fx-background-radius: 10;
+    -fx-background-insets: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 210, 255, 0.6), 10, 0, 0, 0);
+}
+
+/* =================================================================
+   10. SISTEMA DE DISEÑO DE FORMULARIOS
+   ================================================================= */
+
+.form-container {
+    -fx-background-color: -glass-bg;
+    -fx-background-radius: 16px;
+    -fx-border-radius: 16px;
+    -fx-border-color: -glass-border;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(gaussian, -glass-shadow, 20, 0.5, 0, 5);
+    -fx-padding: 30px;
+}
+
+.form-header {
+    -fx-border-color: -glass-border;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 0 0 20px 0;
+    -fx-margin: 0 0 20px 0;
+    -fx-alignment: CENTER;
+}
+
+.form-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 3, 0, 0, 1);
+}
+
+.form-section-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-primary;
+    -fx-padding: 10px 0 5px 0;
+    -fx-border-color: -glass-border;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.form-label {
+    -fx-text-fill: -color-text-dim;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.form-input {
+    -fx-pref-height: 35px;
+    -fx-font-size: 14px;
+}
+
+.form-actions {
+    -fx-padding: 20px 0 0 0;
+    -fx-border-color: -glass-border;
+    -fx-border-width: 1px 0 0 0;
+    -fx-alignment: CENTER_RIGHT;
+    -fx-spacing: 15px;
+}
+.form-value {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+    -fx-padding: 5px;
+}
+
+/* =================================================================
+   11. ESTILOS DE SELECTOR DE FECHA
+   ================================================================= */
+
+.date-picker {
+    -fx-background-color: rgba(30, 41, 59, 0.5);
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: -glass-border;
+}
+
+.date-picker .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.date-picker .arrow-button .arrow {
+    -fx-background-color: white;
+}
+
+.date-picker-popup {
+    -fx-background-color: #1e293b;
+    -fx-border-color: -glass-border;
+}
+
+.date-picker-popup > .month-year-pane {
+    -fx-background-color: #1e293b;
+}
+
+.date-picker-popup > .month-year-pane .spinner .button {
+    -fx-background-color: transparent;
+}
+
+.date-picker-popup > .month-year-pane .spinner .button .left-arrow,
+.date-picker-popup > .month-year-pane .spinner .button .right-arrow {
+    -fx-background-color: white;
+}
+
+.date-picker-popup > .month-year-pane .spinner .label {
+    -fx-text-fill: white;
+}
+
+.date-picker-popup > .calendar-grid .day-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text-dim;
+}
+
+.date-picker-popup > .calendar-grid .day-cell:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.3);
+}
+
+.date-picker-popup > .calendar-grid .day-cell.selected {
+    -fx-background-color: -color-primary;
+    -fx-text-fill: white;
+}
+
+.date-picker-popup > .calendar-grid .day-name-cell {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.date-picker-popup > .calendar-grid .week-number-cell {
+    -fx-text-fill: -color-text-dim;
+}
+
+/* =================================================================
+   12. ESTILOS DE DIÁLOGOS Y ALERTAS
+   ================================================================= */
+
+.dialog-pane {
+    -fx-background-color: -glass-bg;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: rgba(30, 41, 59, 0.9);
+    -fx-padding: 15px;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.dialog-pane .content.label {
+    -fx-text-fill: -color-text-dim;
+    -fx-font-size: 14px;
+    -fx-padding: 15px;
+}
+
+/* Iconos de alerta - asegurar visibilidad */
+.dialog-pane .graphic-container {
+    -fx-padding: 10px;
+}
+
+.dialog-pane .graphic {
+    -fx-opacity: 1.0;
+}
+
+/* Botones del diálogo */
+.dialog-pane .button-bar .button {
+    -fx-min-width: 80px;
+}
+
+/* Tooltip estilos */
+.tooltip {
+    -fx-background-color: rgba(30, 41, 59, 0.95);
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 8px 12px;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: -glass-border;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 3);
+}

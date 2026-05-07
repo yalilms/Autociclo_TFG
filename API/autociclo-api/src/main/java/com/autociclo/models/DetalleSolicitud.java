@@ -1,9 +1,12 @@
 package com.autociclo.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "DETALLE_SOLICITUD")
 public class DetalleSolicitud {
@@ -11,6 +14,7 @@ public class DetalleSolicitud {
     @EmbeddedId
     private DetalleSolicitudId id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("idSolicitud")
     @JoinColumn(name = "id_solicitud")

@@ -11,7 +11,8 @@ interface Props {
 
 export default function PiezaCard({ pieza, cantidad }: Props) {
   const navigate = useNavigate()
-  const disponible = cantidad !== undefined ? cantidad > 0 : true
+  const stock = cantidad !== undefined ? cantidad : (pieza.stockDisponible ?? 0)
+  const disponible = stock > 0
 
   const categoriaColor: Record<string, string> = {
     motor:      'bg-orange-500/80',
@@ -33,10 +34,10 @@ export default function PiezaCard({ pieza, cantidad }: Props) {
     >
       {/* Image */}
       <div className="relative aspect-4/3 overflow-hidden bg-slate-800/50">
-        <Link to={`/catalogo/${pieza.id}`}>
-          {pieza.foto ? (
+        <Link to={`/catalogo/${pieza.idPieza}`}>
+          {pieza.imagen ? (
             <img
-              src={pieza.foto}
+              src={pieza.imagen}
               alt={pieza.nombre}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />
@@ -72,7 +73,7 @@ export default function PiezaCard({ pieza, cantidad }: Props) {
           </span>
         </div>
 
-        <Link to={`/catalogo/${pieza.id}`} className="hover:text-blue-400 transition-colors">
+        <Link to={`/catalogo/${pieza.idPieza}`} className="hover:text-blue-400 transition-colors">
           <h3 className="text-white font-bold text-lg mb-2 line-clamp-2 leading-tight">
             {pieza.nombre}
           </h3>
@@ -86,15 +87,16 @@ export default function PiezaCard({ pieza, cantidad }: Props) {
 
         <div className="mt-auto flex items-center justify-between pt-4 border-t border-white/5">
           <div className="flex flex-col">
-            <span className="text-2xl font-bold text-white">{formatPrice(pieza.precio)}</span>
+            <span className="text-2xl font-bold text-white">{formatPrice(Number(pieza.precioVenta))}</span>
+            <span className="text-[10px] text-amber-400/70">precio orientativo</span>
             <span className="text-[10px] text-emerald-500 flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3" />
-              {disponible ? `Stock mín. ${pieza.stockMinimo}` : 'Sin stock'}
+              {disponible ? `${stock} ud. disponibles` : 'Sin stock'}
             </span>
           </div>
 
           <button
-            onClick={() => navigate('/solicitar', { state: { piezaId: pieza.id, nombre: pieza.nombre } })}
+            onClick={() => navigate('/solicitar?piezaId=' + pieza.idPieza)}
             className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 transition-all active:scale-90 glow-blue"
             title="Solicitar presupuesto"
           >

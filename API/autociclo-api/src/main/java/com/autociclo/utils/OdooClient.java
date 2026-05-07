@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -49,6 +51,7 @@ public class OdooClient {
     public OdooClient() {
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
+                .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
                 .build();
         this.mapper = new ObjectMapper();
     }
@@ -119,16 +122,64 @@ public class OdooClient {
         return newId.asInt();
     }
 
+    private int buscarOCrearProducto(int uid, String nombre, double precio) throws Exception {
+        ArrayNode domain = mapper.createArrayNode();
+        ArrayNode cond   = mapper.createArrayNode();
+        cond.add("name"); cond.add("="); cond.add(nombre);
+        domain.add(cond);
+
+        JsonNode ids = callOdooRpc(uid, "product.product", "search", domain);
+        if (ids.isArray() && ids.size() > 0) {
+            int existingId = ids.get(0).asInt();
+            // Actualizar precio de lista para que coincida con el precio de la pieza
+            ArrayNode writeIds = mapper.createArrayNode();
+            writeIds.add(existingId);
+            ObjectNode writeArgs = mapper.createObjectNode();
+            writeArgs.set("ids", writeIds);
+            ObjectNode writeVals = mapper.createObjectNode();
+            writeVals.put("list_price", precio);
+            ArrayNode writeArgsArr = mapper.createArrayNode();
+            writeArgsArr.add(writeIds);
+            writeArgsArr.add(writeVals);
+            callOdooRpc(uid, "product.product", "write", writeArgsArr);
+            return existingId;
+        }
+
+        ObjectNode vals = mapper.createObjectNode();
+        vals.put("name",       nombre);
+        vals.put("type",       "consu");
+        vals.put("sale_ok",    true);
+        vals.put("purchase_ok",false);
+        vals.put("list_price", precio);
+        JsonNode newId = callOdooRpc(uid, "product.product", "create", vals);
+        return newId.asInt();
+    }
+
     private int crearSaleOrder(int uid, int partnerId,
                                List<Map<String, Object>> lineas) throws Exception {
-        // Construir order_line como lista de comandos (0, 0, vals)
+        // ID del impuesto IVA 21% en Odoo
+        ArrayNode taxDomain = mapper.createArrayNode();
+        ArrayNode taxCond   = mapper.createArrayNode();
+        taxCond.add("name"); taxCond.add("="); taxCond.add("IVA 21%");
+        taxDomain.add(taxCond);
+        JsonNode taxIds = callOdooRpc(uid, "account.tax", "search", taxDomain);
+        int ivaId = (taxIds.isArray() && taxIds.size() > 0) ? taxIds.get(0).asInt() : -1;
+
         ArrayNode orderLines = mapper.createArrayNode();
         for (Map<String, Object> linea : lineas) {
+            double precio = Double.parseDouble(linea.get("precioUnitario").toString());
+            int productId = buscarOCrearProducto(uid, linea.get("nombre").toString(), precio);
             ArrayNode cmd  = mapper.createArrayNode();
             ObjectNode val = mapper.createObjectNode();
-            val.put("name",           linea.get("nombre").toString());
+            val.put("product_id",      productId);
+            val.put("name",            linea.get("nombre").toString());
             val.put("product_uom_qty", Double.parseDouble(linea.get("cantidad").toString()));
-            val.put("price_unit",      Double.parseDouble(linea.get("precioUnitario").toString()));
+            val.put("price_unit",      precio);
+            if (ivaId > 0) {
+                ArrayNode taxes = mapper.createArrayNode();
+                taxes.add(ivaId);
+                val.set("tax_id", taxes);
+            }
             cmd.add(0); cmd.add(0); cmd.add(val);
             orderLines.add(cmd);
         }

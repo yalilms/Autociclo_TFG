@@ -30,9 +30,9 @@ export default function AdminDashboard() {
         piezas: piezas.data.length,
         vehiculos: vehiculos.data.length,
         usuarios: usuarios.data.length,
-        solicitudesPendientes: sols.filter(s => s.estado === 'PENDIENTE').length,
-        solicitudesAprobadas: sols.filter(s => s.estado === 'APROBADA').length,
-        solicitudesRechazadas: sols.filter(s => s.estado === 'RECHAZADA').length,
+        solicitudesPendientes: sols.filter(s => s.estado === 'pendiente').length,
+        solicitudesAprobadas: sols.filter(s => s.estado === 'aprobada').length,
+        solicitudesRechazadas: sols.filter(s => s.estado === 'rechazada').length,
         ingresosTotales: sols
           .filter(s => s.estado === 'APROBADA')
           .reduce((acc, s) => acc + (s.precioTotal ?? 0), 0),

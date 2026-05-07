@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { User, Mail, Lock, Phone, AlertCircle, ArrowLeft, UserPlus } from 'lucide-react'
 import client from '../api/client'
 import { useAuthStore } from '../store/authStore'
 
 export default function Registro() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: string })?.from || '/'
   const { login } = useAuthStore()
   const [form, setForm]   = useState({ nombre: '', email: '', password: '', telefono: '' })
   const [error, setError] = useState('')
@@ -21,7 +23,7 @@ export default function Registro() {
       const res = await client.post('/auth/register', { ...form, rol: 'CLIENTE' })
       const { token, nombre, email, rol, id } = res.data
       login(token, { id, nombre, email, rol })
-      navigate('/')
+      navigate(from, { replace: true })
     } catch (err: unknown) {
       const ae = err as { response?: { data?: { message?: string } } }
       setError(ae.response?.data?.message || 'El email ya está en uso o ha ocurrido un error.')
@@ -53,7 +55,7 @@ export default function Registro() {
       <div className="max-w-md w-full glass-card p-10 border-white/20 relative z-10">
         {/* Logo */}
         <div className="text-center mb-10">
-          <img src="/logo.png" alt="AutoCiclo" className="w-16 h-16 object-contain mx-auto mb-4" />
+          <img src="/logo.png" alt="AutoCiclo" className="w-16 h-16 object-cover rounded-full mx-auto mb-4" />
           <h1 className="text-4xl font-black text-white mb-2">Crear cuenta</h1>
           <p className="text-slate-500">Únete a AutoCiclo y solicita presupuestos al instante</p>
         </div>
@@ -99,7 +101,7 @@ export default function Registro() {
 
         <p className="mt-8 text-center text-sm text-slate-600">
           ¿Ya tienes cuenta?{' '}
-          <Link to="/login" className="text-blue-500 font-bold hover:underline">Iniciar sesión</Link>
+          <Link to="/login" state={{ from }} className="text-blue-500 font-bold hover:underline">Iniciar sesión</Link>
         </p>
       </div>
     </div>

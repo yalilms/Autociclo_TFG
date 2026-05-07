@@ -60,7 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Footer */}
         <div className="p-4 border-t border-white/10 space-y-2">
           <NavLink to="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-slate-500 hover:text-white hover:bg-white/5 transition-all">
-            <img src="/logo.png" alt="AutoCiclo" className="w-4 h-4 object-contain" />
+            <img src="/logo.png" alt="AutoCiclo" className="w-4 h-4 object-cover rounded-full" />
             Ir a la tienda
           </NavLink>
           <button

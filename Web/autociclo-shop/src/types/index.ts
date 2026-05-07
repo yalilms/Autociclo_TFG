@@ -13,17 +13,17 @@ export interface AuthState {
 }
 
 export interface Pieza {
-  id: number
+  idPieza: number
   codigoPieza: string
   nombre: string
   descripcion?: string
   categoria: string
-  precio: number
+  precioVenta: number
   stockDisponible?: number
   stockMinimo?: number
-  ubicacion?: string
+  ubicacionAlmacen?: string
   compatibleMarcas?: string
-  foto?: string
+  imagen?: string
 }
 
 export interface InventarioPieza {
@@ -36,13 +36,13 @@ export interface InventarioPieza {
 }
 
 export interface Vehiculo {
-  id: number
+  idVehiculo: number
   matricula: string
   marca: string
   modelo: string
   anio: number
   color?: string
-  estado: string
+  estado: 'completo' | 'desguazando' | 'desguazado'
   precioCompra?: number
   kilometraje?: number
   ubicacionGps?: string
@@ -60,18 +60,17 @@ export interface UsuarioAdmin {
 }
 
 export interface SolicitudPresupuesto {
-  id: number
-  clienteId: number
+  idSolicitud: number
   fechaSolicitud: string
   estado: 'pendiente' | 'en_revision' | 'aprobada' | 'rechazada'
-  notas: string
+  respuestaAdmin?: string
   referenciaOdoo?: string
   precioTotal?: number
   detalles: DetalleSolicitud[]
 }
 
 export interface DetalleSolicitud {
-  piezaId: number
+  id?: { idSolicitud: number; idPieza: number }
   cantidad: number
   pieza?: Pieza
 }

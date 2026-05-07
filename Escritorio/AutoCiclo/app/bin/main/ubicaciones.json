@@ -1,0 +1,32 @@
+{
+  "vehiculos": [
+    "Patio principal, zona A",
+    "Patio principal, zona B",
+    "Patio principal, zona C",
+    "Parking exterior, fila 1",
+    "Parking exterior, fila 2",
+    "Parking exterior, fila 3",
+    "Nave 1, pasillo central",
+    "Nave 2, entrada",
+    "Zona de desguace activo",
+    "Zona de espera"
+  ],
+  "piezas": [
+    "Estantería A, nivel 1",
+    "Estantería A, nivel 2",
+    "Estantería B, nivel 1",
+    "Estantería B, nivel 2",
+    "Estantería C, nivel 1",
+    "Estantería D, nivel 3",
+    "Zona motores, pasillo 1",
+    "Zona motores, pasillo 2",
+    "Zona motores, pasillo 3",
+    "Zona carrocería, pasillo 1",
+    "Zona carrocería, pasillo 2",
+    "Zona interior, pasillo 1",
+    "Zona electrónica, pasillo 1",
+    "Zona frenos, estante bajo",
+    "Almacén exterior",
+    "Caja fuerte, estante especial"
+  ]
+}

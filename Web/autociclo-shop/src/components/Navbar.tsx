@@ -35,7 +35,7 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group shrink-0">
-            <img src="/logo.png" alt="AutoCiclo" className="w-10 h-10 object-contain" />
+            <img src="/logo.png" alt="AutoCiclo" className="w-10 h-10 object-cover rounded-full" />
             <span className="text-2xl font-bold tracking-tight text-white">
               Auto<span className="text-blue-500">Ciclo</span>
             </span>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, X, AlertCircle, CheckCircle2, ListPlus, ShieldCheck, Truck } from 'lucide-react'
 import { formatPrice } from '../lib/utils'
 import { motion } from 'motion/react'
@@ -10,7 +10,7 @@ interface Linea { piezaId: number; cantidad: number; nombre: string; precio: num
 
 export default function SolicitarPresupuesto() {
   const navigate  = useNavigate()
-  const location  = useLocation()
+  const [searchParams] = useSearchParams()
   const [piezas, setPiezas]     = useState<Pieza[]>([])
   const [lineas, setLineas]     = useState<Linea[]>([])
   const [notas, setNotas]       = useState('')
@@ -22,24 +22,24 @@ export default function SolicitarPresupuesto() {
 
   useEffect(() => {
     client.get('/piezas').then(res => setPiezas(res.data)).catch(() => {})
-    const state = location.state as { piezaId?: number } | null
-    if (state?.piezaId) {
-      client.get(`/piezas/${state.piezaId}`).then(res => {
+    const piezaIdParam = searchParams.get('piezaId')
+    if (piezaIdParam) {
+      client.get(`/piezas/${piezaIdParam}`).then(res => {
         const p: Pieza = res.data
-        setLineas([{ piezaId: p.id, cantidad: 1, nombre: p.nombre, precio: p.precio }])
+        setLineas([{ piezaId: p.idPieza, cantidad: 1, nombre: p.nombre, precio: Number(p.precioVenta) }])
       }).catch(() => {})
     }
-  }, [location.state])
+  }, [searchParams])
 
   const agregarLinea = () => {
     if (!seleccion) return
-    const p = piezas.find(x => x.id === Number(seleccion))
+    const p = piezas.find(x => x.idPieza === Number(seleccion))
     if (!p) return
-    const existe = lineas.find(l => l.piezaId === p.id)
+    const existe = lineas.find(l => l.piezaId === p.idPieza)
     if (existe) {
-      setLineas(prev => prev.map(l => l.piezaId === p.id ? { ...l, cantidad: l.cantidad + cantidad } : l))
+      setLineas(prev => prev.map(l => l.piezaId === p.idPieza ? { ...l, cantidad: l.cantidad + cantidad } : l))
     } else {
-      setLineas(prev => [...prev, { piezaId: p.id, cantidad, nombre: p.nombre, precio: p.precio }])
+      setLineas(prev => [...prev, { piezaId: p.idPieza, cantidad, nombre: p.nombre, precio: Number(p.precioVenta) }])
     }
     setSeleccion(''); setCantidad(1)
   }
@@ -53,8 +53,7 @@ export default function SolicitarPresupuesto() {
     setLoading(true)
     try {
       await client.post('/solicitudes', {
-        notas,
-        detalles: lineas.map(l => ({ piezaId: l.piezaId, cantidad: l.cantidad })),
+        detalles: lineas.map((l, i) => ({ idPieza: l.piezaId, cantidad: l.cantidad, notas: i === 0 ? notas : undefined })),
       })
       setEnviado(true)
     } catch { setError('Error al enviar. Inténtalo de nuevo.') }
@@ -118,8 +117,8 @@ export default function SolicitarPresupuesto() {
                   >
                     <option value="">Selecciona una pieza...</option>
                     {piezas.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.nombre} — {formatPrice(p.precio)}
+                      <option key={p.idPieza} value={p.idPieza}>
+                        {p.nombre} — {formatPrice(Number(p.precioVenta))}
                       </option>
                     ))}
                   </select>
@@ -206,7 +205,7 @@ export default function SolicitarPresupuesto() {
                 <span className="text-slate-400 text-sm">Total estimado</span>
                 <span className="text-3xl font-black text-white">{formatPrice(total)}</span>
               </div>
-              <p className="text-xs text-slate-600 mb-8">* Precio orientativo. Puede variar.</p>
+              <p className="text-xs text-amber-400/60 mb-8">* Precio orientativo basado en el catálogo. El precio definitivo lo recibirás en menos de 24h tras revisar el estado real de la pieza.</p>
 
               {error && (
                 <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm mb-6">

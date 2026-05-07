@@ -31,7 +31,10 @@ export default function Home() {
   const [novedades, setNovedades] = useState<Pieza[]>([])
 
   useEffect(() => {
-    client.get('/piezas').then(r => setNovedades((r.data as Pieza[]).slice(0, 6))).catch(() => {})
+    client.get('/piezas').then(r => {
+      const sorted = (r.data as Pieza[]).sort((a, b) => (b.idPieza ?? 0) - (a.idPieza ?? 0))
+      setNovedades(sorted.slice(0, 6))
+    }).catch(() => {})
   }, [])
 
   const buscar = (e: React.FormEvent) => {
@@ -170,7 +173,7 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {novedades.map(p => <PiezaCard key={p.id} pieza={p} />)}
+            {novedades.map(p => <PiezaCard key={p.idPieza} pieza={p} />)}
           </div>
         </section>
       )}

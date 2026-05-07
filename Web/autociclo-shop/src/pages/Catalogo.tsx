@@ -16,6 +16,8 @@ const CATEGORIAS = [
   { value: 'otros',       label: 'Otros' },
 ]
 
+const MARCAS = ['Audi', 'BMW', 'Citroën', 'Ford', 'Honda', 'Hyundai', 'Mercedes', 'Nissan', 'Opel', 'Peugeot', 'Renault', 'Seat', 'Toyota', 'Volkswagen']
+
 export default function Catalogo() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [todas, setTodas] = useState<Pieza[]>([])
@@ -24,31 +26,42 @@ export default function Catalogo() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   const [activeCategoria, setActiveCategoria] = useState(searchParams.get('categoria') || '')
+  const [activeMarca, setActiveMarca]         = useState(searchParams.get('marca') || '')
   const [searchQuery, setSearchQuery]         = useState(searchParams.get('q') || '')
-  const [precioMax, setPrecioMax]             = useState(2000)
+  const [precioMax, setPrecioMax]             = useState(0)
+  const [precioLimite, setPrecioLimite]       = useState(0)
 
   useEffect(() => {
-    client.get('/piezas').then(r => setTodas(r.data)).catch(() => {}).finally(() => setLoading(false))
+    client.get('/piezas').then(r => {
+      const piezas = r.data as Pieza[]
+      setTodas(piezas)
+      const max = Math.ceil(Math.max(...piezas.map(p => Number(p.precioVenta)), 100) / 100) * 100
+      setPrecioLimite(max)
+      setPrecioMax(max)
+    }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
     setActiveCategoria(searchParams.get('categoria') || '')
+    setActiveMarca(searchParams.get('marca') || '')
     setSearchQuery(searchParams.get('q') || '')
   }, [searchParams])
 
   const filtradas = useMemo(() => {
     return todas.filter(p => {
-      const matchQ   = !searchQuery  || p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || p.codigoPieza.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchCat = !activeCategoria || p.categoria === activeCategoria
-      const matchPrecio = p.precio <= precioMax
-      return matchQ && matchCat && matchPrecio
+      const matchQ     = !searchQuery      || p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || p.codigoPieza.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchCat   = !activeCategoria  || p.categoria.toLowerCase() === activeCategoria.toLowerCase()
+      const matchMarca = !activeMarca      || (p.compatibleMarcas ?? '').toLowerCase().includes(activeMarca.toLowerCase())
+      const matchPrecio = Number(p.precioVenta) <= precioMax
+      return matchQ && matchCat && matchMarca && matchPrecio
     })
-  }, [todas, searchQuery, activeCategoria, precioMax])
+  }, [todas, searchQuery, activeCategoria, activeMarca, precioMax])
 
   const resetFiltros = () => {
     setActiveCategoria('')
+    setActiveMarca('')
     setSearchQuery('')
-    setPrecioMax(2000)
+    setPrecioMax(precioLimite)
     setSearchParams({})
   }
 
@@ -57,6 +70,14 @@ export default function Catalogo() {
     val ? np.set(key, val) : np.delete(key)
     setSearchParams(np)
   }
+
+  const titulo = activeCategoria
+    ? CATEGORIAS.find(c => c.value === activeCategoria)?.label ?? 'Catálogo'
+    : activeMarca
+      ? `Piezas compatibles con ${activeMarca}`
+      : searchQuery
+        ? `Resultados para "${searchQuery}"`
+        : 'Catálogo Completo'
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-10">
@@ -87,6 +108,19 @@ export default function Catalogo() {
               </div>
             </div>
 
+            {/* Marca */}
+            <div>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Marca del vehículo</h3>
+              <select
+                value={activeMarca}
+                onChange={e => { setActiveMarca(e.target.value); setParam('marca', e.target.value) }}
+                className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">Todas las marcas</option>
+                {MARCAS.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+
             {/* Categoría */}
             <div>
               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Categoría</h3>
@@ -115,7 +149,7 @@ export default function Catalogo() {
               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Precio máximo</h3>
               <div className="px-2">
                 <input
-                  type="range" min="0" max="2000" step="50"
+                  type="range" min="0" max={precioLimite} step="50"
                   value={precioMax}
                   onChange={e => setPrecioMax(Number(e.target.value))}
                   className="w-full accent-blue-500"
@@ -141,12 +175,7 @@ export default function Catalogo() {
           {/* Top bar */}
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
             <div>
-              <h1 className="text-3xl font-black text-white mb-2">
-                {activeCategoria
-                  ? CATEGORIAS.find(c => c.value === activeCategoria)?.label ?? 'Catálogo'
-                  : searchQuery ? `Resultados para "${searchQuery}"` : 'Catálogo Completo'
-                }
-              </h1>
+              <h1 className="text-3xl font-black text-white mb-2">{titulo}</h1>
               <p className="text-slate-400 text-sm">{filtradas.length} piezas encontradas</p>
             </div>
 
@@ -184,16 +213,17 @@ export default function Catalogo() {
             </div>
           ) : filtradas.length > 0 ? (
             <div className={cn('grid gap-8', viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1')}>
-              {filtradas.map(p => <PiezaCard key={p.id} pieza={p} />)}
+              {filtradas.map(p => <PiezaCard key={p.idPieza} pieza={p} />)}
             </div>
           ) : (
             <div className="glass-card p-20 text-center flex flex-col items-center gap-6">
               <Search className="w-16 h-16 text-slate-700" />
               <div>
                 <h3 className="text-xl font-bold text-white mb-2">No hay resultados</h3>
-                <p className="text-slate-400">Intenta ajustar los filtros de búsqueda</p>
+                <p className="text-slate-400 mb-2">No encontramos piezas con los filtros seleccionados.</p>
+                <p className="text-slate-500 text-sm">Prueba a cambiar la marca, categoría o ampliar el precio máximo.</p>
               </div>
-              <button onClick={resetFiltros} className="btn-secondary">Limpiar todo</button>
+              <button onClick={resetFiltros} className="btn-secondary">Limpiar filtros</button>
             </div>
           )}
         </main>

@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Mail, Lock, LogIn, AlertCircle, ArrowLeft } from 'lucide-react'
 import client from '../api/client'
 import { useAuthStore } from '../store/authStore'
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: string })?.from || '/'
   const { login } = useAuthStore()
   const [form, setForm]   = useState({ email: '', password: '' })
   const [error, setError] = useState('')
@@ -20,7 +22,7 @@ export default function Login() {
       const res = await client.post('/auth/login', form)
       const { token, nombre, email, rol, id } = res.data
       login(token, { id, nombre, email, rol })
-      navigate('/')
+      navigate(from, { replace: true })
     } catch (err: unknown) {
       const ae = err as { response?: { status?: number } }
       setError(ae.response?.status === 401 ? 'Email o contraseña incorrectos.' : 'Error al conectar con el servidor.')
@@ -45,7 +47,7 @@ export default function Login() {
       <div className="max-w-md w-full glass-card p-10 border-white/20 relative z-10">
         {/* Logo */}
         <div className="text-center mb-10">
-          <img src="/logo.png" alt="AutoCiclo" className="w-16 h-16 object-contain mx-auto mb-4" />
+          <img src="/logo.png" alt="AutoCiclo" className="w-16 h-16 object-cover rounded-full mx-auto mb-4" />
           <h1 className="text-4xl font-black text-white mb-2">Bienvenido</h1>
           <p className="text-slate-500">Inicia sesión en tu cuenta de AutoCiclo</p>
         </div>
@@ -106,7 +108,7 @@ export default function Login() {
 
         <p className="mt-8 text-center text-sm text-slate-600">
           ¿No tienes cuenta?{' '}
-          <Link to="/registro" className="text-blue-500 font-bold hover:underline">Regístrate gratis</Link>
+          <Link to="/registro" state={{ from }} className="text-blue-500 font-bold hover:underline">Regístrate gratis</Link>
         </p>
       </div>
     </div>

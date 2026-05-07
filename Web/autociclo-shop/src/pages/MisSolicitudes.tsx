@@ -79,7 +79,7 @@ export default function MisSolicitudes() {
             const cfg = ESTADO_CFG[sol.estado] ?? ESTADO_CFG.pendiente
             return (
               <motion.div
-                key={sol.id}
+                key={sol.idSolicitud}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
@@ -93,7 +93,7 @@ export default function MisSolicitudes() {
                     </div>
                     <div>
                       <p className="text-xs text-slate-500 uppercase tracking-widest font-black mb-1">
-                        Solicitud #{sol.id}
+                        Solicitud #{sol.idSolicitud}
                       </p>
                       <span className="text-slate-400 text-sm">{fmt(sol.fechaSolicitud)}</span>
                     </div>
@@ -119,12 +119,12 @@ export default function MisSolicitudes() {
                     {sol.detalles?.length > 0 && sol.detalles.map((d, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
                         <ChevronRight className="w-3 h-3 text-blue-500 shrink-0" />
-                        <span className="text-white">{d.pieza?.nombre || `Pieza #${d.piezaId}`}</span>
+                        <span className="text-white">{d.pieza?.nombre || `Pieza #${d.id?.idPieza}`}</span>
                         <span className="text-slate-500">× {d.cantidad}</span>
                       </div>
                     ))}
-                    {sol.notas && (
-                      <p className="text-xs italic text-slate-500 mt-2">"{sol.notas}"</p>
+                    {sol.respuestaAdmin && (
+                      <p className="text-xs italic text-slate-500 mt-2">"{sol.respuestaAdmin}"</p>
                     )}
                   </div>
 

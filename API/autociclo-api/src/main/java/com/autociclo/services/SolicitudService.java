@@ -27,21 +27,31 @@ public class SolicitudService {
     private final RabbitMQPublisher rabbitMQPublisher;
     private final OdooClient odooClient;
 
+    @Transactional(readOnly = true)
     public List<SolicitudPresupuesto> findAll() {
-        return solicitudRepository.findAll();
+        List<SolicitudPresupuesto> lista = solicitudRepository.findAll();
+        lista.forEach(s -> { s.getCliente().getUsuario(); s.getDetalles().forEach(d -> d.getPieza().getNombre()); });
+        return lista;
     }
 
+    @Transactional(readOnly = true)
     public List<SolicitudPresupuesto> findByClienteEmail(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         Cliente cliente = clienteRepository.findByUsuario(usuario)
                 .orElseThrow(() -> new IllegalArgumentException("Perfil de cliente no encontrado para: " + email));
-        return solicitudRepository.findByClienteIdCliente(cliente.getIdCliente());
+        List<SolicitudPresupuesto> lista = solicitudRepository.findByClienteIdCliente(cliente.getIdCliente());
+        lista.forEach(s -> s.getDetalles().forEach(d -> d.getPieza().getNombre()));
+        return lista;
     }
 
+    @Transactional(readOnly = true)
     public SolicitudPresupuesto findById(Integer id) {
-        return solicitudRepository.findById(id)
+        SolicitudPresupuesto s = solicitudRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Solicitud no encontrada: " + id));
+        s.getCliente().getUsuario();
+        s.getDetalles().forEach(d -> d.getPieza().getNombre());
+        return s;
     }
 
     @Transactional
