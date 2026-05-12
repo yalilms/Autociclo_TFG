@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.GridPane?>
@@ -13,77 +14,83 @@
 <?import javafx.scene.control.Tooltip?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-            prefHeight="750.0" prefWidth="850.0"
+            prefHeight="620.0" prefWidth="850.0"
             styleClass="root" stylesheets="@../css/styles.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.autociclo.controllers.DetalleVehiculoController">
 
    <center>
-      <VBox styleClass="form-container" maxWidth="800" maxHeight="700" alignment="TOP_CENTER" BorderPane.alignment="CENTER">
+      <VBox styleClass="form-container" maxWidth="780" alignment="TOP_CENTER" BorderPane.alignment="CENTER">
          <children>
             <VBox styleClass="form-header">
                <Label fx:id="lblTitulo" text="DETALLES DEL VEHÍCULO" styleClass="form-title"/>
             </VBox>
 
-            <GridPane alignment="TOP_CENTER" hgap="20.0" vgap="15.0">
-              <children>
-                  <Label text="ID:" GridPane.rowIndex="0" styleClass="form-label"/>
-                  <Label fx:id="lblId" GridPane.rowIndex="1" styleClass="form-value"/>
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" hbarPolicy="NEVER"
+                        style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;">
+               <content>
+                  <GridPane alignment="TOP_CENTER" hgap="20.0" vgap="12.0"
+                            style="-fx-padding: 5 2 10 2;">
+                    <children>
+                        <Label text="ID:" GridPane.rowIndex="0" styleClass="form-label"/>
+                        <Label fx:id="lblId" GridPane.rowIndex="1" styleClass="form-value"/>
 
-                  <Label text="Matrícula:" GridPane.rowIndex="2" styleClass="form-label"/>
-                  <Label fx:id="lblMatricula" GridPane.rowIndex="3" styleClass="form-value"/>
+                        <Label text="Matrícula:" GridPane.rowIndex="2" styleClass="form-label"/>
+                        <Label fx:id="lblMatricula" GridPane.rowIndex="3" styleClass="form-value"/>
 
-                  <Label text="Marca:" GridPane.rowIndex="4" styleClass="form-label"/>
-                  <Label fx:id="lblMarca" GridPane.rowIndex="5" styleClass="form-value"/>
+                        <Label text="Marca:" GridPane.rowIndex="4" styleClass="form-label"/>
+                        <Label fx:id="lblMarca" GridPane.rowIndex="5" styleClass="form-value"/>
 
-                  <Label text="Modelo:" GridPane.rowIndex="6" styleClass="form-label"/>
-                  <Label fx:id="lblModelo" GridPane.rowIndex="7" styleClass="form-value"/>
+                        <Label text="Modelo:" GridPane.rowIndex="6" styleClass="form-label"/>
+                        <Label fx:id="lblModelo" GridPane.rowIndex="7" styleClass="form-value"/>
 
-                  <Label text="Color:" GridPane.rowIndex="8" styleClass="form-label"/>
-                  <Label fx:id="lblColor" GridPane.rowIndex="9" styleClass="form-value"/>
+                        <Label text="Color:" GridPane.rowIndex="8" styleClass="form-label"/>
+                        <Label fx:id="lblColor" GridPane.rowIndex="9" styleClass="form-value"/>
 
-                  <Label text="Año:" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
-                  <Label fx:id="lblAnio" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="form-value"/>
+                        <Label text="Año:" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
+                        <Label fx:id="lblAnio" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="form-value"/>
 
-                  <Label text="Kilometraje:" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
-                  <Label fx:id="lblKilometraje" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-value"/>
+                        <Label text="Kilometraje:" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
+                        <Label fx:id="lblKilometraje" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-value"/>
 
-                  <Label text="Estado:" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
-                  <Label fx:id="lblEstado" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="form-value"/>
+                        <Label text="Estado:" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
+                        <Label fx:id="lblEstado" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="form-value"/>
 
-                  <Label text="Precio de compra:" GridPane.columnIndex="1" GridPane.rowIndex="6" styleClass="form-label"/>
-                  <Label fx:id="lblPrecioCompra" GridPane.columnIndex="1" GridPane.rowIndex="7" styleClass="form-value"/>
+                        <Label text="Precio de compra:" GridPane.columnIndex="1" GridPane.rowIndex="6" styleClass="form-label"/>
+                        <Label fx:id="lblPrecioCompra" GridPane.columnIndex="1" GridPane.rowIndex="7" styleClass="form-value"/>
 
-                  <Label text="Fecha entrada:" GridPane.columnIndex="1" GridPane.rowIndex="8" styleClass="form-label"/>
-                  <Label fx:id="lblFechaEntrada" GridPane.columnIndex="1" GridPane.rowIndex="9" styleClass="form-value"/>
+                        <Label text="Fecha entrada:" GridPane.columnIndex="1" GridPane.rowIndex="8" styleClass="form-label"/>
+                        <Label fx:id="lblFechaEntrada" GridPane.columnIndex="1" GridPane.rowIndex="9" styleClass="form-value"/>
 
-                  <Label text="Ubicación GPS/Física:" GridPane.columnSpan="2" GridPane.rowIndex="10" styleClass="form-label"/>
-                  <Label fx:id="lblUbicacion" GridPane.columnSpan="2" GridPane.rowIndex="11" styleClass="form-value"/>
+                        <Label text="Ubicación GPS/Física:" GridPane.columnSpan="2" GridPane.rowIndex="10" styleClass="form-label"/>
+                        <Label fx:id="lblUbicacion" GridPane.columnSpan="2" GridPane.rowIndex="11" styleClass="form-value"/>
 
-                  <Label text="Observaciones:" GridPane.columnSpan="2" GridPane.rowIndex="12" styleClass="form-label"/>
-                  <TextArea fx:id="txtObservaciones" editable="false" prefHeight="80.0" wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="13" styleClass="form-input"/>
-              </children>
-               <columnConstraints>
-                  <ColumnConstraints hgrow="ALWAYS" />
-                  <ColumnConstraints hgrow="ALWAYS" />
-               </columnConstraints>
-               <rowConstraints>
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-               </rowConstraints>
-            </GridPane>
+                        <Label text="Observaciones:" GridPane.columnSpan="2" GridPane.rowIndex="12" styleClass="form-label"/>
+                        <TextArea fx:id="txtObservaciones" editable="false" prefHeight="70.0" wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="13" styleClass="form-input"/>
+                    </children>
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                     </rowConstraints>
+                  </GridPane>
+               </content>
+            </ScrollPane>
 
             <HBox styleClass="form-actions">
                <children>

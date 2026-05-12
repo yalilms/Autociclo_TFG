@@ -33,12 +33,13 @@ import com.autociclo.utils.AnimationFactory;
 import com.autociclo.utils.ErrorHandler;
 
 import org.kordamp.ikonli.javafx.FontIcon;
-import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignA;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignC;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignD;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignE;
-
+import org.kordamp.ikonli.materialdesign2.MaterialDesignF;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignM;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
 
 import javafx.application.Platform;
 import java.net.URL;
@@ -100,9 +101,13 @@ public class ListadoMaestroController implements Initializable {
     @FXML
     private TableView<InventarioPieza> tableInventario;
 
-    // Vista de estadísticas
+    // Vistas de módulos auxiliares
     private Parent vistaEstadisticas;
     private EstadisticasController controllerEstadisticas;
+    private Parent vistaUsuarios;
+    private Parent vistaSolicitudes;
+    private UsuariosController controllerUsuarios;
+    private SolicitudesController controllerSolicitudes;
 
 
     // Columnas TableView Vehiculos
@@ -267,6 +272,10 @@ public class ListadoMaestroController implements Initializable {
                     });
                     LoggerUtil.logDatosCargados("Vehículos", listaVehiculos.size());
                     if (lblErrorConexion != null) lblErrorConexion.setVisible(false);
+                    if (tableVehiculos.isVisible()) {
+                        listaVehiculosFiltrada.setAll(listaVehiculos);
+                        actualizarTablaVehiculos();
+                    }
                 } else {
                     LoggerUtil.error("Error API vehículos: " + resp.getStatusCode(), null);
                     if (lblErrorConexion != null) lblErrorConexion.setVisible(true);
@@ -295,6 +304,10 @@ public class ListadoMaestroController implements Initializable {
                     });
                     LoggerUtil.logDatosCargados("Piezas", listaPiezas.size());
                     if (lblErrorConexion != null) lblErrorConexion.setVisible(false);
+                    if (tablePiezas.isVisible()) {
+                        listaPiezasFiltrada.setAll(listaPiezas);
+                        actualizarTablaPiezas();
+                    }
                 } else {
                     LoggerUtil.error("Error API piezas: " + resp.getStatusCode(), null);
                     if (lblErrorConexion != null) lblErrorConexion.setVisible(true);
@@ -336,6 +349,10 @@ public class ListadoMaestroController implements Initializable {
                     });
                     LoggerUtil.logDatosCargados("Inventario", listaInventario.size());
                     if (lblErrorConexion != null) lblErrorConexion.setVisible(false);
+                    if (tableInventario.isVisible()) {
+                        listaInventarioFiltrada.setAll(listaInventario);
+                        actualizarTablaInventario();
+                    }
                 } else {
                     LoggerUtil.error("Error API inventario: " + resp.getStatusCode(), null);
                     if (lblErrorConexion != null) lblErrorConexion.setVisible(true);
@@ -349,11 +366,18 @@ public class ListadoMaestroController implements Initializable {
     @FXML
     public void mostrarUsuarios() {
         try {
-            Parent vista = FXMLLoader.load(getClass().getResource(AppConstants.FXML_USUARIOS));
-            stackPaneContenido.getChildren().setAll(vista);
-            tableVehiculos.setVisible(false);
-            tablePiezas.setVisible(false);
-            tableInventario.setVisible(false);
+            ocultarTodasLasVistas();
+            if (vistaUsuarios == null) {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(AppConstants.FXML_USUARIOS));
+                vistaUsuarios = loader.load();
+                controllerUsuarios = loader.getController();
+                stackPaneContenido.getChildren().add(vistaUsuarios);
+            }
+            vistaUsuarios.setVisible(true);
+            aplicarFadeTransition(vistaUsuarios);
+            actualizarEstilosNavegacion(btnNavUsuarios);
+            habilitarBotonesCRUD(false);
+            actualizarBotonesPaginacion();
         } catch (Exception e) {
             LoggerUtil.error("Error al cargar Usuarios.fxml", e);
         }
@@ -362,13 +386,19 @@ public class ListadoMaestroController implements Initializable {
     @FXML
     public void mostrarSolicitudes() {
         try {
-            Parent vista = FXMLLoader.load(getClass().getResource(AppConstants.FXML_SOLICITUDES));
-            stackPaneContenido.getChildren().setAll(vista);
-            tableVehiculos.setVisible(false);
-            tablePiezas.setVisible(false);
-            tableInventario.setVisible(false);
-            // Resetear badge al abrir solicitudes
+            ocultarTodasLasVistas();
+            if (vistaSolicitudes == null) {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(AppConstants.FXML_SOLICITUDES));
+                vistaSolicitudes = loader.load();
+                controllerSolicitudes = loader.getController();
+                stackPaneContenido.getChildren().add(vistaSolicitudes);
+            }
+            vistaSolicitudes.setVisible(true);
+            aplicarFadeTransition(vistaSolicitudes);
+            actualizarEstilosNavegacion(btnNavSolicitudes);
+            habilitarBotonesCRUD(false);
             resetearBadge();
+            actualizarBotonesPaginacion();
         } catch (Exception e) {
             LoggerUtil.error("Error al cargar Solicitudes.fxml", e);
         }
@@ -441,6 +471,10 @@ public class ListadoMaestroController implements Initializable {
         setIcono(btnNavPiezas, MaterialDesignC.COG, 18, "Piezas");
         setIcono(btnNavInventario, MaterialDesignC.CLIPBOARD_LIST, 18, "Inventario");
         setIcono(btnNavEstadisticas, MaterialDesignC.CHART_BAR, 18, "Estadísticas");
+        if (btnNavUsuarios != null)
+            setIcono(btnNavUsuarios, MaterialDesignA.ACCOUNT_GROUP, 18, "Usuarios");
+        if (btnNavSolicitudes != null)
+            setIcono(btnNavSolicitudes, MaterialDesignF.FILE_DOCUMENT_OUTLINE, 18, "Solicitudes");
     }
 
     private void setIcono(Button btn, org.kordamp.ikonli.Ikon ikon, int size, String texto) {
@@ -888,10 +922,12 @@ public class ListadoMaestroController implements Initializable {
         tablePiezas.setVisible(false);
         tableInventario.setVisible(false);
         if (vistaEstadisticas != null) vistaEstadisticas.setVisible(false);
+        if (vistaUsuarios     != null) vistaUsuarios.setVisible(false);
+        if (vistaSolicitudes  != null) vistaSolicitudes.setVisible(false);
     }
 
     private void actualizarEstilosNavegacion(Button botonActivo) {
-        Button[] botones = {btnNavVehiculos, btnNavPiezas, btnNavInventario, btnNavEstadisticas};
+        Button[] botones = {btnNavVehiculos, btnNavPiezas, btnNavInventario, btnNavEstadisticas, btnNavUsuarios, btnNavSolicitudes};
         for (Button btn : botones) {
             if (btn != null) {
                 btn.getStyleClass().clear();
@@ -1095,8 +1131,17 @@ public class ListadoMaestroController implements Initializable {
      * Avanza a la página siguiente con animación
      */
     private void paginaSiguiente() {
+        if (vistaUsuarios != null && vistaUsuarios.isVisible() && controllerUsuarios != null) {
+            controllerUsuarios.paginaSiguiente();
+            actualizarBotonesPaginacion();
+            return;
+        }
+        if (vistaSolicitudes != null && vistaSolicitudes.isVisible() && controllerSolicitudes != null) {
+            controllerSolicitudes.paginaSiguiente();
+            actualizarBotonesPaginacion();
+            return;
+        }
         int totalPaginas = calcularTotalPaginas();
-
         if (paginaActual < totalPaginas - 1) {
             paginaActual++;
             aplicarAnimacionCambioPagina(true);
@@ -1105,10 +1150,17 @@ public class ListadoMaestroController implements Initializable {
         }
     }
 
-    /**
-     * Retrocede a la página anterior con animación
-     */
     private void paginaAnterior() {
+        if (vistaUsuarios != null && vistaUsuarios.isVisible() && controllerUsuarios != null) {
+            controllerUsuarios.paginaAnterior();
+            actualizarBotonesPaginacion();
+            return;
+        }
+        if (vistaSolicitudes != null && vistaSolicitudes.isVisible() && controllerSolicitudes != null) {
+            controllerSolicitudes.paginaAnterior();
+            actualizarBotonesPaginacion();
+            return;
+        }
         if (paginaActual > 0) {
             paginaActual--;
             aplicarAnimacionCambioPagina(false);
@@ -1174,12 +1226,18 @@ public class ListadoMaestroController implements Initializable {
      * Actualiza el estado de los botones de paginación (habilitado/deshabilitado)
      */
     private void actualizarBotonesPaginacion() {
+        if (vistaUsuarios != null && vistaUsuarios.isVisible() && controllerUsuarios != null) {
+            btnAnterior.setDisable(!controllerUsuarios.hayPaginaAnterior());
+            btnSiguiente.setDisable(!controllerUsuarios.hayPaginaSiguiente());
+            return;
+        }
+        if (vistaSolicitudes != null && vistaSolicitudes.isVisible() && controllerSolicitudes != null) {
+            btnAnterior.setDisable(!controllerSolicitudes.hayPaginaAnterior());
+            btnSiguiente.setDisable(!controllerSolicitudes.hayPaginaSiguiente());
+            return;
+        }
         int totalPaginas = calcularTotalPaginas();
-
-        // Deshabilitar botón Anterior si estamos en la primera página
         btnAnterior.setDisable(paginaActual == 0);
-
-        // Deshabilitar botón Siguiente si estamos en la última página
         btnSiguiente.setDisable(paginaActual >= totalPaginas - 1 || totalPaginas == 0);
     }
 

@@ -47,7 +47,8 @@ public class EstadisticasController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        actualizarDatos();
+        // Diferir la carga hasta que los charts estén dimensionados en el layout
+        Platform.runLater(this::actualizarDatos);
     }
 
     public void actualizarDatos() {
@@ -115,6 +116,8 @@ public class EstadisticasController implements Initializable {
             barChartVehiculos.getData().add(seriesMarca);
             barChartKilometraje.getData().clear();
             barChartKilometraje.getData().add(seriesKm);
+            barChartVehiculos.requestLayout();
+            barChartKilometraje.requestLayout();
         });
     }
 
@@ -140,6 +143,7 @@ public class EstadisticasController implements Initializable {
         Platform.runLater(() -> {
             pieChartPiezas.getData().clear();
             pieChartPiezas.setData(pieData);
+            pieChartPiezas.requestLayout();
         });
     }
 

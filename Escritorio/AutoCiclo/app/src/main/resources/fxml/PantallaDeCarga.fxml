@@ -46,16 +46,6 @@
              style="-fx-font-size: 14px;
                     -fx-text-fill: rgba(255, 255, 255, 0.9);"/>
 
-      <Label
-             fx:id="versionText"
-             text="Versión 1.0.0"
-             styleClass="version-text"
-             style="-fx-font-size: 12px;
-                    -fx-text-fill: rgba(255, 255, 255, 0.7);">
-         <VBox.margin>
-            <Insets top="-8" />
-         </VBox.margin>
-      </Label>
 
    </VBox>
 

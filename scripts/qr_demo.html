@@ -35,34 +35,40 @@
   <h1>🔧 AutoCiclo — Etiquetas QR para Demo</h1>
   <button class="btn" onclick="window.print()">🖨️ Imprimir etiquetas</button>
 
-  <div class="seccion">Piezas (QR-PIE-00001 a QR-PIE-00012)</div>
+  <div class="seccion">Piezas (QR-PIE-00001 a QR-PIE-00015)</div>
   <div class="grid" id="grid-piezas"></div>
 
-  <div class="seccion">Vehículos (QR-VEH-00003 a QR-VEH-00007)</div>
+  <div class="seccion">Vehículos (QR-VEH-00003 a QR-VEH-00010)</div>
   <div class="grid" id="grid-vehiculos"></div>
 
   <script>
     const piezas = [
-      { codigo: 'QR-PIE-00001', nombre: 'Motor 1.6 TDI'              },
-      { codigo: 'QR-PIE-00002', nombre: 'Motor 2.0 HDI'              },
-      { codigo: 'QR-PIE-00003', nombre: 'Puerta delantera izq.'      },
-      { codigo: 'QR-PIE-00004', nombre: 'Capó delantero'             },
-      { codigo: 'QR-PIE-00005', nombre: 'Parachoques trasero'        },
-      { codigo: 'QR-PIE-00006', nombre: 'Volante multifunción'       },
-      { codigo: 'QR-PIE-00007', nombre: 'Asientos delanteros'        },
-      { codigo: 'QR-PIE-00008', nombre: 'Faro delantero LED'         },
-      { codigo: 'QR-PIE-00009', nombre: 'Alternador 120A'            },
-      { codigo: 'QR-PIE-00010', nombre: 'Disco de freno 280mm'       },
-      { codigo: 'QR-PIE-00011', nombre: 'Neumático 205/55 R16'       },
-      { codigo: 'QR-PIE-00012', nombre: 'Turbocompresor'             },
+      { codigo: 'QR-PIE-00001', nombre: 'Motor 1.6 TDI 105CV'           },
+      { codigo: 'QR-PIE-00002', nombre: 'Motor 2.0 HDI 120CV'           },
+      { codigo: 'QR-PIE-00003', nombre: 'Puerta delantera izq.'         },
+      { codigo: 'QR-PIE-00004', nombre: 'Capó delantero'                },
+      { codigo: 'QR-PIE-00005', nombre: 'Parachoques trasero'           },
+      { codigo: 'QR-PIE-00006', nombre: 'Volante multifunción'          },
+      { codigo: 'QR-PIE-00007', nombre: 'Asientos delanteros sport'     },
+      { codigo: 'QR-PIE-00008', nombre: 'Faro delantero LED derecho'    },
+      { codigo: 'QR-PIE-00009', nombre: 'Alternador 120A Bosch'         },
+      { codigo: 'QR-PIE-00010', nombre: 'Disco freno ventilado 280mm'   },
+      { codigo: 'QR-PIE-00011', nombre: 'Neumático 205/55 R16'          },
+      { codigo: 'QR-PIE-00012', nombre: 'Turbocompresor Honda CBR'      },
+      { codigo: 'QR-PIE-00013', nombre: 'Motor 2.0 TDI 150CV'           },
+      { codigo: 'QR-PIE-00014', nombre: 'Centralita motor ECU BMW'      },
+      { codigo: 'QR-PIE-00015', nombre: 'Guardabarros delantero dcho.'  },
     ];
 
     const vehiculos = [
-      { codigo: 'QR-VEH-00003', nombre: 'Renault Clio 2012 · 9012GHI'   },
-      { codigo: 'QR-VEH-00004', nombre: 'Ford Focus 2016 · 3456JKL'      },
-      { codigo: 'QR-VEH-00005', nombre: 'Honda CBR 2019 · 7890MNO'       },
-      { codigo: 'QR-VEH-00006', nombre: 'Toyota Corolla 2017 · 2345PQR'  },
-      { codigo: 'QR-VEH-00007', nombre: 'Peugeot 308 2014 · 6789STU'     },
+      { codigo: 'QR-VEH-00003', nombre: 'Renault Clio 2012 · 9012GHI'      },
+      { codigo: 'QR-VEH-00004', nombre: 'Ford Focus 2016 · 3456JKL'         },
+      { codigo: 'QR-VEH-00005', nombre: 'Honda CBR 600 2019 · 7890MNO'      },
+      { codigo: 'QR-VEH-00006', nombre: 'Toyota Corolla 2017 · 2345PQR'     },
+      { codigo: 'QR-VEH-00007', nombre: 'Peugeot 308 2014 · 6789STU'        },
+      { codigo: 'QR-VEH-00008', nombre: 'Volkswagen Golf VII 2018 · 1234VWX' },
+      { codigo: 'QR-VEH-00009', nombre: 'Seat Ibiza 2015 · 5678YZA'         },
+      { codigo: 'QR-VEH-00010', nombre: 'BMW Serie 3 2020 · 9012BCD'        },
     ];
 
     function generarEtiquetas(items, containerId, tipo) {

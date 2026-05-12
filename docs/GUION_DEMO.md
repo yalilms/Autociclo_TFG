@@ -132,11 +132,12 @@ Antes de empezar el vídeo tener abierto:
 
 ## Checklist final antes de entregar
 
-- [ ] Ejecutar `autociclo_db_v2.sql` + `autociclo_db_demo.sql` en el servidor
-- [ ] Verificar `GET http://109.123.247.31:8080/api/piezas` → responde 200
+- [ ] Ejecutar `BaseDatos/autociclo_db_v2.sql` en el servidor (8 veh · 15 piezas · 9 usuarios · 4 solicitudes)
+- [ ] Verificar `GET http://109.123.247.31:8080/api/piezas` → responde 200 con 15 piezas
 - [ ] Verificar `http://109.123.247.31:8090` → carga el Web Shop
-- [ ] Verificar login con los 3 roles en sus respectivas apps
-- [ ] Generar e imprimir etiquetas QR desde `scripts/qr_demo.html`
+- [ ] Verificar login con los 3 roles en sus respectivas apps (usuario/contraseña: `Autociclo2026!`)
+- [ ] Generar e imprimir etiquetas QR desde `scripts/qr_demo.html` (15 piezas + 8 vehículos)
 - [ ] Importar `docs/POSTMAN_COLLECTION.json` en Postman y probar todos los endpoints
-- [ ] Subir repositorio a GitHub/GitLab (incluir todos los archivos excepto `node_modules/`)
-- [ ] Compartir enlace del repositorio + `docs/DOCUMENTACION_PROYECTO.md` al profesor antes del 5 de mayo
+- [ ] Verificar que la solicitud #2 ya aparece aprobada con referencia Odoo SO/2026/0042
+- [ ] Subir repositorio a GitHub/GitLab (excluir `node_modules/`, `build/`, `dist/`, `.gradle/`)
+- [ ] Entregar enlace del repositorio + `docs/DOCUMENTACION_PROYECTO.md` al profesor

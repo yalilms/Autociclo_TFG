@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
@@ -15,96 +16,102 @@
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-            prefHeight="750.0" prefWidth="850.0"
+            prefHeight="620.0" prefWidth="850.0"
             styleClass="root" stylesheets="@../css/styles.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.autociclo.controllers.FormularioVehiculoController">
 
    <center>
-      <VBox styleClass="form-container" maxWidth="600" maxHeight="550" alignment="TOP_CENTER" BorderPane.alignment="CENTER">
+      <VBox styleClass="form-container" maxWidth="620" alignment="TOP_CENTER" BorderPane.alignment="CENTER">
          <children>
             <VBox styleClass="form-header">
                <Label fx:id="lblTitulo" text="VEHÍCULO" styleClass="form-title"/>
             </VBox>
 
-            <GridPane alignment="TOP_CENTER" hgap="20.0" vgap="15.0">
-              <children>
-                  <Label text="Marca *" GridPane.rowIndex="0" styleClass="form-label"/>
-                  <VBox spacing="5.0" GridPane.rowIndex="1">
-                     <children>
-                        <TextField fx:id="txtFiltroMarca" promptText="Filtrar por marca..." styleClass="form-input">
-                            <tooltip><Tooltip text="Escribe para filtrar las marcas disponibles" /></tooltip>
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" hbarPolicy="NEVER"
+                        style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;">
+               <content>
+                  <GridPane alignment="TOP_CENTER" hgap="20.0" vgap="15.0"
+                            style="-fx-padding: 5 2 10 2;">
+                    <children>
+                        <Label text="Marca *" GridPane.rowIndex="0" styleClass="form-label"/>
+                        <VBox spacing="5.0" GridPane.rowIndex="1">
+                           <children>
+                              <TextField fx:id="txtFiltroMarca" promptText="Filtrar por marca..." styleClass="form-input">
+                                  <tooltip><Tooltip text="Escribe para filtrar las marcas disponibles" /></tooltip>
+                              </TextField>
+                              <ComboBox fx:id="cmbMarca" prefWidth="250.0" promptText="Seleccione marca" styleClass="form-input">
+                                  <tooltip><Tooltip text="Selecciona la marca del vehículo" /></tooltip>
+                              </ComboBox>
+                           </children>
+                        </VBox>
+
+                        <Label text="Matrícula *" GridPane.rowIndex="2" styleClass="form-label"/>
+                        <TextField fx:id="txtMatricula" promptText="Formato: 1234ABC" GridPane.rowIndex="3" styleClass="form-input">
+                            <tooltip><Tooltip text="Introduce la matrícula en formato español (1234ABC)" /></tooltip>
                         </TextField>
-                        <ComboBox fx:id="cmbMarca" prefWidth="250.0" promptText="Seleccione marca" styleClass="form-input">
-                            <tooltip><Tooltip text="Selecciona la marca del vehículo" /></tooltip>
+
+                        <Label text="Color *" GridPane.rowIndex="4" styleClass="form-label"/>
+                        <TextField fx:id="txtColor" promptText="Ej: Rojo, Azul, Negro..." GridPane.rowIndex="5" styleClass="form-input">
+                            <tooltip><Tooltip text="Introduce el color del vehículo" /></tooltip>
+                        </TextField>
+
+                        <Label text="Estado *" GridPane.rowIndex="6" styleClass="form-label"/>
+                        <ComboBox fx:id="cmbEstado" promptText="Seleccione estado" GridPane.rowIndex="7" styleClass="form-combo" prefWidth="250.0">
+                            <tooltip><Tooltip text="Selecciona el estado actual del vehículo" /></tooltip>
                         </ComboBox>
-                     </children>
-                  </VBox>
 
-                  <Label text="Matrícula *" GridPane.rowIndex="2" styleClass="form-label"/>
-                  <TextField fx:id="txtMatricula" promptText="Formato: 1234ABC" GridPane.rowIndex="3" styleClass="form-input">
-                      <tooltip><Tooltip text="Introduce la matrícula en formato español (1234ABC)" /></tooltip>
-                  </TextField>
+                        <Label text="Ubicación" GridPane.rowIndex="8" styleClass="form-label"/>
+                        <ComboBox fx:id="cmbUbicacion" promptText="Seleccione ubicación" GridPane.rowIndex="9" styleClass="form-combo" prefWidth="250.0">
+                            <tooltip><Tooltip text="Selecciona la ubicación del vehículo en el desguace" /></tooltip>
+                        </ComboBox>
 
-                  <Label text="Color *" GridPane.rowIndex="4" styleClass="form-label"/>
-                  <TextField fx:id="txtColor" promptText="Ej: Rojo, Azul, Negro..." GridPane.rowIndex="5" styleClass="form-input">
-                      <tooltip><Tooltip text="Introduce el color del vehículo" /></tooltip>
-                  </TextField>
+                        <Label text="Modelo *" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
+                        <ComboBox fx:id="cmbModelo" promptText="Seleccione modelo" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="form-combo" prefWidth="250.0" editable="true">
+                            <tooltip><Tooltip text="Selecciona o escribe el modelo del vehículo" /></tooltip>
+                        </ComboBox>
 
-                  <Label text="Estado *" GridPane.rowIndex="6" styleClass="form-label"/>
-                  <ComboBox fx:id="cmbEstado" promptText="Seleccione estado" GridPane.rowIndex="7" styleClass="form-combo" prefWidth="250.0">
-                      <tooltip><Tooltip text="Selecciona el estado actual del vehículo" /></tooltip>
-                  </ComboBox>
+                        <Label text="Año *" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
+                        <TextField fx:id="txtAnio" promptText="Año (1900-2025)" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-input">
+                            <tooltip><Tooltip text="Introduce el año de fabricación (entre 1900 y 2025)" /></tooltip>
+                        </TextField>
 
-                  <Label text="Ubicación" GridPane.rowIndex="8" styleClass="form-label"/>
-                  <ComboBox fx:id="cmbUbicacion" promptText="Seleccione ubicación" GridPane.rowIndex="9" styleClass="form-combo" prefWidth="250.0">
-                      <tooltip><Tooltip text="Selecciona la ubicación del vehículo en el desguace" /></tooltip>
-                  </ComboBox>
+                        <Label text="Kilometraje" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
+                        <TextField fx:id="txtKilometraje" promptText="Ej: 150000" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="form-input">
+                            <tooltip><Tooltip text="Introduce el kilometraje actual del vehículo" /></tooltip>
+                        </TextField>
 
-                  <Label text="Modelo *" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
-                  <ComboBox fx:id="cmbModelo" promptText="Seleccione modelo" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="form-combo" prefWidth="250.0" editable="true">
-                      <tooltip><Tooltip text="Selecciona o escribe el modelo del vehículo" /></tooltip>
-                  </ComboBox>
+                        <Label text="Precio de compra *" GridPane.columnIndex="1" GridPane.rowIndex="6" styleClass="form-label"/>
+                        <TextField fx:id="txtPrecioCompra" promptText="Ej: 5000.50" GridPane.columnIndex="1" GridPane.rowIndex="7" styleClass="form-input">
+                            <tooltip><Tooltip text="Introduce el precio de compra en euros (usar punto para decimales)" /></tooltip>
+                        </TextField>
 
-                  <Label text="Año *" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
-                  <TextField fx:id="txtAnio" promptText="Año (1900-2025)" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-input">
-                      <tooltip><Tooltip text="Introduce el año de fabricación (entre 1900 y 2025)" /></tooltip>
-                  </TextField>
-
-                  <Label text="Kilometraje" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
-                  <TextField fx:id="txtKilometraje" promptText="Ej: 150000" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="form-input">
-                      <tooltip><Tooltip text="Introduce el kilometraje actual del vehículo" /></tooltip>
-                  </TextField>
-
-                  <Label text="Precio de compra *" GridPane.columnIndex="1" GridPane.rowIndex="6" styleClass="form-label"/>
-                  <TextField fx:id="txtPrecioCompra" promptText="Ej: 5000.50" GridPane.columnIndex="1" GridPane.rowIndex="7" styleClass="form-input">
-                      <tooltip><Tooltip text="Introduce el precio de compra en euros (usar punto para decimales)" /></tooltip>
-                  </TextField>
-
-                  <Label text="Observaciones" GridPane.columnSpan="2" GridPane.rowIndex="10" styleClass="form-label"/>
-                  <TextArea fx:id="txtObservaciones" prefHeight="80.0" promptText="Observaciones adicionales (opcional)..." wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="11" styleClass="form-input">
-                      <tooltip><Tooltip text="Añade observaciones o notas adicionales sobre el vehículo" /></tooltip>
-                  </TextArea>
-              </children>
-               <columnConstraints>
-                  <ColumnConstraints hgrow="ALWAYS" />
-                  <ColumnConstraints hgrow="ALWAYS" />
-               </columnConstraints>
-               <rowConstraints>
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-               </rowConstraints>
-            </GridPane>
+                        <Label text="Observaciones" GridPane.columnSpan="2" GridPane.rowIndex="10" styleClass="form-label"/>
+                        <TextArea fx:id="txtObservaciones" prefHeight="70.0" promptText="Observaciones adicionales (opcional)..." wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="11" styleClass="form-input">
+                            <tooltip><Tooltip text="Añade observaciones o notas adicionales sobre el vehículo" /></tooltip>
+                        </TextArea>
+                    </children>
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                     </rowConstraints>
+                  </GridPane>
+               </content>
+            </ScrollPane>
 
             <HBox styleClass="form-actions">
                <children>

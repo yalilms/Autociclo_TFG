@@ -13,7 +13,7 @@ import java.util.function.Consumer;
  */
 public class RabbitMQListener {
 
-    private static final String HOST     = "localhost";
+    private static final String HOST     = "109.123.247.31";
     private static final int    PORT     = 5672;
     private static final String USER     = "guest";
     private static final String PASS     = "guest";

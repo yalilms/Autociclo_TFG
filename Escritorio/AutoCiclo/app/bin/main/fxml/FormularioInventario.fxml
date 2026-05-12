@@ -5,6 +5,7 @@
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
@@ -17,98 +18,99 @@
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-            prefHeight="750.0" prefWidth="850.0"
+            prefHeight="620.0" prefWidth="850.0"
             styleClass="root" stylesheets="@../css/styles.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.autociclo.controllers.FormularioInventarioController">
 
    <center>
-      <VBox styleClass="form-container" maxWidth="600" maxHeight="550" alignment="TOP_CENTER" BorderPane.alignment="CENTER">
+      <VBox styleClass="form-container" maxWidth="620" alignment="TOP_CENTER" BorderPane.alignment="CENTER">
          <children>
             <VBox styleClass="form-header">
                <Label fx:id="lblTitulo" text="INVENTARIO" styleClass="form-title"/>
             </VBox>
 
-            <Label text="Modifica los datos de la relación de la pieza del inventario" styleClass="subtitle-label">
-               <VBox.margin>
-                  <Insets bottom="20.0"/>
-               </VBox.margin>
-            </Label>
-
-            <GridPane hgap="20.0" vgap="15.0">
-              <children>
-                  <Label text="Vehículo Seleccionado" GridPane.rowIndex="0" styleClass="form-label"/>
-                  <TextField fx:id="txtVehiculoSeleccionado" GridPane.rowIndex="1" styleClass="form-input">
-                      <tooltip><Tooltip text="Vehículo asociado a esta pieza del inventario" /></tooltip>
-                  </TextField>
-
-                  <Label text="Cantidad" GridPane.rowIndex="2" styleClass="form-label"/>
-                  <TextField fx:id="txtCantidad" GridPane.rowIndex="3" styleClass="form-input" promptText="Ej: 1, 2, 3...">
-                      <tooltip><Tooltip text="Cantidad de piezas extraídas de este vehículo" /></tooltip>
-                  </TextField>
-
-                  <Label text="Contenedor" GridPane.rowIndex="4" styleClass="form-label"/>
-                  <VBox spacing="8.0" GridPane.rowIndex="5">
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" hbarPolicy="NEVER"
+                        style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;">
+               <content>
+                  <VBox spacing="15" style="-fx-padding: 5 2 10 2;">
                      <children>
-                        <RadioButton fx:id="rbNuevo" mnemonicParsing="true" text="_Nuevo">
-                           <toggleGroup>
-                              <ToggleGroup fx:id="grupoContenedor" />
-                           </toggleGroup>
-                           <tooltip><Tooltip text="La pieza está en estado nuevo (Alt+N)" /></tooltip>
-                        </RadioButton>
-                        <RadioButton fx:id="rbUsado" mnemonicParsing="true" text="_Usado" toggleGroup="$grupoContenedor">
-                            <tooltip><Tooltip text="La pieza está en estado usado (Alt+U)" /></tooltip>
-                        </RadioButton>
-                        <RadioButton fx:id="rbReparado" mnemonicParsing="true" text="_Reparado" toggleGroup="$grupoContenedor">
-                            <tooltip><Tooltip text="La pieza ha sido reparada (Alt+R)" /></tooltip>
-                        </RadioButton>
+                        <Label text="Modifica los datos de la relación de la pieza del inventario" styleClass="subtitle-label"/>
+
+                        <GridPane hgap="20.0" vgap="15.0">
+                          <children>
+                              <Label text="Vehículo Seleccionado" GridPane.rowIndex="0" styleClass="form-label"/>
+                              <TextField fx:id="txtVehiculoSeleccionado" GridPane.rowIndex="1" styleClass="form-input">
+                                  <tooltip><Tooltip text="Vehículo asociado a esta pieza del inventario" /></tooltip>
+                              </TextField>
+
+                              <Label text="Cantidad" GridPane.rowIndex="2" styleClass="form-label"/>
+                              <TextField fx:id="txtCantidad" GridPane.rowIndex="3" styleClass="form-input" promptText="Ej: 1, 2, 3...">
+                                  <tooltip><Tooltip text="Cantidad de piezas extraídas de este vehículo" /></tooltip>
+                              </TextField>
+
+                              <Label text="Contenedor" GridPane.rowIndex="4" styleClass="form-label"/>
+                              <VBox spacing="8.0" GridPane.rowIndex="5">
+                                 <children>
+                                    <RadioButton fx:id="rbNuevo" mnemonicParsing="true" text="_Nuevo">
+                                       <toggleGroup>
+                                          <ToggleGroup fx:id="grupoContenedor" />
+                                       </toggleGroup>
+                                       <tooltip><Tooltip text="La pieza está en estado nuevo (Alt+N)" /></tooltip>
+                                    </RadioButton>
+                                    <RadioButton fx:id="rbUsado" mnemonicParsing="true" text="_Usado" toggleGroup="$grupoContenedor">
+                                        <tooltip><Tooltip text="La pieza está en estado usado (Alt+U)" /></tooltip>
+                                    </RadioButton>
+                                    <RadioButton fx:id="rbReparado" mnemonicParsing="true" text="_Reparado" toggleGroup="$grupoContenedor">
+                                        <tooltip><Tooltip text="La pieza ha sido reparada (Alt+R)" /></tooltip>
+                                    </RadioButton>
+                                 </children>
+                              </VBox>
+
+                              <Label text="Pieza" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
+                              <TextField fx:id="txtPieza" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="form-input">
+                                  <tooltip><Tooltip text="Nombre de la pieza asociada" /></tooltip>
+                              </TextField>
+
+                              <Label text="Precio Mecánico" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
+                              <TextField fx:id="txtPrecioMecanico" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-input" promptText="Ej: 150.00">
+                                  <tooltip><Tooltip text="Precio del trabajo mecánico de extracción (en euros)" /></tooltip>
+                              </TextField>
+
+                              <Label text="Fecha de Extracción" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
+                              <HBox spacing="10.0" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                                 <children>
+                                    <DatePicker fx:id="dpFechaExtraccion" styleClass="form-input">
+                                        <tooltip><Tooltip text="Fecha en que se extrajo la pieza del vehículo" /></tooltip>
+                                    </DatePicker>
+                                    <Button fx:id="btnCalendario" mnemonicParsing="true" styleClass="button" text="📅">
+                                        <tooltip><Tooltip text="Abrir selector de fecha" /></tooltip>
+                                    </Button>
+                                 </children>
+                              </HBox>
+                          </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="ALWAYS" />
+                              <ColumnConstraints hgrow="ALWAYS" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints />
+                              <RowConstraints />
+                              <RowConstraints />
+                              <RowConstraints />
+                              <RowConstraints />
+                              <RowConstraints />
+                           </rowConstraints>
+                        </GridPane>
+
+                        <Label text="Notas" styleClass="form-label"/>
+                        <TextArea fx:id="txtNotas" prefHeight="70.0" wrapText="true" styleClass="form-input" promptText="Notas adicionales sobre la pieza o extracción...">
+                            <tooltip><Tooltip text="Añade notas o comentarios adicionales" /></tooltip>
+                        </TextArea>
                      </children>
                   </VBox>
-
-                  <Label text="Pieza" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
-                  <TextField fx:id="txtPieza" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="form-input">
-                      <tooltip><Tooltip text="Nombre de la pieza asociada" /></tooltip>
-                  </TextField>
-
-                  <Label text="Precio Mecánico" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
-                  <TextField fx:id="txtPrecioMecanico" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-input" promptText="Ej: 150.00">
-                      <tooltip><Tooltip text="Precio del trabajo mecánico de extracción (en euros)" /></tooltip>
-                  </TextField>
-
-                  <Label text="Fecha de Extracción" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
-                  <HBox spacing="10.0" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="5">
-                     <children>
-                        <DatePicker fx:id="dpFechaExtraccion" styleClass="form-input">
-                            <tooltip><Tooltip text="Fecha en que se extrajo la pieza del vehículo" /></tooltip>
-                        </DatePicker>
-                        <Button fx:id="btnCalendario" mnemonicParsing="true" styleClass="button" text="📅">
-                            <tooltip><Tooltip text="Abrir selector de fecha" /></tooltip>
-                        </Button>
-                     </children>
-                  </HBox>
-              </children>
-               <columnConstraints>
-                  <ColumnConstraints hgrow="ALWAYS" />
-                  <ColumnConstraints hgrow="ALWAYS" />
-               </columnConstraints>
-               <rowConstraints>
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-               </rowConstraints>
-            </GridPane>
-
-            <Label text="Notas" styleClass="form-label">
-               <VBox.margin>
-                  <Insets top="15.0"/>
-               </VBox.margin>
-            </Label>
-            <TextArea fx:id="txtNotas" prefHeight="80.0" wrapText="true" styleClass="form-input" promptText="Notas adicionales sobre la pieza o extracción...">
-                <tooltip><Tooltip text="Añade notas o comentarios adicionales" /></tooltip>
-            </TextArea>
+               </content>
+            </ScrollPane>
 
             <HBox styleClass="form-actions">
                <children>

@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
@@ -14,79 +15,85 @@
 <?import javafx.scene.control.Tooltip?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-            prefHeight="750.0" prefWidth="850.0"
+            prefHeight="620.0" prefWidth="850.0"
             styleClass="root" stylesheets="@../css/styles.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.autociclo.controllers.DetallePiezaController">
 
    <center>
-      <VBox styleClass="form-container" maxWidth="700" maxHeight="600" alignment="TOP_CENTER" BorderPane.alignment="CENTER">
+      <VBox styleClass="form-container" maxWidth="700" alignment="TOP_CENTER" BorderPane.alignment="CENTER">
          <children>
             <VBox styleClass="form-header">
                <Label fx:id="lblTitulo" text="DETALLES DE LA PIEZA" styleClass="form-title"/>
             </VBox>
 
-            <GridPane alignment="TOP_CENTER" hgap="20.0" vgap="15.0">
-              <children>
-                  <Label text="ID:" GridPane.rowIndex="0" styleClass="form-label"/>
-                  <Label fx:id="lblId" GridPane.rowIndex="1" styleClass="form-value"/>
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" hbarPolicy="NEVER"
+                        style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;">
+               <content>
+                  <GridPane alignment="TOP_CENTER" hgap="20.0" vgap="12.0"
+                            style="-fx-padding: 5 2 10 2;">
+                    <children>
+                        <Label text="ID:" GridPane.rowIndex="0" styleClass="form-label"/>
+                        <Label fx:id="lblId" GridPane.rowIndex="1" styleClass="form-value"/>
 
-                  <Label text="Código:" GridPane.rowIndex="2" styleClass="form-label"/>
-                  <Label fx:id="lblCodigo" GridPane.rowIndex="3" styleClass="form-value"/>
+                        <Label text="Código:" GridPane.rowIndex="2" styleClass="form-label"/>
+                        <Label fx:id="lblCodigo" GridPane.rowIndex="3" styleClass="form-value"/>
 
-                  <Label text="Nombre:" GridPane.rowIndex="4" styleClass="form-label"/>
-                  <Label fx:id="lblNombre" GridPane.rowIndex="5" styleClass="form-value"/>
+                        <Label text="Nombre:" GridPane.rowIndex="4" styleClass="form-label"/>
+                        <Label fx:id="lblNombre" GridPane.rowIndex="5" styleClass="form-value"/>
 
-                  <Label text="Categoría:" GridPane.rowIndex="6" styleClass="form-label"/>
-                  <Label fx:id="lblCategoria" GridPane.rowIndex="7" styleClass="form-value"/>
+                        <Label text="Categoría:" GridPane.rowIndex="6" styleClass="form-label"/>
+                        <Label fx:id="lblCategoria" GridPane.rowIndex="7" styleClass="form-value"/>
 
-                  <Label text="Ubicación Almacén:" GridPane.rowIndex="8" styleClass="form-label"/>
-                  <Label fx:id="lblUbicacion" GridPane.rowIndex="9" styleClass="form-value"/>
+                        <Label text="Ubicación Almacén:" GridPane.rowIndex="8" styleClass="form-label"/>
+                        <Label fx:id="lblUbicacion" GridPane.rowIndex="9" styleClass="form-value"/>
 
-                  <Label text="Precio Venta:" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
-                  <Label fx:id="lblPrecio" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="form-value"/>
+                        <Label text="Precio Venta:" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
+                        <Label fx:id="lblPrecio" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="form-value"/>
 
-                  <Label text="Stock Disponible:" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
-                  <Label fx:id="lblStockDisponible" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-value"/>
+                        <Label text="Stock Disponible:" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
+                        <Label fx:id="lblStockDisponible" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-value"/>
 
-                  <Label text="Stock Mínimo:" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
-                  <Label fx:id="lblStockMinimo" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="form-value"/>
+                        <Label text="Stock Mínimo:" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
+                        <Label fx:id="lblStockMinimo" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="form-value"/>
 
-                  <Label text="Marcas Compatibles:" GridPane.columnIndex="1" GridPane.rowIndex="6" styleClass="form-label"/>
-                  <Label fx:id="lblCompatible" GridPane.columnIndex="1" GridPane.rowIndex="7" styleClass="form-value"/>
+                        <Label text="Marcas Compatibles:" GridPane.columnIndex="1" GridPane.rowIndex="6" styleClass="form-label"/>
+                        <Label fx:id="lblCompatible" GridPane.columnIndex="1" GridPane.rowIndex="7" styleClass="form-value"/>
 
-                  <Label text="Imagen:" GridPane.columnSpan="2" GridPane.rowIndex="10" styleClass="form-label"/>
-                  <VBox alignment="CENTER" GridPane.columnSpan="2" GridPane.rowIndex="11" styleClass="image-container">
-                     <children>
-                        <ImageView fx:id="imgPieza" fitHeight="150" fitWidth="200" preserveRatio="true" styleClass="image-preview"/>
-                        <Label fx:id="lblSinImagen" text="Sin imagen disponible" styleClass="form-label" visible="false"/>
-                     </children>
-                  </VBox>
+                        <Label text="Imagen:" GridPane.columnSpan="2" GridPane.rowIndex="10" styleClass="form-label"/>
+                        <VBox alignment="CENTER" GridPane.columnSpan="2" GridPane.rowIndex="11" styleClass="image-container">
+                           <children>
+                              <ImageView fx:id="imgPieza" fitHeight="120" fitWidth="180" preserveRatio="true" styleClass="image-preview"/>
+                              <Label fx:id="lblSinImagen" text="Sin imagen disponible" styleClass="form-label" visible="false"/>
+                           </children>
+                        </VBox>
 
-                  <Label text="Descripción:" GridPane.columnSpan="2" GridPane.rowIndex="12" styleClass="form-label"/>
-                  <TextArea fx:id="txtDescripcion" editable="false" prefHeight="60.0" wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="13" styleClass="form-input"/>
-              </children>
-               <columnConstraints>
-                  <ColumnConstraints hgrow="ALWAYS" />
-                  <ColumnConstraints hgrow="ALWAYS" />
-               </columnConstraints>
-               <rowConstraints>
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-               </rowConstraints>
-            </GridPane>
+                        <Label text="Descripción:" GridPane.columnSpan="2" GridPane.rowIndex="12" styleClass="form-label"/>
+                        <TextArea fx:id="txtDescripcion" editable="false" prefHeight="60.0" wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="13" styleClass="form-input"/>
+                    </children>
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                     </rowConstraints>
+                  </GridPane>
+               </content>
+            </ScrollPane>
 
             <HBox styleClass="form-actions">
                <children>

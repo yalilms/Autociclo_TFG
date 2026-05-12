@@ -633,68 +633,147 @@ Autenticación: `Authorization: Bearer <token_jwt>`
 
 ---
 
-## 11. Capturas de Pantalla
+## 11. Manual de Usuario
 
-> Las siguientes capturas muestran las principales interfaces del sistema.
+### 11.1 Web Shop (Autociclo Shop)
 
-### Web Shop — Pantalla principal
+**URL:** `http://109.123.247.31:8090`  
+**Destinatario:** Clientes del desguace
 
-*(Captura: Home del catálogo con buscador y piezas destacadas)*  
-URL: `http://109.123.247.31:8090`
+#### Navegación por el catálogo (sin registro)
 
----
+1. Acceder a la URL del Web Shop — se muestra la pantalla de inicio con un buscador y las piezas más recientes.
+2. Escribir en el buscador (ej. "motor", "faro", "rueda") — el catálogo filtra en tiempo real.
+3. En la página `/catalogo` se pueden aplicar filtros adicionales: categoría (motor, carrocería, interior…) y rango de precio.
+4. Hacer clic en cualquier pieza para ver su ficha completa: nombre, código, stock disponible, precio, marcas compatibles y descripción.
 
-### Web Shop — Catálogo con filtros
+#### Registro y solicitud de presupuesto
 
-*(Captura: Listado de piezas con filtros por categoría y búsqueda activa)*
+1. Clicar en **Registrarse** — rellenar nombre, email y contraseña.
+2. Iniciar sesión con el email y contraseña registrados.
+3. Desde la ficha de una pieza, clicar en **Solicitar presupuesto**.
+4. Añadir las piezas deseadas y observaciones — confirmar el envío.
+5. La solicitud queda en estado `pendiente`.
 
----
+#### Seguimiento de solicitudes
 
-### Web Shop — Ficha de pieza
+1. Ir a **Mis Solicitudes** en el menú superior.
+2. Se muestran todas las solicitudes con su estado: `pendiente`, `en_revision`, `aprobada` o `rechazada`.
+3. Cuando el admin aprueba una solicitud, aparece el precio total y un enlace al pedido en Odoo (`SO/2026/XXXX`).
 
-*(Captura: Detalle de "Motor 1.6 TDI" con stock, precio y compatibilidad)*
+#### Usuarios de prueba para el Shop
 
----
-
-### Web Shop — Mis Solicitudes
-
-*(Captura: Panel del cliente mostrando solicitudes en diferentes estados)*
-
----
-
-### Desktop — Dashboard con notificaciones
-
-*(Captura: Panel principal del Desktop con badge de notificaciones RabbitMQ activo)*
-
----
-
-### Desktop — Gestión de solicitudes
-
-*(Captura: Módulo de solicitudes con botones Aprobar/Rechazar y formulario de respuesta)*
+| Email | Contraseña |
+|---|---|
+| maria.garcia@email.com | Autociclo2026! |
+| cliente@autociclo.com | Autociclo2026! |
+| juan.martinez@email.com | Autociclo2026! |
 
 ---
 
-### App Worker — Login
+### 11.2 Desktop (Autociclo Desktop)
 
-*(Captura: Pantalla de login oscura con logo de AutoCiclo redondeado)*
+**Plataforma:** Windows / Linux con Java 21 instalado  
+**Destinatario:** Administradores del desguace
+
+#### Inicio de sesión
+
+1. Ejecutar la aplicación con `./gradlew run` (desarrollo) o el JAR distribuible.
+2. Introducir email y contraseña de un usuario con rol ADMIN.
+3. Si las credenciales son correctas, se carga el panel principal.
+
+#### Gestión de vehículos
+
+1. En el menú lateral, seleccionar **Vehículos**.
+2. Se muestra el listado con matrícula, marca, modelo y estado.
+3. Botón **Nuevo** para registrar un vehículo: rellenar matrícula, marca, modelo, año, precio de compra. El sistema genera un código QR automáticamente.
+4. Doble clic sobre un vehículo para ver su ficha completa y las piezas asociadas.
+5. Botón **Editar** para modificar datos (estado, ubicación, observaciones).
+
+#### Gestión de piezas
+
+1. En el menú lateral, seleccionar **Piezas**.
+2. Listado con código, nombre, categoría, stock y precio.
+3. Botón **Nueva pieza** para añadir al catálogo: código, nombre, categoría, precio, stock mínimo, ubicación en almacén.
+4. Doble clic para ver el detalle y los vehículos de los que se extrajo.
+
+#### Gestión de solicitudes y aprobación
+
+1. Cuando llega una solicitud de un cliente, el badge de notificaciones en la barra lateral muestra un contador en rojo.
+2. Seleccionar **Solicitudes** en el menú — aparece la solicitud en estado `pendiente`.
+3. Revisar las piezas solicitadas y la disponibilidad de stock.
+4. Clicar **Aprobar**: introducir el precio total y un mensaje al cliente.
+5. El sistema llama automáticamente a Odoo JSON-RPC → crea el pedido de venta → devuelve la referencia (`SO/2026/XXXX`).
+6. Para rechazar: clicar **Rechazar** e introducir el motivo.
+
+#### Notificaciones RabbitMQ
+
+- El badge en el menú lateral se actualiza en tiempo real cuando llega un nuevo mensaje a la cola `solicitudes.nueva`.
+- Al marcar una notificación como leída, el contador se reduce.
+
+#### Usuarios de prueba para Desktop
+
+| Email | Contraseña | Rol |
+|---|---|---|
+| admin@autociclo.es | Autociclo2026! | ADMIN |
+| admin@autociclo.com | Autociclo2026! | ADMIN |
+| supervisor@autociclo.es | Autociclo2026! | ADMIN |
 
 ---
 
-### App Worker — Dashboard (alertas de stock)
+### 11.3 App Worker (Autociclo Worker)
 
-*(Captura: Dashboard con tarjetas de alerta en rojo/amarillo para piezas con stock bajo)*
+**Plataforma:** Android (APK) o Expo Go para desarrollo  
+**Destinatario:** Empleados del almacén
 
----
+#### Inicio de sesión
 
-### App Worker — Escáner QR
+1. Abrir la app en el dispositivo.
+2. Introducir email y contraseña de un usuario con rol EMPLEADO.
+3. El token JWT se almacena de forma segura en `expo-secure-store` (cifrado).
 
-*(Captura: Vista de cámara con marco azul de escaneo QR activo)*
+#### Dashboard — Alertas de stock
 
----
+- Al entrar, se muestran tres contadores: piezas **sin stock**, piezas **bajo mínimo** y **total de alertas**.
+- Las tarjetas de alerta muestran el código de pieza, nombre, stock actual y mínimo.
+- El Dashboard se actualiza automáticamente cada 30 segundos.
+- Tocar una tarjeta navega directamente al detalle de la pieza.
 
-### App Worker — Detalle de pieza + Actualizar Stock
+#### Búsqueda de piezas
 
-*(Captura: Ficha de pieza con stock actual, vehículo de origen y formulario de entrada/salida)*
+1. Ir a la pestaña **Buscar**.
+2. Escribir nombre o código de pieza — resultados con debounce de 400ms.
+3. Tocar un resultado para ver el detalle completo.
+
+#### Escáner QR
+
+1. Ir a la pestaña **Escanear QR**.
+2. Apuntar la cámara al código QR de una pieza o vehículo.
+3. La app consulta `GET /api/codigos-qr/{codigo}`:
+   - Si es tipo `pieza` → navega al detalle de la pieza.
+   - Si es tipo `vehiculo` → muestra un resumen del vehículo.
+
+#### Detalle de pieza y actualización de stock
+
+1. En el detalle de una pieza se muestra: nombre, código, categoría, stock actual, stock mínimo, ubicación en almacén, precio y marcas compatibles.
+2. Botones **+** y **−** para lanzar una actualización de stock.
+3. El modal de confirmación solicita el tipo (entrada/salida), cantidad y nota opcional.
+4. Al confirmar, se llama a `POST /api/stock/movimiento` y el stock se actualiza en tiempo real.
+
+#### Listado de vehículos
+
+1. Ir a la pestaña **Vehículos**.
+2. Se muestran todos los vehículos con matrícula, marca, modelo, año y estado.
+3. Campo de búsqueda para filtrar por marca o modelo.
+4. Código de colores por estado: verde (completo), naranja (desguazando), gris (desguazado).
+
+#### Usuarios de prueba para Worker
+
+| Email | Contraseña | Rol |
+|---|---|---|
+| pedro@autociclo.es | Autociclo2026! | EMPLEADO |
+| operario@autociclo.com | Autociclo2026! | EMPLEADO |
+| carlos@autociclo.es | Autociclo2026! | EMPLEADO |
 
 ---
 
@@ -728,8 +807,7 @@ Autociclo_TFG/
 │           ├── java/           Controladores JavaFX
 │           └── resources/fxml/ Ficheros FXML de interfaz
 │
-├── movil/
-│   └── Autociclo_Worker/       React Native + Expo
+├── Autociclo_Worker/           React Native + Expo
 │       ├── app/                Pantallas (Expo Router)
 │       │   ├── login.tsx
 │       │   ├── pieza/[id].tsx

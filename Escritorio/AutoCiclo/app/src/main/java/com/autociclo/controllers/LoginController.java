@@ -16,8 +16,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -30,23 +34,58 @@ import java.util.ResourceBundle;
  */
 public class LoginController implements Initializable {
 
+    @FXML private ImageView logoImg;
     @FXML private TextField txtEmail;
     @FXML private PasswordField txtPassword;
+    @FXML private TextField txtPasswordVisible;
+    @FXML private Button btnVerPass;
+    @FXML private FontIcon iconoOjo;
     @FXML private Button btnAcceder;
     @FXML private Label lblError;
 
+    private boolean passwordVisible = false;
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // Enter en el campo de contraseña también lanza el login
+        Circle clip = new Circle(36, 36, 36);
+        logoImg.setClip(clip);
+
         txtPassword.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) handleLogin();
+        });
+        txtPasswordVisible.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) handleLogin();
         });
     }
 
     @FXML
+    private void togglePassword() {
+        passwordVisible = !passwordVisible;
+        if (passwordVisible) {
+            txtPasswordVisible.setText(txtPassword.getText());
+            txtPassword.setVisible(false);
+            txtPassword.setManaged(false);
+            txtPasswordVisible.setVisible(true);
+            txtPasswordVisible.setManaged(true);
+            txtPasswordVisible.requestFocus();
+            iconoOjo.setIconLiteral("mdi2e-eye");
+            iconoOjo.setIconColor(Color.web("#3b82f6"));
+        } else {
+            txtPassword.setText(txtPasswordVisible.getText());
+            txtPasswordVisible.setVisible(false);
+            txtPasswordVisible.setManaged(false);
+            txtPassword.setVisible(true);
+            txtPassword.setManaged(true);
+            txtPassword.requestFocus();
+            iconoOjo.setIconLiteral("mdi2e-eye-off");
+            iconoOjo.setIconColor(Color.web("#94a3b8"));
+        }
+    }
+
+    @FXML
     private void handleLogin() {
         String email    = txtEmail.getText().trim();
-        String password = txtPassword.getText();
+        String password = passwordVisible ? txtPasswordVisible.getText() : txtPassword.getText();
 
         if (email.isEmpty() || password.isEmpty()) {
             mostrarError("Por favor, introduce tu correo y contraseña.");
@@ -73,6 +112,11 @@ public class LoginController implements Initializable {
 
                     if (response.isSuccess()) {
                         JsonObject json = JsonParser.parseString(response.getBody()).getAsJsonObject();
+                        if (!json.has("token") || !json.has("nombre") || !json.has("rol")
+                                || json.get("token").isJsonNull()) {
+                            mostrarError("Respuesta inesperada del servidor. Inténtalo de nuevo.");
+                            return;
+                        }
                         String token  = json.get("token").getAsString();
                         String nombre = json.get("nombre").getAsString();
                         String rol    = json.get("rol").getAsString();

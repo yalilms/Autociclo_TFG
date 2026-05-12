@@ -1,10 +1,12 @@
 package com.autociclo.utils;
 
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Modality;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -27,7 +29,7 @@ public class ModalUtils {
      * @return El controlador del FXML cargado
      */
     public static <T> T mostrarModal(String fxmlPath, String titulo, Window owner) {
-        return mostrarModal(fxmlPath, titulo, owner, 850, 750);
+        return mostrarModal(fxmlPath, titulo, owner, 850, 630);
     }
 
     /**
@@ -49,8 +51,14 @@ public class ModalUtils {
             modalStage.setScene(scene);
             modalStage.setResizable(true);
             modalStage.setMinWidth(minWidth);
-            modalStage.setMinHeight(minHeight);
+            Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+            double cappedH = Math.min(minHeight, screen.getHeight() - 80);
+            modalStage.setMinHeight(cappedH);
             modalStage.sizeToScene();
+            if (modalStage.getHeight() > screen.getHeight() - 60) {
+                modalStage.setHeight(screen.getHeight() - 60);
+            }
+            modalStage.centerOnScreen();
             modalStage.showAndWait();
 
             return loader.getController();
@@ -80,7 +88,7 @@ public class ModalUtils {
      * Muestra una ventana modal a partir de un loader ya configurado
      */
     public static void mostrarDesdeLoader(FXMLLoader loader, String titulo, Window owner) {
-        mostrarDesdeLoader(loader, titulo, owner, 850, 750);
+        mostrarDesdeLoader(loader, titulo, owner, 850, 630);
     }
 
     /**
@@ -101,8 +109,14 @@ public class ModalUtils {
             modalStage.setScene(scene);
             modalStage.setResizable(true);
             modalStage.setMinWidth(minWidth);
-            modalStage.setMinHeight(minHeight);
+            Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+            double cappedH = Math.min(minHeight, screen.getHeight() - 80);
+            modalStage.setMinHeight(cappedH);
             modalStage.sizeToScene();
+            if (modalStage.getHeight() > screen.getHeight() - 60) {
+                modalStage.setHeight(screen.getHeight() - 60);
+            }
+            modalStage.centerOnScreen();
             modalStage.showAndWait();
 
         } catch (Exception e) {

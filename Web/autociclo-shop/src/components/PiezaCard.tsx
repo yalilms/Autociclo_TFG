@@ -97,7 +97,7 @@ export default function PiezaCard({ pieza, cantidad }: Props) {
 
           <button
             onClick={() => navigate('/solicitar?piezaId=' + pieza.idPieza)}
-            className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 transition-all active:scale-90 glow-blue"
+            className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 transition-all active:scale-90 glow-blue"
             title="Solicitar presupuesto"
           >
             <FileText className="w-5 h-5" />

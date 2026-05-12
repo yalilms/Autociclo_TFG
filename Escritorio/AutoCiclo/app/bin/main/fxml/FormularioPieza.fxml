@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
@@ -15,98 +16,104 @@
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-            prefHeight="750.0" prefWidth="850.0"
+            prefHeight="620.0" prefWidth="850.0"
             styleClass="root" stylesheets="@../css/styles.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.autociclo.controllers.FormularioPiezaController">
 
    <center>
-      <VBox styleClass="form-container" maxWidth="600" maxHeight="600" alignment="TOP_CENTER" BorderPane.alignment="CENTER">
+      <VBox styleClass="form-container" maxWidth="620" alignment="TOP_CENTER" BorderPane.alignment="CENTER">
          <children>
             <VBox styleClass="form-header">
                <Label fx:id="lblTitulo" text="PIEZA" styleClass="form-title"/>
             </VBox>
 
-            <GridPane alignment="TOP_CENTER" hgap="20.0" vgap="15.0">
-              <children>
-                  <Label text="Código *" GridPane.rowIndex="0" styleClass="form-label"/>
-                  <TextField fx:id="txtCodigo" promptText="Ej: MOT-001, CAR-025..." GridPane.rowIndex="1" styleClass="form-input">
-                      <tooltip><Tooltip text="Código único de la pieza (formato: XXX-000)" /></tooltip>
-                  </TextField>
-
-                  <Label text="Categoría *" GridPane.rowIndex="2" styleClass="form-label"/>
-                  <ComboBox fx:id="cmbCategoria" promptText="Seleccione categoría" GridPane.rowIndex="3" styleClass="form-combo" prefWidth="250.0">
-                      <tooltip><Tooltip text="Selecciona la categoría de la pieza (Motor, Carrocería, etc.)" /></tooltip>
-                  </ComboBox>
-
-                  <Label text="Stock Disponible" GridPane.rowIndex="4" styleClass="form-label"/>
-                  <TextField fx:id="txtStockDisponible" promptText="Ej: 5" GridPane.rowIndex="5" styleClass="form-input">
-                      <tooltip><Tooltip text="Cantidad de unidades disponibles en stock" /></tooltip>
-                  </TextField>
-
-                  <Label text="Ubicación Almacén *" GridPane.rowIndex="6" styleClass="form-label"/>
-                  <ComboBox fx:id="cmbUbicacion" promptText="Seleccione ubicación" GridPane.rowIndex="7" styleClass="form-combo" prefWidth="250.0">
-                      <tooltip><Tooltip text="Ubicación física de la pieza en el almacén" /></tooltip>
-                  </ComboBox>
-
-                  <Label text="Materiales Compatibles" GridPane.rowIndex="8" styleClass="form-label"/>
-                  <TextField fx:id="txtMaterialesCompatibles" promptText="Marcas compatibles (opcional)" GridPane.rowIndex="9" styleClass="form-input">
-                      <tooltip><Tooltip text="Marcas o modelos de vehículos compatibles con esta pieza" /></tooltip>
-                  </TextField>
-
-                  <Label text="Nombre *" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
-                  <TextField fx:id="txtNombre" promptText="Ej: Motor 1.6 TDI" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="form-input">
-                      <tooltip><Tooltip text="Nombre descriptivo de la pieza" /></tooltip>
-                  </TextField>
-
-                  <Label text="Precio de compra *" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
-                  <TextField fx:id="txtPrecioCompra" promptText="Ej: 2500.00" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-input">
-                      <tooltip><Tooltip text="Precio de compra en euros (usar punto para decimales)" /></tooltip>
-                  </TextField>
-
-                  <Label text="Stock Mínimo" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
-                  <TextField fx:id="txtStockMinimo" promptText="Ej: 1" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="form-input">
-                      <tooltip><Tooltip text="Cantidad mínima antes de avisar de reposición" /></tooltip>
-                  </TextField>
-
-                  <Label text="Imagen" GridPane.columnSpan="2" GridPane.rowIndex="10" styleClass="form-label"/>
-                  <HBox spacing="10" alignment="CENTER_LEFT" GridPane.columnSpan="2" GridPane.rowIndex="11">
-                     <children>
-                        <TextField fx:id="txtRutaImagen" promptText="Ruta de la imagen (opcional)..." styleClass="form-input" HBox.hgrow="ALWAYS" editable="false">
-                            <tooltip><Tooltip text="Ruta de la imagen de la pieza" /></tooltip>
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" hbarPolicy="NEVER"
+                        style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;">
+               <content>
+                  <GridPane alignment="TOP_CENTER" hgap="20.0" vgap="15.0"
+                            style="-fx-padding: 5 2 10 2;">
+                    <children>
+                        <Label text="Código *" GridPane.rowIndex="0" styleClass="form-label"/>
+                        <TextField fx:id="txtCodigo" promptText="Ej: MOT-001, CAR-025..." GridPane.rowIndex="1" styleClass="form-input">
+                            <tooltip><Tooltip text="Código único de la pieza (formato: XXX-000)" /></tooltip>
                         </TextField>
-                        <Button fx:id="btnSeleccionarImagen" text="_Imagen" styleClass="button" mnemonicParsing="true">
-                            <tooltip><Tooltip text="Seleccionar imagen desde el disco (Alt+I)" /></tooltip>
-                        </Button>
-                     </children>
-                  </HBox>
 
-                  <Label text="Descripción" GridPane.columnSpan="2" GridPane.rowIndex="12" styleClass="form-label"/>
-                  <TextArea fx:id="txtDescripcion" prefHeight="60.0" promptText="Descripción de la pieza (opcional)..." wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="13" styleClass="form-input">
-                      <tooltip><Tooltip text="Descripción detallada de la pieza y su estado" /></tooltip>
-                  </TextArea>
-              </children>
-               <columnConstraints>
-                  <ColumnConstraints hgrow="ALWAYS" />
-                  <ColumnConstraints hgrow="ALWAYS" />
-               </columnConstraints>
-               <rowConstraints>
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-               </rowConstraints>
-            </GridPane>
+                        <Label text="Categoría *" GridPane.rowIndex="2" styleClass="form-label"/>
+                        <ComboBox fx:id="cmbCategoria" promptText="Seleccione categoría" GridPane.rowIndex="3" styleClass="form-combo" prefWidth="250.0">
+                            <tooltip><Tooltip text="Selecciona la categoría de la pieza (Motor, Carrocería, etc.)" /></tooltip>
+                        </ComboBox>
+
+                        <Label text="Stock Disponible" GridPane.rowIndex="4" styleClass="form-label"/>
+                        <TextField fx:id="txtStockDisponible" promptText="Ej: 5" GridPane.rowIndex="5" styleClass="form-input">
+                            <tooltip><Tooltip text="Cantidad de unidades disponibles en stock" /></tooltip>
+                        </TextField>
+
+                        <Label text="Ubicación Almacén *" GridPane.rowIndex="6" styleClass="form-label"/>
+                        <ComboBox fx:id="cmbUbicacion" promptText="Seleccione ubicación" GridPane.rowIndex="7" styleClass="form-combo" prefWidth="250.0">
+                            <tooltip><Tooltip text="Ubicación física de la pieza en el almacén" /></tooltip>
+                        </ComboBox>
+
+                        <Label text="Materiales Compatibles" GridPane.rowIndex="8" styleClass="form-label"/>
+                        <TextField fx:id="txtMaterialesCompatibles" promptText="Marcas compatibles (opcional)" GridPane.rowIndex="9" styleClass="form-input">
+                            <tooltip><Tooltip text="Marcas o modelos de vehículos compatibles con esta pieza" /></tooltip>
+                        </TextField>
+
+                        <Label text="Nombre *" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
+                        <TextField fx:id="txtNombre" promptText="Ej: Motor 1.6 TDI" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="form-input">
+                            <tooltip><Tooltip text="Nombre descriptivo de la pieza" /></tooltip>
+                        </TextField>
+
+                        <Label text="Precio de compra *" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
+                        <TextField fx:id="txtPrecioCompra" promptText="Ej: 2500.00" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-input">
+                            <tooltip><Tooltip text="Precio de compra en euros (usar punto para decimales)" /></tooltip>
+                        </TextField>
+
+                        <Label text="Stock Mínimo" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
+                        <TextField fx:id="txtStockMinimo" promptText="Ej: 1" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="form-input">
+                            <tooltip><Tooltip text="Cantidad mínima antes de avisar de reposición" /></tooltip>
+                        </TextField>
+
+                        <Label text="Imagen" GridPane.columnSpan="2" GridPane.rowIndex="10" styleClass="form-label"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT" GridPane.columnSpan="2" GridPane.rowIndex="11">
+                           <children>
+                              <TextField fx:id="txtRutaImagen" promptText="Ruta de la imagen (opcional)..." styleClass="form-input" HBox.hgrow="ALWAYS" editable="false">
+                                  <tooltip><Tooltip text="Ruta de la imagen de la pieza" /></tooltip>
+                              </TextField>
+                              <Button fx:id="btnSeleccionarImagen" text="_Imagen" styleClass="button" mnemonicParsing="true">
+                                  <tooltip><Tooltip text="Seleccionar imagen desde el disco (Alt+I)" /></tooltip>
+                              </Button>
+                           </children>
+                        </HBox>
+
+                        <Label text="Descripción" GridPane.columnSpan="2" GridPane.rowIndex="12" styleClass="form-label"/>
+                        <TextArea fx:id="txtDescripcion" prefHeight="60.0" promptText="Descripción de la pieza (opcional)..." wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="13" styleClass="form-input">
+                            <tooltip><Tooltip text="Descripción detallada de la pieza y su estado" /></tooltip>
+                        </TextArea>
+                    </children>
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                     </rowConstraints>
+                  </GridPane>
+               </content>
+            </ScrollPane>
 
             <HBox styleClass="form-actions">
                <children>

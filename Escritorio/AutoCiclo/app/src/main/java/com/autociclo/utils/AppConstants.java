@@ -16,12 +16,12 @@ public final class AppConstants {
     public static final int MIN_WINDOW_WIDTH = 900;
     public static final int MIN_WINDOW_HEIGHT = 600;
     public static final int MODAL_MIN_WIDTH = 850;
-    public static final int MODAL_MIN_HEIGHT = 750;
+    public static final int MODAL_MIN_HEIGHT = 630;
     public static final int ABOUT_WINDOW_WIDTH = 750;
     public static final int ABOUT_WINDOW_HEIGHT = 650;
 
     // ==================== PAGINACIÓN ====================
-    public static final int ITEMS_PER_PAGE = 10;
+    public static final int ITEMS_PER_PAGE = 8;
 
     // ==================== VALIDACIÓN DE AÑOS ====================
     public static final int MIN_VEHICLE_YEAR = 1900;

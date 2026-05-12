@@ -11,6 +11,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <StackPane prefHeight="750.0" prefWidth="1150.0"
            xmlns="http://javafx.com/javafx/23.0.1"
@@ -36,7 +37,7 @@
         </padding>
 
         <!-- Logo + Título -->
-        <ImageView fitHeight="72.0" fitWidth="72.0" preserveRatio="true">
+        <ImageView fx:id="logoImg" fitHeight="72.0" fitWidth="72.0" preserveRatio="false">
             <image>
                 <Image url="@../imagenes/logo_autociclo.png" />
             </image>
@@ -57,10 +58,25 @@
         <!-- Contraseña -->
         <VBox spacing="6.0">
             <Label text="Contraseña" styleClass="label" />
-            <PasswordField fx:id="txtPassword"
+            <HBox spacing="6.0" alignment="CENTER_LEFT">
+                <PasswordField fx:id="txtPassword"
+                               promptText="••••••••"
+                               prefHeight="38.0" prefWidth="292.0"
+                               styleClass="text-field" />
+                <TextField fx:id="txtPasswordVisible"
                            promptText="••••••••"
-                           prefHeight="38.0" prefWidth="330.0"
-                           styleClass="text-field" />
+                           prefHeight="38.0" prefWidth="292.0"
+                           styleClass="text-field"
+                           visible="false" managed="false" />
+                <Button fx:id="btnVerPass"
+                        prefHeight="38.0" prefWidth="38.0"
+                        onAction="#togglePassword"
+                        style="-fx-background-color: #1e293b; -fx-cursor: hand; -fx-background-radius: 8;">
+                    <graphic>
+                        <FontIcon fx:id="iconoOjo" iconLiteral="mdi2e-eye-off" iconSize="18" iconColor="#94a3b8" />
+                    </graphic>
+                </Button>
+            </HBox>
         </VBox>
 
         <!-- Error -->
@@ -78,10 +94,6 @@
                 styleClass="button-success"
                 onAction="#handleLogin"
                 defaultButton="true" />
-
-        <!-- Versión -->
-        <Label text="v3.0 · Entrega 3 · IES P. Hermenegildo Lanz"
-               style="-fx-font-size: 11px; -fx-text-fill: #64748b;" />
     </VBox>
 
 </StackPane>

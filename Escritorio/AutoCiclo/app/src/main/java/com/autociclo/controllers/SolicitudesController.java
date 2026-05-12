@@ -4,6 +4,7 @@ import com.autociclo.api.ApiClient;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.autociclo.utils.AnimationFactory;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -30,6 +31,7 @@ public class SolicitudesController implements Initializable {
     @FXML private TableColumn<JsonObject, String> colSolEstado;
     @FXML private TableColumn<JsonObject, String> colSolFecha;
     @FXML private TableColumn<JsonObject, String> colSolPrecio;
+    @FXML private TableColumn<JsonObject, String> colSolOdoo;
     @FXML private TableColumn<JsonObject, String> colSolRespuesta;
     @FXML private TextField txtFiltroEstado;
     @FXML private Label lblStatusSolicitudes;
@@ -38,10 +40,13 @@ public class SolicitudesController implements Initializable {
     private final ObservableList<JsonObject> listaSolicitudes = FXCollections.observableArrayList();
     private final ObservableList<JsonObject> listaFiltrada    = FXCollections.observableArrayList();
 
+    private int paginaActual = 0;
+    private static final int PAGE_SIZE = 8;
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         configurarColumnas();
-        tableSolicitudes.setItems(listaFiltrada);
+        tableSolicitudes.setItems(FXCollections.observableArrayList());
         cargarSolicitudes();
     }
 
@@ -53,9 +58,11 @@ public class SolicitudesController implements Initializable {
         colSolEstado.setCellValueFactory(d ->
                 new SimpleStringProperty(formatEstado(getStr(d.getValue(), "estado"))));
         colSolFecha.setCellValueFactory(d ->
-                new SimpleStringProperty(getStr(d.getValue(), "fechaSolicitud")));
+                new SimpleStringProperty(formatFecha(getStr(d.getValue(), "fechaSolicitud"))));
         colSolPrecio.setCellValueFactory(d ->
-                new SimpleStringProperty(getStr(d.getValue(), "precioTotal")));
+                new SimpleStringProperty(formatPrecio(d.getValue())));
+        colSolOdoo.setCellValueFactory(d ->
+                new SimpleStringProperty(formatOdoo(getStr(d.getValue(), "referenciaOdoo"))));
         colSolRespuesta.setCellValueFactory(d ->
                 new SimpleStringProperty(getStr(d.getValue(), "respuestaAdmin")));
     }
@@ -72,12 +79,48 @@ public class SolicitudesController implements Initializable {
                     JsonArray arr = JsonParser.parseString(resp.getBody()).getAsJsonArray();
                     arr.forEach(e -> listaSolicitudes.add(e.getAsJsonObject()));
                     listaFiltrada.setAll(listaSolicitudes);
+                    paginaActual = 0;
+                    actualizarTablaPaginada();
                     setStatus(listaSolicitudes.size() + " solicitudes cargadas.");
                 } else {
                     setStatus("Error al cargar (código " + resp.getStatusCode() + ").");
                 }
             });
         }).start();
+    }
+
+    private void actualizarTablaPaginada() {
+        int inicio = paginaActual * PAGE_SIZE;
+        int fin = Math.min(inicio + PAGE_SIZE, listaFiltrada.size());
+        if (inicio < listaFiltrada.size()) {
+            tableSolicitudes.setItems(FXCollections.observableArrayList(listaFiltrada.subList(inicio, fin)));
+        } else {
+            tableSolicitudes.setItems(FXCollections.observableArrayList());
+        }
+    }
+
+    public void paginaSiguiente() {
+        if (hayPaginaSiguiente()) {
+            paginaActual++;
+            actualizarTablaPaginada();
+            AnimationFactory.playPageChangeAnimation(tableSolicitudes, null);
+        }
+    }
+
+    public void paginaAnterior() {
+        if (hayPaginaAnterior()) {
+            paginaActual--;
+            actualizarTablaPaginada();
+            AnimationFactory.playPageChangeAnimation(tableSolicitudes, null);
+        }
+    }
+
+    public boolean hayPaginaSiguiente() {
+        return (paginaActual + 1) * PAGE_SIZE < listaFiltrada.size();
+    }
+
+    public boolean hayPaginaAnterior() {
+        return paginaActual > 0;
     }
 
     @FXML
@@ -94,18 +137,25 @@ public class SolicitudesController implements Initializable {
         // Pedir precio total y respuesta al admin
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Aprobar solicitud #" + getStr(sel, "idSolicitud"));
-        dialog.setHeaderText("Cliente: " + getNombreCliente(sel));
 
-        TextField fPrecio    = new TextField(); fPrecio.setPromptText("Precio total (ej: 250.00)");
-        TextArea  fRespuesta = new TextArea();  fRespuesta.setPromptText("Respuesta para el cliente…");
+        TextField fPrecio    = new TextField(); fPrecio.setPromptText("ej: 250.00");
+        TextArea  fRespuesta = new TextArea();  fRespuesta.setPromptText("Mensaje para el cliente…");
         fRespuesta.setPrefRowCount(3);
+        fPrecio.getStyleClass().add("text-field");
+        fRespuesta.setStyle("-fx-background-color: #1e293b; -fx-text-fill: white; -fx-border-color: #334155; -fx-border-radius: 6; -fx-background-radius: 6;");
 
-        javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(8,
-                new Label("Precio total (€):"), fPrecio,
-                new Label("Mensaje al cliente:"), fRespuesta);
-        form.setPadding(new javafx.geometry.Insets(15));
+        Label lblCliente = new Label("Cliente: " + getNombreCliente(sel));
+        lblCliente.setStyle("-fx-text-fill: #60a5fa; -fx-font-weight: bold; -fx-font-size: 13px;");
+
+        javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(10,
+                lblCliente,
+                styledLabel("Precio total (€)"), fPrecio,
+                styledLabel("Mensaje al cliente"), fRespuesta);
+        form.setPadding(new javafx.geometry.Insets(20));
+        form.setPrefWidth(400);
         dialog.getDialogPane().setContent(form);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        aplicarEstiloDialog(dialog);
 
         dialog.showAndWait().ifPresent(bt -> {
             if (bt == ButtonType.OK) {
@@ -139,24 +189,55 @@ public class SolicitudesController implements Initializable {
         JsonObject sel = tableSolicitudes.getSelectionModel().getSelectedItem();
         if (sel == null) { mostrarAviso("Selecciona una solicitud."); return; }
 
-        TextInputDialog dialog = new TextInputDialog();
+        if ("rechazada".equals(getStr(sel, "estado"))) {
+            mostrarAviso("Esta solicitud ya está rechazada.");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Rechazar solicitud #" + getStr(sel, "idSolicitud"));
-        dialog.setHeaderText("Motivo del rechazo:");
-        dialog.setContentText("Mensaje al cliente:");
 
-        dialog.showAndWait().ifPresent(motivo -> {
-            int id = sel.get("idSolicitud").getAsInt();
-            JsonObject body = new JsonObject();
-            body.addProperty("respuestaAdmin", motivo);
+        Label lblCliente = new Label("Cliente: " + getNombreCliente(sel));
+        lblCliente.setStyle("-fx-text-fill: #f87171; -fx-font-weight: bold; -fx-font-size: 13px;");
 
-            new Thread(() -> {
-                ApiClient.ApiResponse resp = ApiClient.getInstance()
-                        .put("/api/solicitudes/" + id + "/rechazar", body);
-                Platform.runLater(() -> {
-                    if (resp.isSuccess()) { mostrarInfo("Solicitud rechazada."); cargarSolicitudes(); }
-                    else mostrarError("Error al rechazar. Código: " + resp.getStatusCode());
-                });
-            }).start();
+        TextArea fMotivo = new TextArea();
+        fMotivo.setPromptText("Motivo del rechazo / Mensaje para el cliente…");
+        fMotivo.setPrefRowCount(4);
+        fMotivo.setWrapText(true);
+        fMotivo.setStyle("-fx-background-color: #1e293b; -fx-text-fill: white; -fx-border-color: #334155; -fx-border-radius: 6; -fx-background-radius: 6;");
+
+        javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(10,
+                lblCliente,
+                styledLabel("Motivo del rechazo (mensaje al cliente)"), fMotivo);
+        form.setPadding(new javafx.geometry.Insets(20));
+        form.setPrefWidth(420);
+
+        dialog.getDialogPane().setContent(form);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        aplicarEstiloDialog(dialog);
+
+        javafx.scene.Node rechazarBtn = dialog.getDialogPane().lookupButton(ButtonType.OK);
+        if (rechazarBtn != null) {
+            rechazarBtn.getStyleClass().remove("button-success");
+            rechazarBtn.getStyleClass().add("button-danger");
+            ((Button) rechazarBtn).setText("Rechazar");
+        }
+
+        dialog.showAndWait().ifPresent(bt -> {
+            if (bt == ButtonType.OK) {
+                int id = sel.get("idSolicitud").getAsInt();
+                JsonObject body = new JsonObject();
+                body.addProperty("respuestaAdmin", fMotivo.getText().trim());
+
+                new Thread(() -> {
+                    ApiClient.ApiResponse resp = ApiClient.getInstance()
+                            .put("/api/solicitudes/" + id + "/rechazar", body);
+                    Platform.runLater(() -> {
+                        if (resp.isSuccess()) { mostrarInfo("Solicitud rechazada."); cargarSolicitudes(); }
+                        else mostrarError("Error al rechazar. Código: " + resp.getStatusCode());
+                    });
+                }).start();
+            }
         });
     }
 
@@ -174,6 +255,8 @@ public class SolicitudesController implements Initializable {
                 }
             }
         }
+        paginaActual = 0;
+        actualizarTablaPaginada();
     }
 
     // ─── Helpers ─────────────────────────────────────
@@ -191,6 +274,23 @@ public class SolicitudesController implements Initializable {
         } catch (Exception e) { return "Desconocido"; }
     }
 
+    private String formatFecha(String fecha) {
+        if (fecha == null || fecha.isEmpty()) return "";
+        try { return fecha.replace("T", "  ").substring(0, 17); }
+        catch (Exception e) { return fecha; }
+    }
+
+    private String formatPrecio(JsonObject sol) {
+        try {
+            if (sol.get("precioTotal").isJsonNull()) return "—";
+            return String.format("%.2f €", sol.get("precioTotal").getAsDouble());
+        } catch (Exception e) { return "—"; }
+    }
+
+    private String formatOdoo(String ref) {
+        return (ref == null || ref.isEmpty()) ? "—" : ref;
+    }
+
     private String formatEstado(String estado) {
         return switch (estado) {
             case "pendiente"   -> "🟡 Pendiente";
@@ -201,8 +301,39 @@ public class SolicitudesController implements Initializable {
         };
     }
 
-    private void setStatus(String msg)   { lblStatusSolicitudes.setText(msg); }
-    private void mostrarInfo(String msg) { new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK).showAndWait(); }
-    private void mostrarAviso(String msg){ new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK).showAndWait(); }
-    private void mostrarError(String msg){ new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK).showAndWait(); }
+    private void setStatus(String msg) { lblStatusSolicitudes.setText(msg); }
+
+    private void mostrarInfo(String msg)  { Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK); aplicarEstiloAlert(a); a.showAndWait(); }
+    private void mostrarAviso(String msg) { Alert a = new Alert(Alert.AlertType.WARNING,     msg, ButtonType.OK); aplicarEstiloAlert(a); a.showAndWait(); }
+    private void mostrarError(String msg) { Alert a = new Alert(Alert.AlertType.ERROR,       msg, ButtonType.OK); aplicarEstiloAlert(a); a.showAndWait(); }
+
+    private void aplicarEstiloAlert(Alert alert) {
+        alert.getDialogPane().getStylesheets().add(
+                getClass().getResource("/css/styles.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("glass-pane");
+        alert.getDialogPane().setStyle("-fx-background-color: #0f172a;");
+    }
+
+    private void aplicarEstiloDialog(Dialog<?> dialog) {
+        dialog.getDialogPane().getStylesheets().add(
+                getClass().getResource("/css/styles.css").toExternalForm());
+        dialog.getDialogPane().getStyleClass().add("glass-pane");
+        dialog.getDialogPane().setStyle("-fx-background-color: #0f172a;");
+        javafx.scene.Node okBtn     = dialog.getDialogPane().lookupButton(ButtonType.OK);
+        javafx.scene.Node cancelBtn = dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
+        if (okBtn != null) {
+            okBtn.getStyleClass().add("button-success");
+            ((javafx.scene.control.Button) okBtn).setText("Aceptar");
+        }
+        if (cancelBtn != null) {
+            cancelBtn.getStyleClass().add("button");
+            ((javafx.scene.control.Button) cancelBtn).setText("Cancelar");
+        }
+    }
+
+    private Label styledLabel(String texto) {
+        Label lbl = new Label(texto);
+        lbl.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 12px;");
+        return lbl;
+    }
 }

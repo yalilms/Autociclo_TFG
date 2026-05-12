@@ -22,7 +22,7 @@
         <VBox spacing="8.0">
             <padding><Insets top="15" left="15" right="15" bottom="5" /></padding>
             <Label text="👤  Gestión de Usuarios" styleClass="title-label" />
-            <Label text="Solo visible para administradores · CRUD via API REST" styleClass="subtitle-label" />
+            <Label text="Solo visible para administradores" styleClass="subtitle-label" />
 
             <ToolBar styleClass="tool-bar" prefHeight="45.0">
                 <items>
@@ -50,23 +50,21 @@
     </top>
 
     <center>
-        <VBox spacing="0">
-            <BorderPane.margin><Insets left="15" right="15" bottom="15" top="5" /></BorderPane.margin>
-            <TableView fx:id="tableUsuarios" prefHeight="500.0"
-                       styleClass="table-view">
-                <columns>
-                    <TableColumn fx:id="colUsuarioId"   text="ID"       prefWidth="55.0" />
-                    <TableColumn fx:id="colUsuarioNombre" text="Nombre" prefWidth="200.0" />
-                    <TableColumn fx:id="colUsuarioEmail"  text="Email"  prefWidth="250.0" />
-                    <TableColumn fx:id="colUsuarioRol"    text="Rol"    prefWidth="110.0" />
-                    <TableColumn fx:id="colUsuarioActivo" text="Estado" prefWidth="90.0" />
-                    <TableColumn fx:id="colUsuarioFecha"  text="Alta"   prefWidth="140.0" />
-                </columns>
-                <columnResizePolicy>
-                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                </columnResizePolicy>
-            </TableView>
-        </VBox>
+        <TableView fx:id="tableUsuarios" styleClass="table-view"
+                   maxHeight="Infinity" maxWidth="Infinity">
+            <BorderPane.margin><Insets left="15" right="15" bottom="5" top="5" /></BorderPane.margin>
+            <columns>
+                <TableColumn fx:id="colUsuarioId"     text="ID"       prefWidth="55.0" />
+                <TableColumn fx:id="colUsuarioNombre" text="Nombre"   prefWidth="200.0" />
+                <TableColumn fx:id="colUsuarioEmail"  text="Email"    prefWidth="250.0" />
+                <TableColumn fx:id="colUsuarioRol"    text="Rol"      prefWidth="110.0" />
+                <TableColumn fx:id="colUsuarioActivo" text="Estado"   prefWidth="90.0" />
+                <TableColumn fx:id="colUsuarioFecha"  text="Alta"     prefWidth="140.0" />
+            </columns>
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            </columnResizePolicy>
+        </TableView>
     </center>
 
     <bottom>

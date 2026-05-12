@@ -4,6 +4,7 @@ import com.autociclo.api.ApiClient;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.autociclo.utils.AnimationFactory;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -40,10 +41,13 @@ public class UsuariosController implements Initializable {
     private final ObservableList<JsonObject> listaUsuarios = FXCollections.observableArrayList();
     private final ObservableList<JsonObject> listaFiltrada = FXCollections.observableArrayList();
 
+    private int paginaActual = 0;
+    private static final int PAGE_SIZE = 8;
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         configurarColumnas();
-        tableUsuarios.setItems(listaFiltrada);
+        tableUsuarios.setItems(FXCollections.observableArrayList());
         cargarUsuarios();
     }
 
@@ -76,6 +80,8 @@ public class UsuariosController implements Initializable {
                     JsonArray arr = JsonParser.parseString(resp.getBody()).getAsJsonArray();
                     arr.forEach(e -> listaUsuarios.add(e.getAsJsonObject()));
                     listaFiltrada.setAll(listaUsuarios);
+                    paginaActual = 0;
+                    actualizarTablaPaginada();
                     setStatus(listaUsuarios.size() + " usuarios cargados.");
                 } else {
                     setStatus("Error al cargar usuarios (código " + resp.getStatusCode() + ").");
@@ -84,29 +90,83 @@ public class UsuariosController implements Initializable {
         }).start();
     }
 
+    private void actualizarTablaPaginada() {
+        int inicio = paginaActual * PAGE_SIZE;
+        int fin = Math.min(inicio + PAGE_SIZE, listaFiltrada.size());
+        if (inicio < listaFiltrada.size()) {
+            tableUsuarios.setItems(FXCollections.observableArrayList(listaFiltrada.subList(inicio, fin)));
+        } else {
+            tableUsuarios.setItems(FXCollections.observableArrayList());
+        }
+    }
+
+    public void paginaSiguiente() {
+        if (hayPaginaSiguiente()) {
+            paginaActual++;
+            actualizarTablaPaginada();
+            AnimationFactory.playPageChangeAnimation(tableUsuarios, null);
+        }
+    }
+
+    public void paginaAnterior() {
+        if (hayPaginaAnterior()) {
+            paginaActual--;
+            actualizarTablaPaginada();
+            AnimationFactory.playPageChangeAnimation(tableUsuarios, null);
+        }
+    }
+
+    public boolean hayPaginaSiguiente() {
+        return (paginaActual + 1) * PAGE_SIZE < listaFiltrada.size();
+    }
+
+    public boolean hayPaginaAnterior() {
+        return paginaActual > 0;
+    }
+
     // ─── Acciones ────────────────────────────────────
 
     @FXML
     private void abrirFormularioNuevo() {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Nuevo Usuario");
-        dialog.setHeaderText("Crear nuevo usuario en el sistema");
+
+        Label lblTitulo = new Label("Nuevo Usuario");
+        lblTitulo.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label lblSub = new Label("Rellena los datos para crear una nueva cuenta de acceso");
+        lblSub.setStyle("-fx-font-size: 12px; -fx-text-fill: #94a3b8;");
+        javafx.scene.layout.VBox header = new javafx.scene.layout.VBox(4, lblTitulo, lblSub);
+        header.setStyle("-fx-padding: 0 0 15 0; -fx-border-color: rgba(255,255,255,0.1); -fx-border-width: 0 0 1 0;");
 
         TextField fNombre   = new TextField(); fNombre.setPromptText("Nombre completo");
         TextField fEmail    = new TextField(); fEmail.setPromptText("correo@ejemplo.com");
-        PasswordField fPass = new PasswordField(); fPass.setPromptText("Contraseña (mín. 6 caracteres)");
+        PasswordField fPass = new PasswordField(); fPass.setPromptText("Mínimo 6 caracteres");
         ComboBox<String> fRol = new ComboBox<>();
         fRol.getItems().addAll("ADMIN", "EMPLEADO");
         fRol.setValue("EMPLEADO");
+        fRol.setMaxWidth(Double.MAX_VALUE);
+        fRol.setStyle("-fx-background-color: rgba(30,41,59,0.8); -fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 6; -fx-background-radius: 6; -fx-pref-height: 35px;");
 
-        javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(8,
-                new Label("Nombre:"), fNombre,
-                new Label("Email:"),  fEmail,
-                new Label("Contraseña:"), fPass,
-                new Label("Rol:"), fRol);
-        form.setPadding(new javafx.geometry.Insets(15));
+        fNombre.getStyleClass().add("text-field");
+        fEmail.getStyleClass().add("text-field");
+        fPass.getStyleClass().add("text-field");
+
+        javafx.scene.layout.VBox campos = new javafx.scene.layout.VBox(8,
+                styledLabel("Nombre *"),    fNombre,
+                styledLabel("Email *"),     fEmail,
+                styledLabel("Contraseña *"), fPass,
+                styledLabel("Rol"),         fRol);
+
+        javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(15, header, campos);
+        form.setPadding(new javafx.geometry.Insets(20));
+        form.setPrefWidth(420);
+
         dialog.getDialogPane().setContent(form);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        aplicarEstiloDialog(dialog);
+
+        javafx.scene.Node okBtn = dialog.getDialogPane().lookupButton(ButtonType.OK);
+        if (okBtn != null) ((javafx.scene.control.Button) okBtn).setText("Crear usuario");
 
         dialog.showAndWait().ifPresent(bt -> {
             if (bt == ButtonType.OK) {
@@ -141,19 +201,39 @@ public class UsuariosController implements Initializable {
         JsonObject sel = tableUsuarios.getSelectionModel().getSelectedItem();
         if (sel == null) { mostrarAviso("Selecciona un usuario para editar."); return; }
 
+        Label lblTitulo = new Label("Editar Usuario");
+        lblTitulo.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label lblSub = new Label(getStr(sel, "nombre") + "  ·  " + getRol(sel));
+        lblSub.setStyle("-fx-font-size: 12px; -fx-text-fill: #94a3b8;");
+        javafx.scene.layout.VBox header = new javafx.scene.layout.VBox(4, lblTitulo, lblSub);
+        header.setStyle("-fx-padding: 0 0 15 0; -fx-border-color: rgba(255,255,255,0.1); -fx-border-width: 0 0 1 0;");
+
         TextField fNombre = new TextField(getStr(sel, "nombre"));
-        TextField fEmail  = new TextField(getStr(sel, "email"));
-        fEmail.setDisable(true);
+        fNombre.getStyleClass().add("text-field");
+
+        Label lblEmailVal = new Label(getStr(sel, "email"));
+        lblEmailVal.setStyle("-fx-text-fill: #64748b; -fx-font-size: 13px; -fx-padding: 8 10; "
+                + "-fx-background-color: rgba(15,23,42,0.5); -fx-background-radius: 6; "
+                + "-fx-border-color: rgba(255,255,255,0.05); -fx-border-radius: 6;");
+
+        javafx.scene.layout.VBox campos = new javafx.scene.layout.VBox(8,
+                styledLabel("Nombre"),
+                fNombre,
+                styledLabel("Email (solo lectura)"),
+                lblEmailVal);
+
+        javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(15, header, campos);
+        form.setPadding(new javafx.geometry.Insets(20));
+        form.setPrefWidth(420);
 
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Editar Usuario");
-        dialog.setHeaderText("Editar: " + getStr(sel, "nombre"));
-        javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(8,
-                new Label("Nombre:"), fNombre,
-                new Label("Email (no editable):"), fEmail);
-        form.setPadding(new javafx.geometry.Insets(15));
         dialog.getDialogPane().setContent(form);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        aplicarEstiloDialog(dialog);
+
+        javafx.scene.Node okBtn = dialog.getDialogPane().lookupButton(ButtonType.OK);
+        if (okBtn != null) ((javafx.scene.control.Button) okBtn).setText("Guardar cambios");
 
         dialog.showAndWait().ifPresent(bt -> {
             if (bt == ButtonType.OK) {
@@ -161,7 +241,7 @@ public class UsuariosController implements Initializable {
                 JsonObject body = new JsonObject();
                 body.addProperty("nombre",    fNombre.getText().trim());
                 body.addProperty("email",     getStr(sel, "email"));
-                body.addProperty("rolNombre", getRol(sel)); // API espera nombre del rol
+                body.addProperty("rolNombre", getRol(sel));
 
                 new Thread(() -> {
                     ApiClient.ApiResponse resp = ApiClient.getInstance().put("/api/usuarios/" + id, body);
@@ -185,7 +265,9 @@ public class UsuariosController implements Initializable {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
                 "¿Deseas " + accion + " a " + getStr(sel, "nombre") + "?",
                 ButtonType.YES, ButtonType.NO);
-        confirm.setTitle("Confirmar");
+        confirm.setTitle("Confirmar acción");
+        confirm.setHeaderText((activo ? "⚠️  Desactivar" : "✅  Activar") + " usuario");
+        aplicarEstiloAlert(confirm);
         confirm.showAndWait().ifPresent(bt -> {
             if (bt == ButtonType.YES) {
                 new Thread(() -> {
@@ -214,6 +296,8 @@ public class UsuariosController implements Initializable {
                 }
             }
         }
+        paginaActual = 0;
+        actualizarTablaPaginada();
     }
 
     // ─── Helpers ─────────────────────────────────────
@@ -238,15 +322,39 @@ public class UsuariosController implements Initializable {
 
     private void setStatus(String msg) { lblStatusUsuarios.setText(msg); }
 
-    private void mostrarInfo(String msg) {
-        new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK).showAndWait();
+    private void mostrarInfo(String msg)  { Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK); aplicarEstiloAlert(a); a.showAndWait(); }
+    private void mostrarAviso(String msg) { Alert a = new Alert(Alert.AlertType.WARNING,     msg, ButtonType.OK); aplicarEstiloAlert(a); a.showAndWait(); }
+    private void mostrarError(String msg) { Alert a = new Alert(Alert.AlertType.ERROR,       msg, ButtonType.OK); aplicarEstiloAlert(a); a.showAndWait(); }
+
+    private void aplicarEstiloAlert(Alert alert) {
+        alert.getDialogPane().getStylesheets().add(
+                getClass().getResource("/css/styles.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("glass-pane");
+        alert.getDialogPane().setStyle("-fx-background-color: #0f172a;");
     }
 
-    private void mostrarAviso(String msg) {
-        new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK).showAndWait();
+    private void aplicarEstiloDialog(Dialog<?> dialog) {
+        dialog.getDialogPane().getStylesheets().add(
+                getClass().getResource("/css/styles.css").toExternalForm());
+        dialog.getDialogPane().getStyleClass().add("glass-pane");
+        dialog.getDialogPane().setStyle("-fx-background-color: #0f172a;");
+        // Botones
+        javafx.scene.Node okBtn = dialog.getDialogPane().lookupButton(ButtonType.OK);
+        javafx.scene.Node cancelBtn = dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
+        if (okBtn != null) {
+            okBtn.getStyleClass().addAll("button-success");
+            ((javafx.scene.control.Button) okBtn).setText("Aceptar");
+        }
+        if (cancelBtn != null) {
+            cancelBtn.getStyleClass().add("button");
+            ((javafx.scene.control.Button) cancelBtn).setText("Cancelar");
+        }
     }
 
-    private void mostrarError(String msg) {
-        new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK).showAndWait();
+    private Label styledLabel(String texto) {
+        Label lbl = new Label(texto);
+        lbl.getStyleClass().add("label");
+        lbl.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 12px;");
+        return lbl;
     }
 }
