@@ -37,6 +37,7 @@ public class UsuariosController implements Initializable {
     @FXML private Button                               btnNuevoUsuario;
     @FXML private Button                               btnEditarUsuario;
     @FXML private Button                               btnToggleActivo;
+    @FXML private Button                               btnResetPassword;
 
     private final ObservableList<JsonObject> listaUsuarios = FXCollections.observableArrayList();
     private final ObservableList<JsonObject> listaFiltrada = FXCollections.observableArrayList();
@@ -278,6 +279,40 @@ public class UsuariosController implements Initializable {
                     });
                 }).start();
             }
+        });
+    }
+
+    @FXML
+    private void resetPassword() {
+        JsonObject sel = tableUsuarios.getSelectionModel().getSelectedItem();
+        if (sel == null) { mostrarAviso("Selecciona un usuario primero."); return; }
+
+        String nombre = getStr(sel, "nombre");
+        int id = sel.get("idUsuario").getAsInt();
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Restablecer contraseña");
+        dialog.setHeaderText("Nueva contraseña para: " + nombre);
+        dialog.setContentText("Nueva contraseña (mín. 6 caracteres):");
+        aplicarEstiloDialog(dialog);
+
+        dialog.showAndWait().ifPresent(nuevaPassword -> {
+            if (nuevaPassword == null || nuevaPassword.isBlank() || nuevaPassword.length() < 6) {
+                mostrarError("La contraseña debe tener al menos 6 caracteres.");
+                return;
+            }
+            JsonObject body = new JsonObject();
+            body.addProperty("password", nuevaPassword);
+            new Thread(() -> {
+                ApiClient.ApiResponse resp = ApiClient.getInstance().put("/api/usuarios/" + id + "/password", body);
+                Platform.runLater(() -> {
+                    if (resp.isSuccess()) {
+                        mostrarInfo("Contraseña de " + nombre + " restablecida correctamente.");
+                    } else {
+                        mostrarError("No se pudo restablecer la contraseña. Código: " + resp.getStatusCode());
+                    }
+                });
+            }).start();
         });
     }
 

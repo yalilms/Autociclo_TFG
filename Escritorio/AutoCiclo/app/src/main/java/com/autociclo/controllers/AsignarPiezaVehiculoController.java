@@ -69,6 +69,14 @@ public class AsignarPiezaVehiculoController implements Initializable {
 
         // Establecer fecha actual por defecto
         dpFechaAsignacion.setValue(LocalDate.now());
+        txtCantidad.setText("1");
+        txtCantidad.setTextFormatter(new javafx.scene.control.TextFormatter<>(
+            (javafx.scene.control.TextFormatter.Change c) ->
+                c.getControlNewText().matches("\\d*") ? c : null));
+        txtPrecioMecanico.setText("0");
+        txtPrecioMecanico.setTextFormatter(new javafx.scene.control.TextFormatter<>(
+            (javafx.scene.control.TextFormatter.Change c) ->
+                c.getControlNewText().matches("\\d*(\\.\\d{0,2})?") ? c : null));
 
         // Conectar eventos de los botones
         btnAsignar.setOnAction(event -> guardarInventario());

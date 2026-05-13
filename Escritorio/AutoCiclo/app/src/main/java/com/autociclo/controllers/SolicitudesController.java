@@ -16,26 +16,20 @@ import javafx.scene.control.*;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-/**
- * Controlador de Solicitudes de Presupuesto.
- * Permite aprobar y rechazar solicitudes via API.
- * Al aprobar, la API lanza el flujo Odoo (pedido de venta + factura).
- *
- * @author Yalil Musa Talhaoui
- */
 public class SolicitudesController implements Initializable {
 
-    @FXML private TableView<JsonObject>          tableSolicitudes;
+    @FXML private TableView<JsonObject>           tableSolicitudes;
     @FXML private TableColumn<JsonObject, String> colSolId;
     @FXML private TableColumn<JsonObject, String> colSolCliente;
     @FXML private TableColumn<JsonObject, String> colSolEstado;
     @FXML private TableColumn<JsonObject, String> colSolFecha;
-    @FXML private TableColumn<JsonObject, String> colSolPrecio;
+    @FXML private TableColumn<JsonObject, String> colSolOferta;
+    @FXML private TableColumn<JsonObject, String> colSolContrao;
     @FXML private TableColumn<JsonObject, String> colSolOdoo;
     @FXML private TableColumn<JsonObject, String> colSolRespuesta;
     @FXML private TextField txtFiltroEstado;
-    @FXML private Label lblStatusSolicitudes;
-    @FXML private Label lblOdooRef;
+    @FXML private Label     lblStatusSolicitudes;
+    @FXML private Label     lblOdooRef;
 
     private final ObservableList<JsonObject> listaSolicitudes = FXCollections.observableArrayList();
     private final ObservableList<JsonObject> listaFiltrada    = FXCollections.observableArrayList();
@@ -59,8 +53,10 @@ public class SolicitudesController implements Initializable {
                 new SimpleStringProperty(formatEstado(getStr(d.getValue(), "estado"))));
         colSolFecha.setCellValueFactory(d ->
                 new SimpleStringProperty(formatFecha(getStr(d.getValue(), "fechaSolicitud"))));
-        colSolPrecio.setCellValueFactory(d ->
-                new SimpleStringProperty(formatPrecio(d.getValue())));
+        colSolOferta.setCellValueFactory(d ->
+                new SimpleStringProperty(formatDecimal(d.getValue(), "precioOfertaCliente")));
+        colSolContrao.setCellValueFactory(d ->
+                new SimpleStringProperty(formatDecimal(d.getValue(), "precioContraoferta")));
         colSolOdoo.setCellValueFactory(d ->
                 new SimpleStringProperty(formatOdoo(getStr(d.getValue(), "referenciaOdoo"))));
         colSolRespuesta.setCellValueFactory(d ->
@@ -115,13 +111,8 @@ public class SolicitudesController implements Initializable {
         }
     }
 
-    public boolean hayPaginaSiguiente() {
-        return (paginaActual + 1) * PAGE_SIZE < listaFiltrada.size();
-    }
-
-    public boolean hayPaginaAnterior() {
-        return paginaActual > 0;
-    }
+    public boolean hayPaginaSiguiente() { return (paginaActual + 1) * PAGE_SIZE < listaFiltrada.size(); }
+    public boolean hayPaginaAnterior()  { return paginaActual > 0; }
 
     @FXML
     private void aprobarSolicitud() {
@@ -129,12 +120,11 @@ public class SolicitudesController implements Initializable {
         if (sel == null) { mostrarAviso("Selecciona una solicitud."); return; }
 
         String estado = getStr(sel, "estado");
-        if (!"pendiente".equals(estado) && !"en_revision".equals(estado)) {
-            mostrarAviso("Solo se pueden aprobar solicitudes en estado pendiente o en revisión.");
+        if (!"pendiente".equals(estado) && !"en_negociacion".equals(estado)) {
+            mostrarAviso("Solo se pueden aprobar solicitudes pendientes o en negociación.");
             return;
         }
 
-        // Pedir precio total y respuesta al admin
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Aprobar solicitud #" + getStr(sel, "idSolicitud"));
 
@@ -144,15 +134,20 @@ public class SolicitudesController implements Initializable {
         fPrecio.getStyleClass().add("text-field");
         fRespuesta.setStyle("-fx-background-color: #1e293b; -fx-text-fill: white; -fx-border-color: #334155; -fx-border-radius: 6; -fx-background-radius: 6;");
 
+        // Prellenar con el precio ofertado por el cliente si existe
+        String ofertaCliente = formatDecimal(sel, "precioOfertaCliente");
+        Label lblOferta = new Label("Oferta del cliente: " + ofertaCliente);
+        lblOferta.setStyle("-fx-text-fill: #fbbf24; -fx-font-size: 12px;");
+
         Label lblCliente = new Label("Cliente: " + getNombreCliente(sel));
         lblCliente.setStyle("-fx-text-fill: #60a5fa; -fx-font-weight: bold; -fx-font-size: 13px;");
 
         javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(10,
-                lblCliente,
-                styledLabel("Precio total (€)"), fPrecio,
+                lblCliente, lblOferta,
+                styledLabel("Precio total final (€)"), fPrecio,
                 styledLabel("Mensaje al cliente"), fRespuesta);
         form.setPadding(new javafx.geometry.Insets(20));
-        form.setPrefWidth(400);
+        form.setPrefWidth(420);
         dialog.getDialogPane().setContent(form);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         aplicarEstiloDialog(dialog);
@@ -189,8 +184,8 @@ public class SolicitudesController implements Initializable {
         JsonObject sel = tableSolicitudes.getSelectionModel().getSelectedItem();
         if (sel == null) { mostrarAviso("Selecciona una solicitud."); return; }
 
-        if ("rechazada".equals(getStr(sel, "estado"))) {
-            mostrarAviso("Esta solicitud ya está rechazada.");
+        if ("rechazada".equals(getStr(sel, "estado")) || "aprobada".equals(getStr(sel, "estado"))) {
+            mostrarAviso("Esta solicitud ya está " + getStr(sel, "estado") + ".");
             return;
         }
 
@@ -207,8 +202,7 @@ public class SolicitudesController implements Initializable {
         fMotivo.setStyle("-fx-background-color: #1e293b; -fx-text-fill: white; -fx-border-color: #334155; -fx-border-radius: 6; -fx-background-radius: 6;");
 
         javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(10,
-                lblCliente,
-                styledLabel("Motivo del rechazo (mensaje al cliente)"), fMotivo);
+                lblCliente, styledLabel("Motivo del rechazo (mensaje al cliente)"), fMotivo);
         form.setPadding(new javafx.geometry.Insets(20));
         form.setPrefWidth(420);
 
@@ -228,13 +222,85 @@ public class SolicitudesController implements Initializable {
                 int id = sel.get("idSolicitud").getAsInt();
                 JsonObject body = new JsonObject();
                 body.addProperty("respuestaAdmin", fMotivo.getText().trim());
-
                 new Thread(() -> {
                     ApiClient.ApiResponse resp = ApiClient.getInstance()
                             .put("/api/solicitudes/" + id + "/rechazar", body);
                     Platform.runLater(() -> {
                         if (resp.isSuccess()) { mostrarInfo("Solicitud rechazada."); cargarSolicitudes(); }
                         else mostrarError("Error al rechazar. Código: " + resp.getStatusCode());
+                    });
+                }).start();
+            }
+        });
+    }
+
+    @FXML
+    private void contraofertarSolicitud() {
+        JsonObject sel = tableSolicitudes.getSelectionModel().getSelectedItem();
+        if (sel == null) { mostrarAviso("Selecciona una solicitud."); return; }
+
+        String estado = getStr(sel, "estado");
+        if ("aprobada".equals(estado) || "rechazada".equals(estado)) {
+            mostrarAviso("No se puede contraofertar una solicitud " + estado + ".");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Contraoferta — solicitud #" + getStr(sel, "idSolicitud"));
+
+        String ofertaActual = formatDecimal(sel, "precioOfertaCliente");
+        Label lblCliente = new Label("Cliente: " + getNombreCliente(sel));
+        lblCliente.setStyle("-fx-text-fill: #a78bfa; -fx-font-weight: bold; -fx-font-size: 13px;");
+        Label lblOferta = new Label("Oferta del cliente: " + ofertaActual);
+        lblOferta.setStyle("-fx-text-fill: #fbbf24; -fx-font-size: 12px;");
+
+        TextField fPrecio = new TextField();
+        fPrecio.setPromptText("Precio que propones (€)");
+        fPrecio.getStyleClass().add("text-field");
+
+        TextArea fMensaje = new TextArea();
+        fMensaje.setPromptText("Justificación o mensaje al cliente…");
+        fMensaje.setPrefRowCount(3);
+        fMensaje.setWrapText(true);
+        fMensaje.setStyle("-fx-background-color: #1e293b; -fx-text-fill: white; -fx-border-color: #334155; -fx-border-radius: 6; -fx-background-radius: 6;");
+
+        javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(10,
+                lblCliente, lblOferta,
+                styledLabel("Tu contraoferta (€)"), fPrecio,
+                styledLabel("Mensaje al cliente"), fMensaje);
+        form.setPadding(new javafx.geometry.Insets(20));
+        form.setPrefWidth(420);
+
+        dialog.getDialogPane().setContent(form);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        aplicarEstiloDialog(dialog);
+
+        javafx.scene.Node okBtn = dialog.getDialogPane().lookupButton(ButtonType.OK);
+        if (okBtn != null) ((Button) okBtn).setText("Enviar contraoferta");
+
+        dialog.showAndWait().ifPresent(bt -> {
+            if (bt == ButtonType.OK) {
+                double precio;
+                try { precio = Double.parseDouble(fPrecio.getText().trim()); }
+                catch (NumberFormatException e) { mostrarAviso("Introduce un precio válido."); return; }
+
+                int id = sel.get("idSolicitud").getAsInt();
+                JsonObject body = new JsonObject();
+                body.addProperty("precio", precio);
+                body.addProperty("mensaje", fMensaje.getText().trim());
+
+                setStatus("Enviando contraoferta…");
+                new Thread(() -> {
+                    ApiClient.ApiResponse resp = ApiClient.getInstance()
+                            .put("/api/solicitudes/" + id + "/contraoferta", body);
+                    Platform.runLater(() -> {
+                        if (resp.isSuccess()) {
+                            mostrarInfo("Contraoferta enviada. El cliente recibirá una notificación.");
+                            cargarSolicitudes();
+                        } else {
+                            mostrarError("Error al enviar contraoferta. Código: " + resp.getStatusCode());
+                            setStatus("Error al enviar contraoferta.");
+                        }
                     });
                 }).start();
             }
@@ -268,9 +334,7 @@ public class SolicitudesController implements Initializable {
 
     private String getNombreCliente(JsonObject sol) {
         try {
-            JsonObject cliente  = sol.getAsJsonObject("cliente");
-            JsonObject usuario  = cliente.getAsJsonObject("usuario");
-            return usuario.get("nombre").getAsString();
+            return sol.getAsJsonObject("cliente").getAsJsonObject("usuario").get("nombre").getAsString();
         } catch (Exception e) { return "Desconocido"; }
     }
 
@@ -280,10 +344,10 @@ public class SolicitudesController implements Initializable {
         catch (Exception e) { return fecha; }
     }
 
-    private String formatPrecio(JsonObject sol) {
+    private String formatDecimal(JsonObject sol, String campo) {
         try {
-            if (sol.get("precioTotal").isJsonNull()) return "—";
-            return String.format("%.2f €", sol.get("precioTotal").getAsDouble());
+            if (sol.get(campo) == null || sol.get(campo).isJsonNull()) return "—";
+            return String.format("%.2f €", sol.get(campo).getAsDouble());
         } catch (Exception e) { return "—"; }
     }
 
@@ -293,10 +357,10 @@ public class SolicitudesController implements Initializable {
 
     private String formatEstado(String estado) {
         return switch (estado) {
-            case "pendiente"   -> "🟡 Pendiente";
-            case "en_revision" -> "🔵 En revisión";
-            case "aprobada"    -> "✅ Aprobada";
-            case "rechazada"   -> "❌ Rechazada";
+            case "pendiente"      -> "🟡 Pendiente";
+            case "en_negociacion" -> "🔵 En negociación";
+            case "aprobada"       -> "✅ Aprobada";
+            case "rechazada"      -> "❌ Rechazada";
             default -> estado;
         };
     }
@@ -321,14 +385,8 @@ public class SolicitudesController implements Initializable {
         dialog.getDialogPane().setStyle("-fx-background-color: #0f172a;");
         javafx.scene.Node okBtn     = dialog.getDialogPane().lookupButton(ButtonType.OK);
         javafx.scene.Node cancelBtn = dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
-        if (okBtn != null) {
-            okBtn.getStyleClass().add("button-success");
-            ((javafx.scene.control.Button) okBtn).setText("Aceptar");
-        }
-        if (cancelBtn != null) {
-            cancelBtn.getStyleClass().add("button");
-            ((javafx.scene.control.Button) cancelBtn).setText("Cancelar");
-        }
+        if (okBtn     != null) { okBtn.getStyleClass().add("button-success"); ((Button) okBtn).setText("Aceptar"); }
+        if (cancelBtn != null) { cancelBtn.getStyleClass().add("button"); ((Button) cancelBtn).setText("Cancelar"); }
     }
 
     private Label styledLabel(String texto) {

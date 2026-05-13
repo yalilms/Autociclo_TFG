@@ -40,6 +40,17 @@ public class UsuarioController {
         return usuarioService.update(id, req);
     }
 
+    @PutMapping("/{id}/password")
+    public ResponseEntity<Void> resetPassword(@PathVariable Integer id,
+                                              @RequestBody java.util.Map<String, String> body) {
+        String nuevaPassword = body.get("password");
+        if (nuevaPassword == null || nuevaPassword.isBlank() || nuevaPassword.length() < 6) {
+            throw new IllegalArgumentException("La contraseña debe tener al menos 6 caracteres");
+        }
+        usuarioService.resetPassword(id, nuevaPassword);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deactivate(@PathVariable Integer id) {
         usuarioService.deactivate(id);

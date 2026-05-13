@@ -21,99 +21,127 @@
       <ScrollPane fx:id="scrollPaneContenido" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
          <content>
             <VBox spacing="20.0" style="-fx-background-color: transparent;">
-               <padding>
-                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-               </padding>
+               <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/></padding>
                <children>
-                  <Label styleClass="header-label" text="Estadísticas del Negocio">
-                     <font>
-                        <Font name="System Bold" size="24.0" />
-                     </font>
-                  </Label>
-            
-            <GridPane hgap="20.0" vgap="20.0">
-              <columnConstraints>
-                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="50.0" />
-                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="50.0" />
-              </columnConstraints>
-              <rowConstraints>
-                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-              </rowConstraints>
-               <children>
-                  <VBox styleClass="card-pane" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                     <children>
-                        <Label text="Vehículos por Marca" style="-fx-font-weight: bold; -fx-font-size: 16px;">
-                           <padding>
-                              <Insets bottom="10.0" />
-                           </padding>
-                        </Label>
-                        <BarChart fx:id="barChartVehiculos" legendVisible="false" prefHeight="300.0">
-                          <xAxis>
-                            <CategoryAxis label="Marca" side="BOTTOM" />
-                          </xAxis>
-                          <yAxis>
-                            <NumberAxis label="Cantidad" side="LEFT" />
-                          </yAxis>
-                        </BarChart>
-                     </children>
-                     <padding>
-                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
-                     </padding>
-                  </VBox>
-                  
-                  <VBox styleClass="card-pane" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                     <children>
-                        <Label text="Piezas por Categoría" style="-fx-font-weight: bold; -fx-font-size: 16px;">
-                           <padding>
-                              <Insets bottom="10.0" />
-                           </padding>
-                        </Label>
-                        <PieChart fx:id="pieChartPiezas" labelsVisible="true" prefHeight="300.0" />
-                     </children>
-                     <padding>
-                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
-                     </padding>
-                  </VBox>
-                  
-                   <VBox styleClass="card-pane" GridPane.columnSpan="2" GridPane.rowIndex="1">
-                     <children>
-                        <Label text="Top 5 Vehículos con Mayor Kilometraje" style="-fx-font-weight: bold; -fx-font-size: 16px;">
-                           <padding>
-                              <Insets bottom="10.0" />
-                           </padding>
-                        </Label>
-                        <BarChart fx:id="barChartKilometraje" legendVisible="false" prefHeight="300.0">
-                          <xAxis>
-                            <CategoryAxis label="Vehículo" side="BOTTOM" />
-                          </xAxis>
-                          <yAxis>
-                            <NumberAxis label="Kilometraje" side="LEFT" />
-                          </yAxis>
-                        </BarChart>
-                     </children>
-                     <padding>
-                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
-                     </padding>
-                  </VBox>
-                  
-                  </children>
-               </GridPane>
-            </children>
-         </VBox>
-      </content>
-   </ScrollPane>
 
-   <!-- Indicador de carga centrado -->
-   <VBox fx:id="loadingOverlay" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.3);" visible="false">
-      <children>
-         <ProgressIndicator fx:id="progressIndicator" maxHeight="80.0" maxWidth="80.0" />
-         <Label text="Cargando estadísticas..." style="-fx-text-fill: white; -fx-font-size: 14px;">
-            <VBox.margin>
-               <Insets top="15.0" />
-            </VBox.margin>
-         </Label>
-      </children>
-   </VBox>
+                  <Label styleClass="header-label" text="Estadísticas del Negocio">
+                     <font><Font name="System Bold" size="24.0"/></font>
+                  </Label>
+
+                  <!-- KPI Cards -->
+                  <HBox spacing="15.0">
+                     <children>
+                        <VBox styleClass="card-pane" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
+                           <padding><Insets bottom="15" left="15" right="15" top="15"/></padding>
+                           <Label text="VEHÍCULOS" style="-fx-text-fill: #94a3b8; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                           <Label fx:id="lblTotalVehiculos" text="—" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                           <Label text="en total" style="-fx-text-fill: #64748b; -fx-font-size: 11px;"/>
+                        </VBox>
+                        <VBox styleClass="card-pane" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
+                           <padding><Insets bottom="15" left="15" right="15" top="15"/></padding>
+                           <Label text="PIEZAS" style="-fx-text-fill: #94a3b8; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                           <Label fx:id="lblTotalPiezas" text="—" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                           <Label text="catalogadas" style="-fx-text-fill: #64748b; -fx-font-size: 11px;"/>
+                        </VBox>
+                        <VBox styleClass="card-pane" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
+                           <padding><Insets bottom="15" left="15" right="15" top="15"/></padding>
+                           <Label text="PENDIENTES" style="-fx-text-fill: #f59e0b; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                           <Label fx:id="lblSolicitudesPendientes" text="—" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #f59e0b;"/>
+                           <Label text="solicitudes" style="-fx-text-fill: #64748b; -fx-font-size: 11px;"/>
+                        </VBox>
+                        <VBox styleClass="card-pane" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="6">
+                           <padding><Insets bottom="15" left="15" right="15" top="15"/></padding>
+                           <Label text="INGRESOS" style="-fx-text-fill: #10b981; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                           <Label fx:id="lblIngresos" text="—" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
+                           <Label text="aprobadas" style="-fx-text-fill: #64748b; -fx-font-size: 11px;"/>
+                        </VBox>
+                     </children>
+                  </HBox>
+
+                  <!-- Fila 1: Vehículos por Marca + Piezas por Categoría -->
+                  <GridPane hgap="20.0" vgap="20.0">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0"/>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0"/>
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints vgrow="SOMETIMES"/>
+                     </rowConstraints>
+                     <children>
+                        <VBox styleClass="card-pane" GridPane.columnIndex="0">
+                           <padding><Insets bottom="15" left="15" right="15" top="15"/></padding>
+                           <Label text="Vehículos por Marca" style="-fx-font-weight: bold; -fx-font-size: 16px;">
+                              <padding><Insets bottom="10.0"/></padding>
+                           </Label>
+                           <BarChart fx:id="barChartVehiculos" legendVisible="false" prefHeight="280.0">
+                              <xAxis><CategoryAxis label="Marca" side="BOTTOM"/></xAxis>
+                              <yAxis><NumberAxis label="Cantidad" side="LEFT"/></yAxis>
+                           </BarChart>
+                        </VBox>
+                        <VBox styleClass="card-pane" GridPane.columnIndex="1">
+                           <padding><Insets bottom="15" left="15" right="15" top="15"/></padding>
+                           <Label text="Piezas por Categoría" style="-fx-font-weight: bold; -fx-font-size: 16px;">
+                              <padding><Insets bottom="10.0"/></padding>
+                           </Label>
+                           <PieChart fx:id="pieChartPiezas" labelsVisible="true" prefHeight="280.0"/>
+                        </VBox>
+                     </children>
+                  </GridPane>
+
+                  <!-- Fila 2: Vehículos por Estado + Solicitudes por Estado -->
+                  <GridPane hgap="20.0" vgap="20.0">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0"/>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0"/>
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints vgrow="SOMETIMES"/>
+                     </rowConstraints>
+                     <children>
+                        <VBox styleClass="card-pane" GridPane.columnIndex="0">
+                           <padding><Insets bottom="15" left="15" right="15" top="15"/></padding>
+                           <Label text="Vehículos por Estado" style="-fx-font-weight: bold; -fx-font-size: 16px;">
+                              <padding><Insets bottom="10.0"/></padding>
+                           </Label>
+                           <PieChart fx:id="pieChartEstadoVehiculos" labelsVisible="true" prefHeight="280.0"/>
+                        </VBox>
+                        <VBox styleClass="card-pane" GridPane.columnIndex="1">
+                           <padding><Insets bottom="15" left="15" right="15" top="15"/></padding>
+                           <Label text="Solicitudes por Estado" style="-fx-font-weight: bold; -fx-font-size: 16px;">
+                              <padding><Insets bottom="10.0"/></padding>
+                           </Label>
+                           <BarChart fx:id="barChartSolicitudes" legendVisible="false" prefHeight="280.0">
+                              <xAxis><CategoryAxis label="Estado" side="BOTTOM"/></xAxis>
+                              <yAxis><NumberAxis label="Cantidad" side="LEFT"/></yAxis>
+                           </BarChart>
+                        </VBox>
+                     </children>
+                  </GridPane>
+
+                  <!-- Fila 3: Top 5 Kilometraje (ancho completo) -->
+                  <VBox styleClass="card-pane">
+                     <padding><Insets bottom="15" left="15" right="15" top="15"/></padding>
+                     <Label text="Top 5 Vehículos con Mayor Kilometraje" style="-fx-font-weight: bold; -fx-font-size: 16px;">
+                        <padding><Insets bottom="10.0"/></padding>
+                     </Label>
+                     <BarChart fx:id="barChartKilometraje" legendVisible="false" prefHeight="280.0">
+                        <xAxis><CategoryAxis label="Vehículo" side="BOTTOM"/></xAxis>
+                        <yAxis><NumberAxis label="Kilometraje" side="LEFT"/></yAxis>
+                     </BarChart>
+                  </VBox>
+
+               </children>
+            </VBox>
+         </content>
+      </ScrollPane>
+
+      <VBox fx:id="loadingOverlay" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.3);" visible="false">
+         <children>
+            <ProgressIndicator fx:id="progressIndicator" maxHeight="80.0" maxWidth="80.0"/>
+            <Label text="Cargando estadísticas..." style="-fx-text-fill: white; -fx-font-size: 14px;">
+               <VBox.margin><Insets top="15.0"/></VBox.margin>
+            </Label>
+         </children>
+      </VBox>
    </children>
 </StackPane>

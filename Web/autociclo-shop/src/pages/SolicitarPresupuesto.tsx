@@ -11,14 +11,15 @@ interface Linea { piezaId: number; cantidad: number; nombre: string; precio: num
 export default function SolicitarPresupuesto() {
   const navigate  = useNavigate()
   const [searchParams] = useSearchParams()
-  const [piezas, setPiezas]     = useState<Pieza[]>([])
-  const [lineas, setLineas]     = useState<Linea[]>([])
-  const [notas, setNotas]       = useState('')
-  const [seleccion, setSeleccion] = useState<number | ''>('')
-  const [cantidad, setCantidad] = useState(1)
-  const [loading, setLoading]   = useState(false)
-  const [enviado, setEnviado]   = useState(false)
-  const [error, setError]       = useState('')
+  const [piezas, setPiezas]         = useState<Pieza[]>([])
+  const [lineas, setLineas]         = useState<Linea[]>([])
+  const [notas, setNotas]           = useState('')
+  const [ofertaCliente, setOferta]  = useState('')
+  const [seleccion, setSeleccion]   = useState<number | ''>('')
+  const [cantidad, setCantidad]     = useState(1)
+  const [loading, setLoading]       = useState(false)
+  const [enviado, setEnviado]       = useState(false)
+  const [error, setError]           = useState('')
 
   useEffect(() => {
     client.get('/piezas').then(res => setPiezas(res.data)).catch(() => {})
@@ -50,10 +51,17 @@ export default function SolicitarPresupuesto() {
     e.preventDefault()
     setError('')
     if (lineas.length === 0) { setError('Añade al menos una pieza.'); return }
+    const precioOferta = parseFloat(ofertaCliente)
+    if (!ofertaCliente || isNaN(precioOferta) || precioOferta <= 0) {
+      setError('Introduce tu precio ofertado para iniciar la negociación.')
+      return
+    }
     setLoading(true)
     try {
       await client.post('/solicitudes', {
         detalles: lineas.map((l, i) => ({ idPieza: l.piezaId, cantidad: l.cantidad, notas: i === 0 ? notas : undefined })),
+        precioOfertaCliente: precioOferta,
+        notas,
       })
       setEnviado(true)
     } catch { setError('Error al enviar. Inténtalo de nuevo.') }
@@ -205,7 +213,22 @@ export default function SolicitarPresupuesto() {
                 <span className="text-slate-400 text-sm">Total estimado</span>
                 <span className="text-3xl font-black text-white">{formatPrice(total)}</span>
               </div>
-              <p className="text-xs text-amber-400/60 mb-8">* Precio orientativo basado en el catálogo. El precio definitivo lo recibirás en menos de 24h tras revisar el estado real de la pieza.</p>
+              {/* Oferta del cliente */}
+              <div className="mb-6">
+                <label className="block text-xs text-slate-400 uppercase tracking-widest font-bold mb-2">
+                  Tu oferta (€) *
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  value={ofertaCliente}
+                  onChange={e => setOferta(e.target.value)}
+                  placeholder="Ej: 150.00"
+                  className="w-full bg-slate-900 border border-amber-500/40 rounded-xl p-3 text-white text-lg font-bold focus:outline-none focus:ring-1 focus:ring-amber-400 placeholder-slate-600"
+                />
+                <p className="text-[10px] text-amber-400/60 mt-1.5">Propón el precio que estás dispuesto a pagar. El admin puede aceptar, rechazar o contraofertar.</p>
+              </div>
 
               {error && (
                 <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm mb-6">

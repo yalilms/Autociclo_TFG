@@ -1,7 +1,9 @@
 package com.autociclo.controllers;
 
 import com.autociclo.dto.AprobarSolicitudRequest;
+import com.autociclo.dto.ContarofertaRequest;
 import com.autociclo.dto.SolicitudRequest;
+import com.autociclo.models.NegociacionHistorial;
 import com.autociclo.models.SolicitudPresupuesto;
 import com.autociclo.services.SolicitudService;
 import jakarta.validation.Valid;
@@ -27,15 +29,18 @@ public class SolicitudController {
     public List<SolicitudPresupuesto> getAll(@AuthenticationPrincipal UserDetails userDetails) {
         boolean esAdmin = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        if (esAdmin) {
-            return solicitudService.findAll();
-        }
+        if (esAdmin) return solicitudService.findAll();
         return solicitudService.findByClienteEmail(userDetails.getUsername());
     }
 
     @GetMapping("/{id}")
     public SolicitudPresupuesto getById(@PathVariable Integer id) {
         return solicitudService.findById(id);
+    }
+
+    @GetMapping("/{id}/historial")
+    public List<NegociacionHistorial> getHistorial(@PathVariable Integer id) {
+        return solicitudService.findHistorial(id);
     }
 
     @PostMapping
@@ -50,14 +55,43 @@ public class SolicitudController {
     @PutMapping("/{id}/aprobar")
     @PreAuthorize("hasRole('ADMIN')")
     public SolicitudPresupuesto aprobar(@PathVariable Integer id,
-                                         @RequestBody AprobarSolicitudRequest req) {
+                                        @RequestBody AprobarSolicitudRequest req) {
         return solicitudService.aprobar(id, req);
     }
 
     @PutMapping("/{id}/rechazar")
     @PreAuthorize("hasRole('ADMIN')")
     public SolicitudPresupuesto rechazar(@PathVariable Integer id,
-                                          @RequestBody Map<String, String> body) {
+                                         @RequestBody Map<String, String> body) {
         return solicitudService.rechazar(id, body.get("respuestaAdmin"));
+    }
+
+    @PutMapping("/{id}/contraoferta")
+    @PreAuthorize("hasRole('ADMIN')")
+    public SolicitudPresupuesto contraoferta(@PathVariable Integer id,
+                                              @Valid @RequestBody ContarofertaRequest req) {
+        return solicitudService.contraoferta(id, req);
+    }
+
+    @PutMapping("/{id}/aceptar-oferta")
+    @PreAuthorize("hasRole('CLIENTE')")
+    public SolicitudPresupuesto aceptarOferta(@PathVariable Integer id,
+                                               @AuthenticationPrincipal UserDetails userDetails) {
+        return solicitudService.aceptarOferta(id, userDetails.getUsername());
+    }
+
+    @PutMapping("/{id}/rechazar-oferta")
+    @PreAuthorize("hasRole('CLIENTE')")
+    public SolicitudPresupuesto rechazarOferta(@PathVariable Integer id,
+                                                @AuthenticationPrincipal UserDetails userDetails) {
+        return solicitudService.rechazarOferta(id, userDetails.getUsername());
+    }
+
+    @PutMapping("/{id}/nueva-oferta")
+    @PreAuthorize("hasRole('CLIENTE')")
+    public SolicitudPresupuesto nuevaOferta(@PathVariable Integer id,
+                                             @Valid @RequestBody ContarofertaRequest req,
+                                             @AuthenticationPrincipal UserDetails userDetails) {
+        return solicitudService.nuevaOfertaCliente(id, req, userDetails.getUsername());
     }
 }

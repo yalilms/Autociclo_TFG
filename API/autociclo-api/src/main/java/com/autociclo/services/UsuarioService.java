@@ -66,6 +66,13 @@ public class UsuarioService {
     }
 
     @Transactional
+    public void resetPassword(Integer id, String nuevaPassword) {
+        Usuario u = findById(id);
+        u.setPasswordHash(passwordEncoder.encode(nuevaPassword));
+        usuarioRepository.save(u);
+    }
+
+    @Transactional
     public void deactivate(Integer id) {
         Usuario u = findById(id);
         u.setActivo(false);

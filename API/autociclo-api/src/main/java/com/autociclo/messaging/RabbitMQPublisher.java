@@ -26,6 +26,17 @@ public class RabbitMQPublisher {
         log.info("[RabbitMQ] Publicado en {}: solicitud #{} de {}", RabbitMQConfig.QUEUE_SOLICITUDES, idSolicitud, nombreCliente);
     }
 
+    public void publicarContaoferta(Integer idSolicitud, String nombreCliente, java.math.BigDecimal precio) {
+        Map<String, Object> mensaje = Map.of(
+                "evento",      "OFERTA_CLIENTE",
+                "idSolicitud", idSolicitud,
+                "cliente",     nombreCliente,
+                "precio",      precio
+        );
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.RK_SOLICITUDES, mensaje);
+        log.info("[RabbitMQ] Oferta cliente en {}: solicitud #{} — {}€", RabbitMQConfig.QUEUE_SOLICITUDES, idSolicitud, precio);
+    }
+
     public void publicarAlertaStock(Integer idPieza, String codigoPieza, String nombrePieza,
                                     int stockActual, int stockMinimo) {
         Map<String, Object> mensaje = Map.of(

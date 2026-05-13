@@ -1,7 +1,8 @@
--- AutoCiclo DB v2 — Yalil Musa Talhaoui · TFG 2º DAM · IES P. Hermenegildo Lanz
--- 11 tablas: ROLES, VEHICULOS, PIEZAS, INVENTARIO_PIEZAS, USUARIOS, CLIENTES,
---            SOLICITUDES_PRESUPUESTO, DETALLE_SOLICITUD, CODIGOS_QR, MOVIMIENTOS_STOCK, NOTIFICACIONES
--- Datos de demo: 8 vehículos · 15 piezas · 3 usuarios por rol · 4 solicitudes · 20 códigos QR
+-- AutoCiclo DB v3 — Yalil Musa Talhaoui · TFG 2º DAM · IES P. Hermenegildo Lanz
+-- 12 tablas: ROLES, VEHICULOS, PIEZAS, INVENTARIO_PIEZAS, USUARIOS, CLIENTES,
+--            SOLICITUDES_PRESUPUESTO, DETALLE_SOLICITUD, NEGOCIACION_HISTORIAL,
+--            CODIGOS_QR, MOVIMIENTOS_STOCK, NOTIFICACIONES
+-- Datos de demo: 8 vehículos · 15 piezas · 3 usuarios por rol · 4 solicitudes · 2 rondas negociación · 20 códigos QR
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,6 +19,7 @@ USE `autociclo_db`;
 DROP TABLE IF EXISTS `NOTIFICACIONES`;
 DROP TABLE IF EXISTS `MOVIMIENTOS_STOCK`;
 DROP TABLE IF EXISTS `CODIGOS_QR`;
+DROP TABLE IF EXISTS `NEGOCIACION_HISTORIAL`;
 DROP TABLE IF EXISTS `DETALLE_SOLICITUD`;
 DROP TABLE IF EXISTS `SOLICITUDES_PRESUPUESTO`;
 DROP TABLE IF EXISTS `INVENTARIO_PIEZAS`;
@@ -200,26 +202,31 @@ INSERT INTO `CLIENTES` (`id_usuario`, `telefono`, `direccion`, `nif`) VALUES
 -- 7. SOLICITUDES_PRESUPUESTO  (4 solicitudes en distintos estados)
 -- ─────────────────────────────────────────────────────────────────────────────
 CREATE TABLE `SOLICITUDES_PRESUPUESTO` (
-    `id_solicitud`    INT           NOT NULL AUTO_INCREMENT,
-    `id_cliente`      INT           NOT NULL,
-    `fecha_solicitud` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `estado`          ENUM('pendiente','en_revision','aprobada','rechazada') NOT NULL DEFAULT 'pendiente',
-    `respuesta_admin` TEXT          DEFAULT NULL,
-    `precio_total`    DECIMAL(10,2) DEFAULT NULL,
-    `referencia_odoo` VARCHAR(50)   DEFAULT NULL,
+    `id_solicitud`          INT           NOT NULL AUTO_INCREMENT,
+    `id_cliente`            INT           NOT NULL,
+    `fecha_solicitud`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `estado`                ENUM('pendiente','en_negociacion','aprobada','rechazada') NOT NULL DEFAULT 'pendiente',
+    `respuesta_admin`       TEXT          DEFAULT NULL,
+    `precio_total`          DECIMAL(10,2) DEFAULT NULL,
+    `precio_oferta_cliente` DECIMAL(10,2) DEFAULT NULL,
+    `precio_contraoferta`   DECIMAL(10,2) DEFAULT NULL,
+    `turno`                 ENUM('cliente','admin') NOT NULL DEFAULT 'admin',
+    `referencia_odoo`       VARCHAR(50)   DEFAULT NULL,
     PRIMARY KEY (`id_solicitud`),
     KEY `fk_solicitudes_cliente` (`id_cliente`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `SOLICITUDES_PRESUPUESTO` (`id_cliente`, `fecha_solicitud`, `estado`, `respuesta_admin`, `precio_total`, `referencia_odoo`) VALUES
-    (1, '2026-04-15 10:00:00', 'pendiente',  NULL,                                                          NULL,    NULL),
-    (2, '2026-04-20 14:30:00', 'aprobada',   'Solicitud aprobada. Pedido generado en Odoo. Contactaremos para la entrega.', 500.00, 'SO/2026/0042'),
-    (3, '2026-04-28 09:15:00', 'rechazada',  'Lo sentimos, la pieza solicitada está dañada y no podemos garantizar su calidad.', NULL, NULL),
-    (1, '2026-05-05 16:00:00', 'en_revision', 'Revisando disponibilidad y precio. Responderemos en 24-48h.', NULL, NULL);
+INSERT INTO `SOLICITUDES_PRESUPUESTO`
+    (`id_cliente`, `fecha_solicitud`, `estado`, `respuesta_admin`, `precio_total`, `precio_oferta_cliente`, `precio_contraoferta`, `turno`, `referencia_odoo`) VALUES
+    (1, '2026-04-15 10:00:00', 'pendiente',      NULL,                                                                        NULL,    120.00,  NULL,   'admin',   NULL),
+    (2, '2026-04-20 14:30:00', 'aprobada',        'Solicitud aprobada. Pedido generado en Odoo. Contactaremos para la entrega.', 500.00,  420.00,  NULL,   'admin',   'SO/2026/0042'),
+    (3, '2026-04-28 09:15:00', 'rechazada',       'Lo sentimos, la pieza solicitada está dañada y no podemos garantizar su calidad.', NULL, 700.00, NULL, 'admin', NULL),
+    (1, '2026-05-05 16:00:00', 'en_negociacion',  'He revisado el estado de las piezas. Le ofrezco 880€, son piezas en excelente estado.', NULL, 750.00, 880.00, 'cliente', NULL);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 8. DETALLE_SOLICITUD
 -- ─────────────────────────────────────────────────────────────────────────────
+
 CREATE TABLE `DETALLE_SOLICITUD` (
     `id_solicitud` INT          NOT NULL,
     `id_pieza`     INT          NOT NULL,
@@ -239,7 +246,27 @@ INSERT INTO `DETALLE_SOLICITUD` (`id_solicitud`, `id_pieza`, `cantidad`, `notas`
     (4, 10, 2, 'Par de discos de freno ventilados');
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- 9. CODIGOS_QR  (QR para todos los vehículos y todas las piezas)
+-- 9. NEGOCIACION_HISTORIAL  (historial de rondas de negociación)
+-- ─────────────────────────────────────────────────────────────────────────────
+CREATE TABLE `NEGOCIACION_HISTORIAL` (
+    `id`           INT            NOT NULL AUTO_INCREMENT,
+    `id_solicitud` INT            NOT NULL,
+    `ronda`        INT            NOT NULL,
+    `autor`        ENUM('cliente','admin') NOT NULL,
+    `precio`       DECIMAL(10,2)  NOT NULL,
+    `mensaje`      TEXT           DEFAULT NULL,
+    `fecha`        DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `fk_historial_solicitud` (`id_solicitud`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Demo: 2 rondas de negociación para solicitud #4
+INSERT INTO `NEGOCIACION_HISTORIAL` (`id_solicitud`, `ronda`, `autor`, `precio`, `mensaje`, `fecha`) VALUES
+    (4, 1, 'cliente', 750.00, 'Me interesan los neumáticos y discos. Ofrezco 750€ por todo, incluido transporte.', '2026-05-05 16:00:00'),
+    (4, 2, 'admin',   880.00, 'He revisado el estado de las piezas. Son de primera calidad, extraídas de un BMW 2020 con 62.000 km. Le ofrezco 880€.', '2026-05-06 09:00:00');
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 10. CODIGOS_QR  (QR para todos los vehículos y todas las piezas)
 -- ─────────────────────────────────────────────────────────────────────────────
 CREATE TABLE `CODIGOS_QR` (
     `id_qr`            INT          NOT NULL AUTO_INCREMENT,
@@ -317,7 +344,7 @@ INSERT INTO `MOVIMIENTOS_STOCK` (`id_pieza`, `tipo`, `cantidad`, `id_usuario`, `
 CREATE TABLE `NOTIFICACIONES` (
     `id_notif`       INT          NOT NULL AUTO_INCREMENT,
     `id_usuario`     INT          NOT NULL,
-    `tipo`           ENUM('stock_bajo','solicitud_nueva','solicitud_actualizada','odoo_pedido','general') NOT NULL,
+    `tipo`           ENUM('stock_bajo','solicitud_nueva','solicitud_actualizada','odoo_pedido','negociacion_nueva','general') NOT NULL,
     `mensaje`        TEXT         NOT NULL,
     `leida`          TINYINT(1)   NOT NULL DEFAULT 0,
     `fecha_creacion` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -368,6 +395,10 @@ ALTER TABLE `NOTIFICACIONES`
     ADD CONSTRAINT `fk_notif_usuario`
         FOREIGN KEY (`id_usuario`) REFERENCES `USUARIOS` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+ALTER TABLE `NEGOCIACION_HISTORIAL`
+    ADD CONSTRAINT `fk_historial_solicitud`
+        FOREIGN KEY (`id_solicitud`) REFERENCES `SOLICITUDES_PRESUPUESTO` (`id_solicitud`) ON DELETE CASCADE ON UPDATE CASCADE;
+
 ALTER TABLE `INVENTARIO_PIEZAS`
     ADD CONSTRAINT `fk_inv_vehiculo`
         FOREIGN KEY (`id_vehiculo`) REFERENCES `VEHICULOS` (`id_vehiculo`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -386,5 +417,6 @@ ALTER TABLE `SOLICITUDES_PRESUPUESTO` MODIFY `id_solicitud` INT NOT NULL AUTO_IN
 ALTER TABLE `CODIGOS_QR`              MODIFY `id_qr`        INT NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 ALTER TABLE `MOVIMIENTOS_STOCK`       MODIFY `id_movimiento`INT NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 ALTER TABLE `NOTIFICACIONES`          MODIFY `id_notif`     INT NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+ALTER TABLE `NEGOCIACION_HISTORIAL`   MODIFY `id`           INT NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 COMMIT;

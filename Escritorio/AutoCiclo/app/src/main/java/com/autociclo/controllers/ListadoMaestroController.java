@@ -275,6 +275,7 @@ public class ListadoMaestroController implements Initializable {
                     if (tableVehiculos.isVisible()) {
                         listaVehiculosFiltrada.setAll(listaVehiculos);
                         actualizarTablaVehiculos();
+                        actualizarBotonesPaginacion();
                     }
                 } else {
                     LoggerUtil.error("Error API vehículos: " + resp.getStatusCode(), null);
@@ -307,6 +308,7 @@ public class ListadoMaestroController implements Initializable {
                     if (tablePiezas.isVisible()) {
                         listaPiezasFiltrada.setAll(listaPiezas);
                         actualizarTablaPiezas();
+                        actualizarBotonesPaginacion();
                     }
                 } else {
                     LoggerUtil.error("Error API piezas: " + resp.getStatusCode(), null);
@@ -352,6 +354,7 @@ public class ListadoMaestroController implements Initializable {
                     if (tableInventario.isVisible()) {
                         listaInventarioFiltrada.setAll(listaInventario);
                         actualizarTablaInventario();
+                        actualizarBotonesPaginacion();
                     }
                 } else {
                     LoggerUtil.error("Error API inventario: " + resp.getStatusCode(), null);
@@ -802,40 +805,17 @@ public class ListadoMaestroController implements Initializable {
     }
 
     public void actualizarListado() {
-        // Recargar los datos según la tabla visible
         if (tableVehiculos.isVisible()) {
             cargarVehiculos();
-            // Actualizar lista filtrada con los nuevos datos
-            listaVehiculosFiltrada.setAll(listaVehiculos);
-            // Aplicar búsqueda actual si hay texto en el campo
-            if (!txtBuscar.getText().isEmpty()) {
-                filtrarVehiculos(txtBuscar.getText().toLowerCase().trim());
-            }
         } else if (tablePiezas.isVisible()) {
             cargarPiezas();
-            // Actualizar lista filtrada con los nuevos datos
-            listaPiezasFiltrada.setAll(listaPiezas);
-            // Aplicar búsqueda actual si hay texto en el campo
-            if (!txtBuscar.getText().isEmpty()) {
-                filtrarPiezas(txtBuscar.getText().toLowerCase().trim());
-            }
         } else if (tableInventario.isVisible()) {
             cargarInventario();
-            // Actualizar lista filtrada con los nuevos datos
-            listaInventarioFiltrada.setAll(listaInventario);
-            // Aplicar búsqueda actual si hay texto en el campo
-            if (!txtBuscar.getText().isEmpty()) {
-                filtrarInventario(txtBuscar.getText().toLowerCase().trim());
-            }
         } else if (vistaEstadisticas != null && vistaEstadisticas.isVisible()) {
             if (controllerEstadisticas != null) {
                 controllerEstadisticas.actualizarDatos();
             }
         }
-
-        // Actualizar tabla paginada después de recargar datos
-        actualizarTablaPaginada();
-        actualizarBotonesPaginacion();
     }
 
     // ==================================================================================

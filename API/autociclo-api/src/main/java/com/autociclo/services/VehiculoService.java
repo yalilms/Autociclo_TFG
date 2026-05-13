@@ -4,6 +4,7 @@ import com.autociclo.dto.VehiculoRequest;
 import com.autociclo.models.Vehiculo;
 import com.autociclo.repositories.VehiculoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +17,7 @@ public class VehiculoService {
     private final VehiculoRepository vehiculoRepository;
 
     public List<Vehiculo> findAll() {
-        return vehiculoRepository.findAll();
+        return vehiculoRepository.findAll(Sort.by(Sort.Direction.DESC, "idVehiculo"));
     }
 
     public Vehiculo findById(Integer id) {

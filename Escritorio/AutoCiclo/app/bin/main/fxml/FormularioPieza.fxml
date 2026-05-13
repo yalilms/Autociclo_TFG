@@ -44,10 +44,9 @@
                             <tooltip><Tooltip text="Selecciona la categoría de la pieza (Motor, Carrocería, etc.)" /></tooltip>
                         </ComboBox>
 
-                        <Label text="Stock Disponible" GridPane.rowIndex="4" styleClass="form-label"/>
-                        <TextField fx:id="txtStockDisponible" promptText="Ej: 5" GridPane.rowIndex="5" styleClass="form-input">
-                            <tooltip><Tooltip text="Cantidad de unidades disponibles en stock" /></tooltip>
-                        </TextField>
+                        <Label text="Stock" GridPane.rowIndex="4" styleClass="form-label"/>
+                        <Label text="Se asigna 1 automáticamente al registrar la pieza" GridPane.rowIndex="5"
+                               style="-fx-text-fill: #64748b; -fx-font-size: 12px; -fx-font-style: italic;"/>
 
                         <Label text="Ubicación Almacén *" GridPane.rowIndex="6" styleClass="form-label"/>
                         <ComboBox fx:id="cmbUbicacion" promptText="Seleccione ubicación" GridPane.rowIndex="7" styleClass="form-combo" prefWidth="250.0">
@@ -64,15 +63,14 @@
                             <tooltip><Tooltip text="Nombre descriptivo de la pieza" /></tooltip>
                         </TextField>
 
-                        <Label text="Precio de compra *" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
+                        <Label text="Precio de venta *" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
                         <TextField fx:id="txtPrecioCompra" promptText="Ej: 2500.00" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="form-input">
-                            <tooltip><Tooltip text="Precio de compra en euros (usar punto para decimales)" /></tooltip>
+                            <tooltip><Tooltip text="Precio de venta al cliente en euros (usar punto para decimales)" /></tooltip>
                         </TextField>
 
                         <Label text="Stock Mínimo" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="form-label"/>
-                        <TextField fx:id="txtStockMinimo" promptText="Ej: 1" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="form-input">
-                            <tooltip><Tooltip text="Cantidad mínima antes de avisar de reposición" /></tooltip>
-                        </TextField>
+                        <Label text="Siempre 1 (alerta automática)" GridPane.columnIndex="1" GridPane.rowIndex="5"
+                               style="-fx-text-fill: #64748b; -fx-font-size: 12px; -fx-font-style: italic;"/>
 
                         <Label text="Imagen" GridPane.columnSpan="2" GridPane.rowIndex="10" styleClass="form-label"/>
                         <HBox spacing="10" alignment="CENTER_LEFT" GridPane.columnSpan="2" GridPane.rowIndex="11">

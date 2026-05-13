@@ -52,6 +52,10 @@ public class InventarioService {
         inv.setFechaExtraccion(req.getFechaExtraccion());
         inv.setPrecioUnitario(req.getPrecioUnitario());
         inv.setNotas(req.getNotas());
+
+        pieza.setStockDisponible(pieza.getStockDisponible() + req.getCantidad());
+        piezaRepository.save(pieza);
+
         return inventarioRepository.save(inv);
     }
 
@@ -60,6 +64,12 @@ public class InventarioService {
         InventarioPiezaId key = new InventarioPiezaId(idVehiculo, idPieza);
         InventarioPieza inv = inventarioRepository.findById(key)
                 .orElseThrow(() -> new IllegalArgumentException("Registro de inventario no encontrado"));
+
+        int diferencia = req.getCantidad() - inv.getCantidad();
+        Pieza pieza = inv.getPieza();
+        pieza.setStockDisponible(Math.max(0, pieza.getStockDisponible() + diferencia));
+        piezaRepository.save(pieza);
+
         inv.setCantidad(req.getCantidad());
         inv.setEstadoPieza(req.getEstadoPieza());
         inv.setFechaExtraccion(req.getFechaExtraccion());
@@ -71,9 +81,13 @@ public class InventarioService {
     @Transactional
     public void delete(Integer idVehiculo, Integer idPieza) {
         InventarioPiezaId key = new InventarioPiezaId(idVehiculo, idPieza);
-        if (!inventarioRepository.existsById(key)) {
-            throw new IllegalArgumentException("Registro de inventario no encontrado");
-        }
+        InventarioPieza inv = inventarioRepository.findById(key)
+                .orElseThrow(() -> new IllegalArgumentException("Registro de inventario no encontrado"));
+
+        Pieza pieza = inv.getPieza();
+        pieza.setStockDisponible(Math.max(0, pieza.getStockDisponible() - inv.getCantidad()));
+        piezaRepository.save(pieza);
+
         inventarioRepository.deleteById(key);
     }
 }

@@ -1,38 +1,75 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Inbox, Clock, CheckCircle, XCircle, ChevronRight, ExternalLink, PackageCheck } from 'lucide-react'
+import { Plus, Inbox, Clock, CheckCircle, XCircle, ChevronRight, ExternalLink, PackageCheck, ArrowLeftRight, Check, X, MessageSquare } from 'lucide-react'
 import { cn, formatPrice } from '../lib/utils'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import client from '../api/client'
-import type { SolicitudPresupuesto } from '../types'
+import type { SolicitudPresupuesto, NegociacionRonda } from '../types'
 
 const ESTADO_CFG = {
-  pendiente:   { label: 'Pendiente',   Icon: Clock,         cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
-  en_revision: { label: 'En revisión', Icon: Clock,         cls: 'bg-blue-500/10 border-blue-500/20 text-blue-400' },
-  aprobada:    { label: 'Aprobada',    Icon: CheckCircle,   cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
-  rechazada:   { label: 'Rechazada',   Icon: XCircle,       cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
+  pendiente:      { label: 'Pendiente',      Icon: Clock,          cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
+  en_negociacion: { label: 'En negociación', Icon: ArrowLeftRight,  cls: 'bg-purple-500/10 border-purple-500/20 text-purple-400' },
+  aprobada:       { label: 'Aprobada',       Icon: CheckCircle,    cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
+  rechazada:      { label: 'Rechazada',      Icon: XCircle,        cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
 } as const
 
 export default function MisSolicitudes() {
   const navigate = useNavigate()
-  const [solicitudes, setSolicitudes] = useState<SolicitudPresupuesto[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState('')
+  const [solicitudes, setSolicitudes]     = useState<SolicitudPresupuesto[]>([])
+  const [loading, setLoading]             = useState(true)
+  const [error, setError]                 = useState('')
+  const [accionando, setAccionando]       = useState<number | null>(null)
+  const [nuevaOfertaId, setNuevaOfertaId] = useState<number | null>(null)
+  const [nuevoPrecio, setNuevoPrecio]     = useState('')
+  const [nuevoMensaje, setNuevoMensaje]   = useState('')
 
-  useEffect(() => {
+  const cargar = () => {
     client.get('/solicitudes')
       .then(res => setSolicitudes(res.data))
       .catch(() => setError('No se pudieron cargar las solicitudes.'))
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { cargar() }, [])
 
   const fmt = (d: string) =>
     new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
 
+  const aceptarOferta = async (idSolicitud: number) => {
+    setAccionando(idSolicitud)
+    try {
+      await client.put(`/solicitudes/${idSolicitud}/aceptar-oferta`)
+      cargar()
+    } catch { setError('Error al aceptar la oferta. Inténtalo de nuevo.') }
+    finally { setAccionando(null) }
+  }
+
+  const rechazarOferta = async (idSolicitud: number) => {
+    setAccionando(idSolicitud)
+    try {
+      await client.put(`/solicitudes/${idSolicitud}/rechazar-oferta`)
+      cargar()
+    } catch { setError('Error al rechazar la oferta.') }
+    finally { setAccionando(null) }
+  }
+
+  const enviarNuevaOferta = async (idSolicitud: number) => {
+    const precio = parseFloat(nuevoPrecio)
+    if (!nuevoPrecio || isNaN(precio) || precio <= 0) return
+    setAccionando(idSolicitud)
+    try {
+      await client.put(`/solicitudes/${idSolicitud}/nueva-oferta`, { precio, mensaje: nuevoMensaje })
+      setNuevaOfertaId(null)
+      setNuevoPrecio('')
+      setNuevoMensaje('')
+      cargar()
+    } catch { setError('Error al enviar tu oferta.') }
+    finally { setAccionando(null) }
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-8 py-10">
 
-      {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
           <h1 className="text-4xl font-black text-white mb-2">Mis Solicitudes</h1>
@@ -40,28 +77,25 @@ export default function MisSolicitudes() {
             {solicitudes.length > 0 ? `${solicitudes.length} solicitudes en total` : 'Sin solicitudes aún'}
           </p>
         </div>
-        <button
-          onClick={() => navigate('/solicitar')}
-          className="btn-primary flex items-center gap-2"
-        >
+        <button onClick={() => navigate('/solicitar')} className="btn-primary flex items-center gap-2">
           <Plus className="w-5 h-5" />
           Nueva solicitud
         </button>
       </div>
 
-      {/* Content */}
+      {error && (
+        <div className="mb-6 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          {error}
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map(i => <div key={i} className="glass-card h-32 animate-pulse" />)}
         </div>
-      ) : error ? (
-        <div className="glass-card p-12 text-center">
-          <p className="text-red-400">{error}</p>
-        </div>
       ) : solicitudes.length === 0 ? (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="glass-card p-20 text-center flex flex-col items-center gap-6"
         >
           <Inbox className="w-16 h-16 text-slate-700" />
@@ -69,14 +103,16 @@ export default function MisSolicitudes() {
             <h3 className="text-xl font-bold text-white mb-2">Sin solicitudes todavía</h3>
             <p className="text-slate-400">Busca una pieza y solicita tu primer presupuesto gratuito.</p>
           </div>
-          <button onClick={() => navigate('/catalogo')} className="btn-primary">
-            Explorar catálogo
-          </button>
+          <button onClick={() => navigate('/catalogo')} className="btn-primary">Explorar catálogo</button>
         </motion.div>
       ) : (
         <div className="space-y-6">
           {solicitudes.map((sol, idx) => {
             const cfg = ESTADO_CFG[sol.estado] ?? ESTADO_CFG.pendiente
+            const enNegociacionTurnoCliente = sol.estado === 'en_negociacion' && sol.turno === 'cliente'
+            const enNegociacionTurnoAdmin   = sol.estado === 'en_negociacion' && sol.turno === 'admin'
+            const mostrandoFormOferta       = nuevaOfertaId === sol.idSolicitud
+
             return (
               <motion.div
                 key={sol.idSolicitud}
@@ -103,7 +139,6 @@ export default function MisSolicitudes() {
                       </span>
                     )}
                   </div>
-
                   <div className={cn(
                     'flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold uppercase tracking-wider w-fit',
                     cfg.cls
@@ -113,50 +148,167 @@ export default function MisSolicitudes() {
                   </div>
                 </div>
 
-                {/* Body */}
-                <div className="px-6 py-5 flex flex-col sm:flex-row gap-6 justify-between">
+                {/* Piezas */}
+                <div className="px-6 pt-5 flex flex-col sm:flex-row gap-6 justify-between">
                   <div className="flex-1 space-y-2">
-                    {sol.detalles?.length > 0 && sol.detalles.map((d, i) => (
+                    {sol.detalles?.map((d, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
                         <ChevronRight className="w-3 h-3 text-blue-500 shrink-0" />
                         <span className="text-white">{d.pieza?.nombre || `Pieza #${d.id?.idPieza}`}</span>
                         <span className="text-slate-500">× {d.cantidad}</span>
                       </div>
                     ))}
-                    {sol.respuestaAdmin && (
-                      <p className="text-xs italic text-slate-500 mt-2">"{sol.respuestaAdmin}"</p>
-                    )}
                   </div>
-
                   <div className="shrink-0 text-right flex flex-col items-end gap-3">
                     {sol.precioTotal != null && sol.precioTotal > 0 && (
                       <div>
-                        <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-1">Precio aprobado</p>
-                        <p className="text-3xl font-mono font-black text-white">{formatPrice(sol.precioTotal)}</p>
+                        <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-1">Precio final</p>
+                        <p className="text-3xl font-mono font-black text-emerald-400">{formatPrice(sol.precioTotal)}</p>
                       </div>
                     )}
-
                     {sol.estado === 'aprobada' && sol.referenciaOdoo && (
-                      <a
-                        href="http://109.123.247.31:8069"
-                        target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-2 glass rounded-xl border-white/10 text-xs text-slate-400 hover:text-blue-400 hover:border-blue-500/30 transition-colors"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                        Ver en Odoo
+                      <a href="http://109.123.247.31:8069" target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-2 glass rounded-xl border-white/10 text-xs text-slate-400 hover:text-blue-400 hover:border-blue-500/30 transition-colors">
+                        <ExternalLink className="w-3 h-3" />Ver en Odoo
                       </a>
                     )}
-
                     {sol.estado === 'rechazada' && (
-                      <button
-                        onClick={() => navigate('/solicitar')}
-                        className="text-xs text-slate-400 hover:text-blue-400 transition-colors"
-                      >
+                      <button onClick={() => navigate('/solicitar')}
+                        className="text-xs text-slate-400 hover:text-blue-400 transition-colors">
                         Solicitar de nuevo →
                       </button>
                     )}
                   </div>
                 </div>
+
+                {/* Historial de negociación */}
+                {sol.historial && sol.historial.length > 0 && (
+                  <div className="mx-6 mt-5 mb-2 space-y-2">
+                    <p className="text-xs text-slate-500 uppercase tracking-widest font-bold flex items-center gap-1.5 mb-3">
+                      <MessageSquare className="w-3 h-3" /> Historial de negociación
+                    </p>
+                    {sol.historial.map((r: NegociacionRonda) => (
+                      <div key={r.id} className={cn(
+                        'flex gap-3 p-3 rounded-xl border text-sm',
+                        r.autor === 'cliente'
+                          ? 'bg-blue-500/5 border-blue-500/15 ml-8'
+                          : 'bg-purple-500/5 border-purple-500/15 mr-8'
+                      )}>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className={cn('text-xs font-bold uppercase tracking-wider',
+                              r.autor === 'cliente' ? 'text-blue-400' : 'text-purple-400')}>
+                              {r.autor === 'cliente' ? 'Tú' : 'AutoCiclo'} · Ronda {r.ronda}
+                            </span>
+                            <span className="text-slate-500 text-xs">{fmt(r.fecha)}</span>
+                          </div>
+                          {r.mensaje && <p className="text-slate-300 text-xs mb-1">"{r.mensaje}"</p>}
+                          <span className="font-mono font-bold text-white">{formatPrice(r.precio)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Panel de acción: turno del cliente en negociación */}
+                <AnimatePresence>
+                  {enNegociacionTurnoCliente && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mx-6 mb-6 mt-4"
+                    >
+                      <div className="p-5 rounded-2xl bg-purple-500/10 border border-purple-500/20">
+                        <p className="text-purple-300 font-bold text-sm mb-1">AutoCiclo propone un nuevo precio</p>
+                        <p className="text-3xl font-mono font-black text-white mb-1">
+                          {formatPrice(sol.precioContraoferta ?? 0)}
+                        </p>
+                        {sol.respuestaAdmin && (
+                          <p className="text-xs text-slate-400 italic mb-4">"{sol.respuestaAdmin}"</p>
+                        )}
+
+                        {!mostrandoFormOferta ? (
+                          <div className="flex flex-wrap gap-3 mt-4">
+                            <button
+                              onClick={() => aceptarOferta(sol.idSolicitud)}
+                              disabled={accionando === sol.idSolicitud}
+                              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm transition-colors disabled:opacity-50"
+                            >
+                              <Check className="w-4 h-4" />
+                              Aceptar {formatPrice(sol.precioContraoferta ?? 0)}
+                            </button>
+                            <button
+                              onClick={() => setNuevaOfertaId(sol.idSolicitud)}
+                              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition-colors"
+                            >
+                              <ArrowLeftRight className="w-4 h-4" />
+                              Proponer otro precio
+                            </button>
+                            <button
+                              onClick={() => rechazarOferta(sol.idSolicitud)}
+                              disabled={accionando === sol.idSolicitud}
+                              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-bold text-sm transition-colors disabled:opacity-50"
+                            >
+                              <X className="w-4 h-4" />
+                              Rechazar
+                            </button>
+                          </div>
+                        ) : (
+                          <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-4 space-y-3"
+                          >
+                            <input
+                              type="number" min="1" step="0.01"
+                              value={nuevoPrecio}
+                              onChange={e => setNuevoPrecio(e.target.value)}
+                              placeholder="Tu nuevo precio (€)"
+                              className="w-full bg-slate-900 border border-blue-500/30 rounded-xl p-3 text-white font-bold focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                            <textarea
+                              value={nuevoMensaje}
+                              onChange={e => setNuevoMensaje(e.target.value)}
+                              placeholder="Justificación (opcional)…"
+                              rows={2}
+                              className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => enviarNuevaOferta(sol.idSolicitud)}
+                                disabled={accionando === sol.idSolicitud || !nuevoPrecio}
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition-colors disabled:opacity-50"
+                              >
+                                {accionando === sol.idSolicitud
+                                  ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                  : <ArrowLeftRight className="w-4 h-4" />}
+                                Enviar oferta
+                              </button>
+                              <button
+                                onClick={() => { setNuevaOfertaId(null); setNuevoPrecio(''); setNuevoMensaje('') }}
+                                className="px-4 py-2.5 rounded-xl glass border-white/10 text-slate-400 hover:text-white text-sm transition-colors"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {enNegociacionTurnoAdmin && (
+                    <motion.div
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                      className="mx-6 mb-6 mt-4 px-4 py-3 rounded-xl bg-slate-800/50 border border-white/5 text-sm text-slate-400 flex items-center gap-2"
+                    >
+                      <Clock className="w-4 h-4 text-purple-400 shrink-0" />
+                      El equipo de AutoCiclo está revisando tu oferta de <strong className="text-white ml-1">{formatPrice(sol.precioOfertaCliente ?? 0)}</strong>. Te responderemos pronto.
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
               </motion.div>
             )
           })}

@@ -1,7 +1,10 @@
 package com.autociclo.controllers;
 
 import com.autociclo.api.ApiClient;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.autociclo.models.Pieza;
 import com.autociclo.utils.ValidationUtils;
 import com.autociclo.utils.LoggerUtil;
@@ -37,8 +40,6 @@ public class FormularioPiezaController implements Initializable {
     @FXML
     private ComboBox<String> cmbCategoria;
     @FXML
-    private TextField txtStockDisponible;
-    @FXML
     private ComboBox<String> cmbUbicacion;
     @FXML
     private TextField txtMaterialesCompatibles;
@@ -46,8 +47,6 @@ public class FormularioPiezaController implements Initializable {
     private TextField txtNombre;
     @FXML
     private TextField txtPrecioCompra;
-    @FXML
-    private TextField txtStockMinimo;
     @FXML
     private TextField txtRutaImagen;
     @FXML
@@ -75,8 +74,25 @@ public class FormularioPiezaController implements Initializable {
         btnCancelar.setOnAction(event -> cerrarVentana());
         btnSeleccionarImagen.setOnAction(event -> seleccionarImagen());
 
+        // El código se genera automáticamente al seleccionar categoría
+        txtCodigo.setEditable(false);
+        txtCodigo.setPromptText("Se genera al seleccionar categoría");
+
+        txtPrecioCompra.setText("0");
+        txtPrecioCompra.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String nuevo = change.getControlNewText();
+            return nuevo.matches("\\d*(\\.\\d{0,2})?") ? change : null;
+        }));
+
         // Inicializar ComboBox de categoría con enum
         cmbCategoria.getItems().addAll(PieceCategory.getCodes());
+
+        // Auto-generar código al seleccionar categoría (solo en modo nuevo)
+        cmbCategoria.setOnAction(event -> {
+            if (!modoEdicion && cmbCategoria.getValue() != null) {
+                generarCodigoAutomatico(cmbCategoria.getValue());
+            }
+        });
 
         // Cargar ubicaciones desde el JSON
         cargarUbicaciones();
@@ -171,8 +187,6 @@ public class FormularioPiezaController implements Initializable {
             txtNombre.setText(piezaEditar.getNombre());
             cmbCategoria.setValue(piezaEditar.getCategoria());
             txtPrecioCompra.setText(String.valueOf(piezaEditar.getPrecioVenta()));
-            txtStockDisponible.setText(String.valueOf(piezaEditar.getStockDisponible()));
-            txtStockMinimo.setText(String.valueOf(piezaEditar.getStockMinimo()));
             cmbUbicacion.setValue(piezaEditar.getUbicacionAlmacen());
             txtMaterialesCompatibles.setText(piezaEditar.getCompatibleMarcas());
             txtDescripcion.setText(piezaEditar.getDescripcion());
@@ -218,18 +232,6 @@ public class FormularioPiezaController implements Initializable {
             valido = false;
         }
 
-        // Validar stock disponible (entero >= 0)
-        if (!ValidationUtils.validateNonNegativeInteger(txtStockDisponible, null, "Stock disponible")) {
-            errores.append("• Stock disponible: Debe ser un número entero positivo\n");
-            valido = false;
-        }
-
-        // Validar stock mínimo (entero >= 0)
-        if (!ValidationUtils.validateNonNegativeInteger(txtStockMinimo, null, "Stock mínimo")) {
-            errores.append("• Stock mínimo: Debe ser un número entero positivo\n");
-            valido = false;
-        }
-
         // Validar ubicación (obligatorio)
         if (cmbUbicacion.getValue() == null || cmbUbicacion.getValue().isEmpty()) {
             errores.append("• Ubicación: Debe seleccionar una ubicación\n");
@@ -268,10 +270,8 @@ public class FormularioPiezaController implements Initializable {
             body.addProperty("nombre",             txtNombre.getText().trim());
             body.addProperty("categoria",          cmbCategoria.getValue());
             body.addProperty("precioVenta",        Double.parseDouble(txtPrecioCompra.getText().trim().replace(",", ".")));
-            body.addProperty("stockDisponible",    txtStockDisponible.getText().trim().isEmpty() ? 0
-                    : Integer.parseInt(txtStockDisponible.getText().trim()));
-            body.addProperty("stockMinimo",        txtStockMinimo.getText().trim().isEmpty() ? 1
-                    : Integer.parseInt(txtStockMinimo.getText().trim()));
+            body.addProperty("stockDisponible",    0);
+            body.addProperty("stockMinimo",        1);
             body.addProperty("ubicacionAlmacen",   cmbUbicacion.getValue() != null ? cmbUbicacion.getValue() : "");
             body.addProperty("compatibleMarcas",   txtMaterialesCompatibles.getText().trim());
             body.addProperty("descripcion",        txtDescripcion.getText().trim());
@@ -302,6 +302,45 @@ public class FormularioPiezaController implements Initializable {
         } catch (NumberFormatException e) {
             ErrorHandler.handleNumberFormatError("formulario de pieza");
         }
+    }
+
+    private void generarCodigoAutomatico(String categoria) {
+        String prefijo = getPrefijoPorCategoria(categoria);
+        txtCodigo.setPromptText("Generando...");
+        new Thread(() -> {
+            ApiClient.ApiResponse resp = ApiClient.getInstance().get("/api/piezas");
+            Platform.runLater(() -> {
+                int maxNum = 0;
+                if (resp.isSuccess()) {
+                    try {
+                        JsonArray arr = JsonParser.parseString(resp.getBody()).getAsJsonArray();
+                        for (JsonElement e : arr) {
+                            String cod = e.getAsJsonObject().get("codigoPieza").getAsString();
+                            if (cod.startsWith(prefijo + "-")) {
+                                try {
+                                    int n = Integer.parseInt(cod.substring(prefijo.length() + 1));
+                                    if (n > maxNum) maxNum = n;
+                                } catch (NumberFormatException ignored) {}
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                }
+                txtCodigo.setText(String.format("%s-%03d", prefijo, maxNum + 1));
+                txtCodigo.setPromptText("");
+                txtCodigo.setEditable(false);
+            });
+        }).start();
+    }
+
+    private String getPrefijoPorCategoria(String categoria) {
+        return switch (categoria.toLowerCase()) {
+            case "motor"       -> "MOT";
+            case "carroceria"  -> "CAR";
+            case "interior"    -> "INT";
+            case "electronica" -> "ELE";
+            case "ruedas"      -> "RUE";
+            default            -> "OTR";
+        };
     }
 
     private void cerrarVentana() {

@@ -6,10 +6,10 @@ import client from '../../api/client'
 import type { SolicitudPresupuesto } from '../../types'
 
 const ESTADO_CFG = {
-  pendiente:   { label: 'Pendiente',   Icon: Clock,         cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
-  en_revision: { label: 'En revisión', Icon: Clock,         cls: 'bg-blue-500/10 border-blue-500/20 text-blue-400' },
-  aprobada:    { label: 'Aprobada',    Icon: CheckCircle,   cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
-  rechazada:   { label: 'Rechazada',   Icon: XCircle,       cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
+  pendiente:      { label: 'Pendiente',      Icon: Clock,         cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
+  en_negociacion: { label: 'En negociación', Icon: Clock,         cls: 'bg-purple-500/10 border-purple-500/20 text-purple-400' },
+  aprobada:       { label: 'Aprobada',       Icon: CheckCircle,   cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
+  rechazada:      { label: 'Rechazada',      Icon: XCircle,       cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
 } as const
 
 interface ModalState {

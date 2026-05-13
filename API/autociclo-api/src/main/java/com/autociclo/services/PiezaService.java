@@ -4,6 +4,7 @@ import com.autociclo.dto.PiezaRequest;
 import com.autociclo.models.Pieza;
 import com.autociclo.repositories.PiezaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +17,7 @@ public class PiezaService {
     private final PiezaRepository piezaRepository;
 
     public List<Pieza> findAll() {
-        return piezaRepository.findAll();
+        return piezaRepository.findAll(Sort.by(Sort.Direction.DESC, "idPieza"));
     }
 
     public Pieza findById(Integer id) {
