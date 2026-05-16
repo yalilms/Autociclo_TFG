@@ -1,11 +1,17 @@
 package com.autociclo.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
 @Data
+@EqualsAndHashCode(exclude = {"pieza", "usuario"})
+@ToString(exclude = {"pieza", "usuario"})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "MOVIMIENTOS_STOCK")
 public class MovimientoStock {

@@ -12,6 +12,7 @@ import Login from './pages/Login'
 import Registro from './pages/Registro'
 import SolicitarPresupuesto from './pages/SolicitarPresupuesto'
 import MisSolicitudes from './pages/MisSolicitudes'
+import Pago from './pages/Pago'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminSolicitudes from './pages/admin/AdminSolicitudes'
 import AdminPiezas from './pages/admin/AdminPiezas'
@@ -54,6 +55,7 @@ export default function App() {
         <Route path="/registro" element={<Registro />} />
         <Route path="/solicitar" element={<PrivateRoute><Layout><SolicitarPresupuesto /></Layout></PrivateRoute>} />
         <Route path="/mis-solicitudes" element={<PrivateRoute><Layout><MisSolicitudes /></Layout></PrivateRoute>} />
+        <Route path="/pagar" element={<PrivateRoute><Layout><Pago /></Layout></PrivateRoute>} />
 
         {/* Panel Admin */}
         <Route path="/admin" element={<AdminRoute><AdminLayout><AdminDashboard /></AdminLayout></AdminRoute>} />

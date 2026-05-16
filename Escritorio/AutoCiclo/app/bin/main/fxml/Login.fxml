@@ -48,11 +48,17 @@
 
         <!-- Email -->
         <VBox spacing="6.0">
-            <Label text="Correo electrónico" styleClass="label" />
-            <TextField fx:id="txtEmail"
-                       promptText="admin@autociclo.com"
-                       prefHeight="38.0" prefWidth="330.0"
-                       styleClass="text-field" />
+            <Label text="Usuario" styleClass="label" />
+            <HBox alignment="CENTER_LEFT" prefHeight="38.0" prefWidth="330.0"
+                  style="-fx-background-color: rgba(30,41,59,0.8); -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 8; -fx-background-radius: 8;">
+                <TextField fx:id="txtEmail"
+                           promptText="admin"
+                           prefHeight="38.0"
+                           HBox.hgrow="ALWAYS"
+                           style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 0 0 0 12; -fx-border-color: transparent;" />
+                <Label fx:id="lblDominio" text=""
+                       style="-fx-text-fill: #64748b; -fx-font-size: 13px; -fx-padding: 0 12 0 0;" />
+            </HBox>
         </VBox>
 
         <!-- Contraseña -->

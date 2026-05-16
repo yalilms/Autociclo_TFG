@@ -26,7 +26,7 @@ public class SolicitudesController implements Initializable {
     @FXML private TableColumn<JsonObject, String> colSolOferta;
     @FXML private TableColumn<JsonObject, String> colSolContrao;
     @FXML private TableColumn<JsonObject, String> colSolOdoo;
-    @FXML private TableColumn<JsonObject, String> colSolRespuesta;
+    @FXML private TableColumn<JsonObject, String> colSolTurno;
     @FXML private TextField txtFiltroEstado;
     @FXML private Label     lblStatusSolicitudes;
     @FXML private Label     lblOdooRef;
@@ -59,8 +59,19 @@ public class SolicitudesController implements Initializable {
                 new SimpleStringProperty(formatDecimal(d.getValue(), "precioContraoferta")));
         colSolOdoo.setCellValueFactory(d ->
                 new SimpleStringProperty(formatOdoo(getStr(d.getValue(), "referenciaOdoo"))));
-        colSolRespuesta.setCellValueFactory(d ->
-                new SimpleStringProperty(getStr(d.getValue(), "respuestaAdmin")));
+        colSolTurno.setCellValueFactory(d ->
+                new SimpleStringProperty(formatTurno(d.getValue())));
+
+        // Doble clic → historial de negociación
+        tableSolicitudes.setRowFactory(tv -> {
+            TableRow<JsonObject> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    mostrarHistorial(row.getItem());
+                }
+            });
+            return row;
+        });
     }
 
     @FXML
@@ -125,40 +136,36 @@ public class SolicitudesController implements Initializable {
             return;
         }
 
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Aprobar solicitud #" + getStr(sel, "idSolicitud"));
+        // Precio acordado: última oferta del cliente (no editable)
+        double _pa = 0.0;
+        try { _pa = sel.get("precioOfertaCliente").getAsDouble(); } catch (Exception ignored) {}
+        final double precioAcordado = _pa;
+        String precioFmt = String.format("%.2f €", precioAcordado);
 
-        TextField fPrecio    = new TextField(); fPrecio.setPromptText("ej: 250.00");
-        TextArea  fRespuesta = new TextArea();  fRespuesta.setPromptText("Mensaje para el cliente…");
-        fRespuesta.setPrefRowCount(3);
-        fPrecio.getStyleClass().add("text-field");
-        fRespuesta.setStyle("-fx-background-color: #1e293b; -fx-text-fill: white; -fx-border-color: #334155; -fx-border-radius: 6; -fx-background-radius: 6;");
+        // Confirmación previa
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirmar aprobación");
+        confirm.setHeaderText("¿Aprobar solicitud #" + getStr(sel, "idSolicitud") + "?");
+        confirm.setContentText(
+            "Cliente: " + getNombreCliente(sel) + "\n" +
+            "Precio acordado: " + precioFmt + "\n\n" +
+            "Se creará un pedido de venta en Odoo y el cliente\n" +
+            "recibirá una notificación con botón de pago."
+        );
+        confirm.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+        aplicarEstiloAlert(confirm);
+        javafx.scene.Node yesBtn = confirm.getDialogPane().lookupButton(ButtonType.YES);
+        if (yesBtn != null) { yesBtn.getStyleClass().add("button-success"); ((Button) yesBtn).setText("Sí, aprobar"); }
+        javafx.scene.Node noBtn = confirm.getDialogPane().lookupButton(ButtonType.NO);
+        if (noBtn != null) { noBtn.getStyleClass().add("button"); ((Button) noBtn).setText("Cancelar"); }
 
-        // Prellenar con el precio ofertado por el cliente si existe
-        String ofertaCliente = formatDecimal(sel, "precioOfertaCliente");
-        Label lblOferta = new Label("Oferta del cliente: " + ofertaCliente);
-        lblOferta.setStyle("-fx-text-fill: #fbbf24; -fx-font-size: 12px;");
-
-        Label lblCliente = new Label("Cliente: " + getNombreCliente(sel));
-        lblCliente.setStyle("-fx-text-fill: #60a5fa; -fx-font-weight: bold; -fx-font-size: 13px;");
-
-        javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(10,
-                lblCliente, lblOferta,
-                styledLabel("Precio total final (€)"), fPrecio,
-                styledLabel("Mensaje al cliente"), fRespuesta);
-        form.setPadding(new javafx.geometry.Insets(20));
-        form.setPrefWidth(420);
-        dialog.getDialogPane().setContent(form);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        aplicarEstiloDialog(dialog);
-
-        dialog.showAndWait().ifPresent(bt -> {
-            if (bt == ButtonType.OK) {
+        confirm.showAndWait().ifPresent(bt -> {
+            if (bt == ButtonType.YES) {
                 int id = sel.get("idSolicitud").getAsInt();
                 JsonObject body = new JsonObject();
-                body.addProperty("respuestaAdmin", fRespuesta.getText().trim());
-                try { body.addProperty("precioTotal", Double.parseDouble(fPrecio.getText().trim())); }
-                catch (NumberFormatException e) { body.addProperty("precioTotal", 0.0); }
+                body.addProperty("respuestaAdmin",
+                    "Solicitud aprobada. Pedido generado en Odoo. Contactaremos para la entrega.");
+                body.addProperty("precioTotal", precioAcordado);
 
                 setStatus("Aprobando solicitud y creando pedido en Odoo…");
                 new Thread(() -> {
@@ -184,8 +191,9 @@ public class SolicitudesController implements Initializable {
         JsonObject sel = tableSolicitudes.getSelectionModel().getSelectedItem();
         if (sel == null) { mostrarAviso("Selecciona una solicitud."); return; }
 
-        if ("rechazada".equals(getStr(sel, "estado")) || "aprobada".equals(getStr(sel, "estado"))) {
-            mostrarAviso("Esta solicitud ya está " + getStr(sel, "estado") + ".");
+        String estadoSel = getStr(sel, "estado");
+        if ("rechazada".equals(estadoSel) || "aprobada".equals(estadoSel) || "pagada".equals(estadoSel)) {
+            mostrarAviso("Esta solicitud ya está " + estadoSel + " y no se puede rechazar.");
             return;
         }
 
@@ -361,8 +369,156 @@ public class SolicitudesController implements Initializable {
             case "en_negociacion" -> "🔵 En negociación";
             case "aprobada"       -> "✅ Aprobada";
             case "rechazada"      -> "❌ Rechazada";
+            case "pagada"         -> "💰 Pagada";
             default -> estado;
         };
+    }
+
+    private String formatTurno(JsonObject sol) {
+        String estado = getStr(sol, "estado");
+        String turno  = getStr(sol, "turno");
+        return switch (estado) {
+            case "pendiente"      -> "⏳ Pendiente de revisión";
+            case "en_negociacion" -> "admin".equals(turno) ? "⚡ Tu turno" : "⏳ Turno del cliente";
+            case "aprobada"       -> "✅ Trato cerrado";
+            case "rechazada"      -> "❌ Cerrada";
+            case "pagada"         -> "💰 Pagada y completada";
+            default               -> "";
+        };
+    }
+
+    private void mostrarHistorial(JsonObject sol) {
+        int id = sol.get("idSolicitud").getAsInt();
+        String cliente  = getNombreCliente(sol);
+        String oferta   = formatDecimal(sol, "precioOfertaCliente");
+        String contrao  = formatDecimal(sol, "precioContraoferta");
+        String turnoStr = formatTurno(sol);
+
+        // ── Cabecera (fija, fuera del scroll) ───────────────────────────
+        Label lblCliente = new Label("Cliente: " + cliente);
+        lblCliente.setStyle("-fx-text-fill: #60a5fa; -fx-font-weight: bold; -fx-font-size: 14px;");
+
+        Label lblOfe = new Label("Oferta cliente: " + oferta);
+        lblOfe.setStyle("-fx-text-fill: #fbbf24; -fx-font-size: 12px; -fx-font-weight: bold;");
+        Label lblCon = new Label("Contraoferta: " + contrao);
+        lblCon.setStyle("-fx-text-fill: #a78bfa; -fx-font-size: 12px; -fx-font-weight: bold;");
+        Label lblTurno = new Label(turnoStr);
+        boolean esTuTurno = turnoStr.contains("Tu turno");
+        lblTurno.setStyle("-fx-text-fill: " + (esTuTurno ? "#34d399" : "#fbbf24") + "; -fx-font-size: 12px; -fx-font-weight: bold;");
+
+        javafx.scene.layout.HBox hResumen = new javafx.scene.layout.HBox(20, lblOfe, lblCon, lblTurno);
+        hResumen.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        // ── Zona de burbujas (con scroll) ───────────────────────────────
+        javafx.scene.layout.VBox burbujas = new javafx.scene.layout.VBox(10);
+        burbujas.setPadding(new javafx.geometry.Insets(4, 8, 4, 8));
+
+        Label lblCargando = new Label("Cargando historial…");
+        lblCargando.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 12px;");
+        burbujas.getChildren().add(lblCargando);
+
+        javafx.scene.control.ScrollPane scroll = new javafx.scene.control.ScrollPane(burbujas);
+        scroll.setFitToWidth(true);
+        scroll.setPrefHeight(340);
+        scroll.setStyle("-fx-background: #0f172a; -fx-background-color: #0f172a; -fx-border-color: transparent;");
+        scroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+
+        // ── Layout principal ─────────────────────────────────────────────
+        javafx.scene.layout.VBox contenido = new javafx.scene.layout.VBox(10,
+                lblCliente, hResumen, new Separator(), scroll);
+        contenido.setPadding(new javafx.geometry.Insets(20));
+        contenido.setPrefWidth(580);
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Historial de negociación — Solicitud #" + id);
+        dialog.setResizable(true);
+        dialog.getDialogPane().setContent(contenido);
+        dialog.getDialogPane().setPrefSize(620, 500);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        aplicarEstiloDialog(dialog);
+
+        javafx.scene.Node closeBtn = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (closeBtn != null) {
+            closeBtn.getStyleClass().clear();
+            closeBtn.getStyleClass().add("button");
+            ((Button) closeBtn).setText("Cerrar");
+        }
+        // Quitar el botón OK que añade aplicarEstiloDialog
+        javafx.scene.Node okBtn = dialog.getDialogPane().lookupButton(ButtonType.OK);
+        if (okBtn != null) okBtn.setVisible(false);
+
+        dialog.show();
+
+        // ── Cargar rondas en background ──────────────────────────────────
+        new Thread(() -> {
+            ApiClient.ApiResponse resp = ApiClient.getInstance().get("/api/solicitudes/" + id + "/historial");
+            Platform.runLater(() -> {
+                burbujas.getChildren().remove(lblCargando);
+
+                if (!resp.isSuccess()) {
+                    burbujas.getChildren().add(styledLabel("No se pudo cargar el historial."));
+                    return;
+                }
+                JsonArray historial = JsonParser.parseString(resp.getBody()).getAsJsonArray();
+                if (historial.isEmpty()) {
+                    burbujas.getChildren().add(styledLabel("Sin rondas de negociación registradas."));
+                    return;
+                }
+
+                for (int i = 0; i < historial.size(); i++) {
+                    JsonObject ronda    = historial.get(i).getAsJsonObject();
+                    String autor        = getStr(ronda, "autor");
+                    String precio       = String.format("%.2f €", ronda.get("precio").getAsDouble());
+                    String numRonda     = getStr(ronda, "ronda");
+                    String mensaje      = getStr(ronda, "mensaje");
+                    boolean esUltimo    = (i == historial.size() - 1);
+                    boolean esAdmin     = "admin".equals(autor);
+
+                    String colorFondo  = esAdmin ? "#1e1b4b" : "#0c2441";
+                    String colorBorde  = esAdmin ? "#4c1d95" : "#1e3a5f";
+                    String colorAutor  = esAdmin ? "#a78bfa" : "#60a5fa";
+                    String nombreAutor = esAdmin ? "Admin (Tú)" : "Cliente";
+
+                    javafx.scene.layout.VBox bubble = new javafx.scene.layout.VBox(5);
+                    bubble.setStyle(String.format(
+                        "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 10;" +
+                        "-fx-background-radius: 10; -fx-border-width: %s;",
+                        colorFondo, colorBorde, esUltimo ? "2" : "1"
+                    ));
+                    bubble.setPadding(new javafx.geometry.Insets(12));
+                    bubble.setMaxWidth(380);
+
+                    Label lblTitulo = new Label("Ronda " + numRonda + " — " + nombreAutor + (esUltimo ? "  ★ ÚLTIMO" : ""));
+                    lblTitulo.setStyle("-fx-text-fill: " + colorAutor + "; -fx-font-weight: bold; -fx-font-size: 11px;");
+
+                    Label lblPrecio = new Label(precio);
+                    lblPrecio.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 20px; -fx-font-family: 'Courier New', monospace;");
+
+                    bubble.getChildren().addAll(lblTitulo, lblPrecio);
+
+                    if (!mensaje.isEmpty()) {
+                        Label lblMsg = new Label("\" " + mensaje + " \"");
+                        lblMsg.setStyle("-fx-text-fill: #94a3b8; -fx-font-style: italic; -fx-font-size: 11px;");
+                        lblMsg.setWrapText(true);
+                        lblMsg.setMaxWidth(340);
+                        bubble.getChildren().add(lblMsg);
+                    }
+
+                    javafx.scene.layout.HBox fila = new javafx.scene.layout.HBox();
+                    javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+                    javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+                    if (esAdmin) {
+                        fila.getChildren().addAll(spacer, bubble);
+                    } else {
+                        fila.getChildren().addAll(bubble, spacer);
+                    }
+                    burbujas.getChildren().add(fila);
+                }
+
+                // Scroll al final para ver el último mensaje
+                scroll.setVvalue(1.0);
+            });
+        }).start();
     }
 
     private void setStatus(String msg) { lblStatusSolicitudes.setText(msg); }

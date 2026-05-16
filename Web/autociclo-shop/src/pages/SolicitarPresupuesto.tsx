@@ -5,21 +5,19 @@ import { formatPrice } from '../lib/utils'
 import { motion } from 'motion/react'
 import client from '../api/client'
 import type { Pieza } from '../types'
-
-interface Linea { piezaId: number; cantidad: number; nombre: string; precio: number }
+import { useCarritoStore } from '../store/carritoStore'
 
 export default function SolicitarPresupuesto() {
   const navigate  = useNavigate()
   const [searchParams] = useSearchParams()
-  const [piezas, setPiezas]         = useState<Pieza[]>([])
-  const [lineas, setLineas]         = useState<Linea[]>([])
-  const [notas, setNotas]           = useState('')
-  const [ofertaCliente, setOferta]  = useState('')
-  const [seleccion, setSeleccion]   = useState<number | ''>('')
-  const [cantidad, setCantidad]     = useState(1)
-  const [loading, setLoading]       = useState(false)
-  const [enviado, setEnviado]       = useState(false)
-  const [error, setError]           = useState('')
+  const [piezas, setPiezas] = useState<Pieza[]>([])
+  const [seleccion, setSeleccion] = useState<number | ''>('')
+  const [cantidad, setCantidad]   = useState(1)
+  const [loading, setLoading]     = useState(false)
+  const [enviado, setEnviado]     = useState(false)
+  const [error, setError]         = useState('')
+
+  const { lineas, notas, ofertaCliente, setLineas, setNotas, setOferta, vaciar } = useCarritoStore()
 
   useEffect(() => {
     client.get('/piezas').then(res => setPiezas(res.data)).catch(() => {})
@@ -27,7 +25,10 @@ export default function SolicitarPresupuesto() {
     if (piezaIdParam) {
       client.get(`/piezas/${piezaIdParam}`).then(res => {
         const p: Pieza = res.data
-        setLineas([{ piezaId: p.idPieza, cantidad: 1, nombre: p.nombre, precio: Number(p.precioVenta) }])
+        const yaEsta = lineas.find(l => l.piezaId === p.idPieza)
+        if (!yaEsta) {
+          setLineas([...lineas, { piezaId: p.idPieza, cantidad: 1, nombre: p.nombre, precio: Number(p.precioVenta) }])
+        }
       }).catch(() => {})
     }
   }, [searchParams])
@@ -36,11 +37,23 @@ export default function SolicitarPresupuesto() {
     if (!seleccion) return
     const p = piezas.find(x => x.idPieza === Number(seleccion))
     if (!p) return
+    const stockDisponible = p.stockDisponible ?? 0
+    if (stockDisponible === 0) {
+      setError(`"${p.nombre}" no tiene stock disponible.`)
+      return
+    }
     const existe = lineas.find(l => l.piezaId === p.idPieza)
+    const cantidadActual = existe ? existe.cantidad : 0
+    const cantidadTotal  = cantidadActual + cantidad
+    if (cantidadTotal > stockDisponible) {
+      setError(`Solo hay ${stockDisponible} ud. disponibles de "${p.nombre}".`)
+      return
+    }
+    setError('')
     if (existe) {
-      setLineas(prev => prev.map(l => l.piezaId === p.idPieza ? { ...l, cantidad: l.cantidad + cantidad } : l))
+      setLineas(lineas.map(l => l.piezaId === p.idPieza ? { ...l, cantidad: cantidadTotal } : l))
     } else {
-      setLineas(prev => [...prev, { piezaId: p.idPieza, cantidad, nombre: p.nombre, precio: Number(p.precioVenta) }])
+      setLineas([...lineas, { piezaId: p.idPieza, cantidad, nombre: p.nombre, precio: Number(p.precioVenta) }])
     }
     setSeleccion(''); setCantidad(1)
   }
@@ -63,6 +76,7 @@ export default function SolicitarPresupuesto() {
         precioOfertaCliente: precioOferta,
         notas,
       })
+      vaciar()
       setEnviado(true)
     } catch { setError('Error al enviar. Inténtalo de nuevo.') }
     finally { setLoading(false) }
@@ -125,14 +139,19 @@ export default function SolicitarPresupuesto() {
                   >
                     <option value="">Selecciona una pieza...</option>
                     {piezas.map(p => (
-                      <option key={p.idPieza} value={p.idPieza}>
-                        {p.nombre} — {formatPrice(Number(p.precioVenta))}
+                      <option key={p.idPieza} value={p.idPieza} disabled={(p.stockDisponible ?? 0) === 0}>
+                        {p.nombre} — {formatPrice(Number(p.precioVenta))} ({p.stockDisponible ?? 0} ud.)
                       </option>
                     ))}
                   </select>
                   <input
-                    type="number" min={1} value={cantidad}
-                    onChange={e => setCantidad(Math.max(1, Number(e.target.value)))}
+                    type="number" min={1}
+                    max={seleccion ? (piezas.find(x => x.idPieza === Number(seleccion))?.stockDisponible ?? 1) : 1}
+                    value={cantidad}
+                    onChange={e => {
+                      const max = seleccion ? (piezas.find(x => x.idPieza === Number(seleccion))?.stockDisponible ?? 1) : 1
+                      setCantidad(Math.min(Math.max(1, Number(e.target.value)), max))
+                    }}
                     className="w-20 bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                   <button
@@ -162,7 +181,7 @@ export default function SolicitarPresupuesto() {
                           <span className="text-white font-mono font-bold">{formatPrice(l.precio * l.cantidad)}</span>
                           <button
                             type="button"
-                            onClick={() => setLineas(prev => prev.filter(x => x.piezaId !== l.piezaId))}
+                            onClick={() => setLineas(lineas.filter(x => x.piezaId !== l.piezaId))}
                             className="text-slate-500 hover:text-red-400 transition-colors"
                           >
                             <X className="w-4 h-4" />
@@ -227,7 +246,7 @@ export default function SolicitarPresupuesto() {
                   placeholder="Ej: 150.00"
                   className="w-full bg-slate-900 border border-amber-500/40 rounded-xl p-3 text-white text-lg font-bold focus:outline-none focus:ring-1 focus:ring-amber-400 placeholder-slate-600"
                 />
-                <p className="text-[10px] text-amber-400/60 mt-1.5">Propón el precio que estás dispuesto a pagar. El admin puede aceptar, rechazar o contraofertar.</p>
+                <p className="text-[10px] text-amber-400/60 mt-1.5">Propón el precio que estás dispuesto a pagar. El desguace puede aceptar, rechazar o hacerte una contraoferta.</p>
               </div>
 
               {error && (

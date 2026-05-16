@@ -246,18 +246,14 @@ export default function AdminPiezas() {
                   <label className="text-xs text-slate-500 uppercase font-black tracking-widest mb-2 block">Nombre *</label>
                   <input {...field('nombre')} placeholder="Motor 1.6 TDI" className={inputCls} />
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-black tracking-widest mb-2 block">Precio (€) *</label>
                     <input type="number" min="0" step="0.01" {...field('precioVenta')} placeholder="0.00" className={inputCls} />
                   </div>
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-black tracking-widest mb-2 block">Stock</label>
-                    <input type="number" min="0" {...field('stockDisponible')} className={inputCls} />
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-500 uppercase font-black tracking-widest mb-2 block">Mínimo</label>
-                    <input type="number" min="0" {...field('stockMinimo')} className={inputCls} />
+                    <p className="text-slate-400 text-sm py-2">Se asigna automáticamente al añadir al inventario</p>
                   </div>
                 </div>
                 <div>

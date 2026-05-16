@@ -69,7 +69,7 @@
                 <TableColumn fx:id="colSolOferta"   text="Oferta cliente"  prefWidth="105.0" />
                 <TableColumn fx:id="colSolContrao"  text="Contraoferta"    prefWidth="105.0" />
                 <TableColumn fx:id="colSolOdoo"     text="Ref. Odoo"       prefWidth="110.0" />
-                <TableColumn fx:id="colSolRespuesta" text="Mensaje admin"  prefWidth="200.0" />
+                <TableColumn fx:id="colSolTurno"     text="Turno"          prefWidth="200.0" />
             </columns>
             <columnResizePolicy>
                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

@@ -5,7 +5,7 @@ USE `autociclo_db`;
 
 -- 1. Ampliar SOLICITUDES_PRESUPUESTO
 ALTER TABLE `SOLICITUDES_PRESUPUESTO`
-    MODIFY COLUMN `estado` ENUM('pendiente','en_negociacion','aprobada','rechazada') NOT NULL DEFAULT 'pendiente',
+    MODIFY COLUMN `estado` ENUM('pendiente','en_negociacion','aprobada','rechazada','pagada') NOT NULL DEFAULT 'pendiente',
     ADD COLUMN `precio_oferta_cliente` DECIMAL(10,2) DEFAULT NULL AFTER `precio_total`,
     ADD COLUMN `precio_contraoferta`   DECIMAL(10,2) DEFAULT NULL AFTER `precio_oferta_cliente`,
     ADD COLUMN `turno`                 ENUM('cliente','admin') NOT NULL DEFAULT 'admin' AFTER `precio_contraoferta`;

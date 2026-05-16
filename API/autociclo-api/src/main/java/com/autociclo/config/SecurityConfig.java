@@ -44,8 +44,8 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/piezas", "/api/piezas/**", "/api/vehiculos", "/api/vehiculos/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/pagos/webhook").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/piezas", "/api/piezas/**", "/api/vehiculos", "/api/vehiculos/**", "/api/inventario/pieza/**", "/api/codigos-qr", "/api/codigos-qr/**").permitAll()
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())

@@ -3,13 +3,16 @@ package com.autociclo.models;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(exclude = {"detalles", "historial"})
+@ToString(exclude = {"detalles", "historial"})
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "SOLICITUDES_PRESUPUESTO")
@@ -27,8 +30,8 @@ public class SolicitudPresupuesto {
     @Column(name = "fecha_solicitud", nullable = false)
     private LocalDateTime fechaSolicitud;
 
-    // 'pendiente','en_negociacion','aprobada','rechazada'
-    @Column(nullable = false, columnDefinition = "enum('pendiente','en_negociacion','aprobada','rechazada')")
+    // 'pendiente','en_negociacion','aprobada','rechazada','pagada'
+    @Column(nullable = false, columnDefinition = "enum('pendiente','en_negociacion','aprobada','rechazada','pagada')")
     private String estado = "pendiente";
 
     @Column(name = "respuesta_admin", columnDefinition = "TEXT")

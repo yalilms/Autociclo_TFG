@@ -140,7 +140,15 @@ public class UsuariosController implements Initializable {
         header.setStyle("-fx-padding: 0 0 15 0; -fx-border-color: rgba(255,255,255,0.1); -fx-border-width: 0 0 1 0;");
 
         TextField fNombre   = new TextField(); fNombre.setPromptText("Nombre completo");
-        TextField fEmail    = new TextField(); fEmail.setPromptText("correo@ejemplo.com");
+        TextField fEmailPre = new TextField(); fEmailPre.setPromptText("nombre.apellido");
+        fEmailPre.setPrefWidth(230);
+        Label lblDominio = new Label("@autociclo.es");
+        lblDominio.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 13px; -fx-padding: 0 0 0 4;");
+        javafx.scene.layout.HBox emailBox = new javafx.scene.layout.HBox(0, fEmailPre, lblDominio);
+        emailBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        emailBox.setStyle("-fx-background-color: rgba(30,41,59,0.8); -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 0 10 0 0;");
+        fEmailPre.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: transparent; -fx-font-size: 13px; -fx-padding: 8 4 8 10;");
+
         PasswordField fPass = new PasswordField(); fPass.setPromptText("Mínimo 6 caracteres");
         ComboBox<String> fRol = new ComboBox<>();
         fRol.getItems().addAll("ADMIN", "EMPLEADO");
@@ -149,14 +157,13 @@ public class UsuariosController implements Initializable {
         fRol.setStyle("-fx-background-color: rgba(30,41,59,0.8); -fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 6; -fx-background-radius: 6; -fx-pref-height: 35px;");
 
         fNombre.getStyleClass().add("text-field");
-        fEmail.getStyleClass().add("text-field");
         fPass.getStyleClass().add("text-field");
 
         javafx.scene.layout.VBox campos = new javafx.scene.layout.VBox(8,
-                styledLabel("Nombre *"),    fNombre,
-                styledLabel("Email *"),     fEmail,
+                styledLabel("Nombre *"),     fNombre,
+                styledLabel("Email *"),      emailBox,
                 styledLabel("Contraseña *"), fPass,
-                styledLabel("Rol"),         fRol);
+                styledLabel("Rol"),          fRol);
 
         javafx.scene.layout.VBox form = new javafx.scene.layout.VBox(15, header, campos);
         form.setPadding(new javafx.geometry.Insets(20));
@@ -171,8 +178,13 @@ public class UsuariosController implements Initializable {
 
         dialog.showAndWait().ifPresent(bt -> {
             if (bt == ButtonType.OK) {
-                crearUsuario(fNombre.getText().trim(), fEmail.getText().trim(),
-                             fPass.getText(), fRol.getValue());
+                String prefijo = fEmailPre.getText().trim().toLowerCase().replaceAll("[^a-z0-9._-]", "");
+                if (prefijo.isEmpty()) {
+                    mostrarError("El email no puede estar vacío.");
+                    return;
+                }
+                String email = prefijo + "@autociclo.es";
+                crearUsuario(fNombre.getText().trim(), email, fPass.getText(), fRol.getValue());
             }
         });
     }

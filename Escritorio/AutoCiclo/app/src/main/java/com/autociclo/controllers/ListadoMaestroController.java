@@ -51,18 +51,19 @@ public class ListadoMaestroController implements Initializable {
     private final Image appIcon = AppResources.getIcon();
 
     // MenuBar
-    @FXML
-    private MenuItem menuSalir;
-    @FXML
-    private Menu Menu;
-    @FXML
-    private MenuItem menuvehiculos;
-    @FXML
-    private MenuItem menupiezas;
-    @FXML
-    private MenuItem MenuInventario;
-    @FXML
-    private MenuItem menuEstadisticas;
+    @FXML private MenuItem menuCerrarSesion;
+    @FXML private MenuItem menuSalir;
+    @FXML private MenuItem menuvehiculos;
+    @FXML private MenuItem menupiezas;
+    @FXML private MenuItem MenuInventario;
+    @FXML private MenuItem menuEstadisticas;
+    @FXML private MenuItem menuUsuarios;
+    @FXML private MenuItem menuSolicitudes;
+    @FXML private MenuItem menuNuevo;
+    @FXML private MenuItem menuEditar;
+    @FXML private MenuItem menuVerDetalle;
+    @FXML private MenuItem menuEliminar;
+    @FXML private MenuItem menuActualizar;
 
     // ToolBar
     @FXML
@@ -222,6 +223,17 @@ public class ListadoMaestroController implements Initializable {
         // Configurar menús
         menuSalir.setOnAction(event -> salirAplicacion());
 
+        // Menú Vista — módulos
+        if (menuUsuarios   != null) menuUsuarios.setOnAction(e -> mostrarUsuarios());
+        if (menuSolicitudes!= null) menuSolicitudes.setOnAction(e -> mostrarSolicitudes());
+
+        // Menú Registro — CRUD
+        if (menuNuevo      != null) menuNuevo.setOnAction(e -> abrirFormularioNuevo());
+        if (menuEditar     != null) menuEditar.setOnAction(e -> editarRegistro());
+        if (menuVerDetalle != null) menuVerDetalle.setOnAction(e -> verDetallesRegistro());
+        if (menuEliminar   != null) menuEliminar.setOnAction(e -> eliminarRegistro());
+        if (menuActualizar != null) menuActualizar.setOnAction(e -> actualizarListado());
+
         // Configurar búsqueda en tiempo real
         configurarBusqueda();
 
@@ -245,8 +257,8 @@ public class ListadoMaestroController implements Initializable {
             btnNavUsuarios.setVisible(esAdmin);
         if (btnNavEstadisticas != null)
             btnNavEstadisticas.setVisible(esAdmin);
-        if (menuEstadisticas != null)
-            menuEstadisticas.setVisible(esAdmin);
+        if (menuEstadisticas != null) menuEstadisticas.setVisible(esAdmin);
+        if (menuUsuarios     != null) menuUsuarios.setVisible(esAdmin);
 
         // ENTREGA 3: RabbitMQ — escucha cola solicitudes.nueva
         iniciarRabbitMQ();
@@ -1254,6 +1266,35 @@ public class ListadoMaestroController implements Initializable {
     /**
      * Cierra la aplicación después de pedir confirmación
      */
+    @FXML
+    private void cerrarSesion() {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Cerrar sesión");
+        confirm.setHeaderText("¿Deseas cerrar sesión?");
+        confirm.setContentText("Volverás a la pantalla de inicio de sesión.");
+        confirm.getDialogPane().getStylesheets().add(
+                getClass().getResource("/css/styles.css").toExternalForm());
+        confirm.getDialogPane().getStyleClass().add("glass-pane");
+        confirm.setOnShowing(e -> {
+            Stage s = (Stage) confirm.getDialogPane().getScene().getWindow();
+            if (s != null) s.getIcons().add(appIcon);
+        });
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                SessionManager.getInstance().cerrarSesion();
+                try {
+                    Parent loginRoot = javafx.fxml.FXMLLoader.load(
+                            getClass().getResource(com.autociclo.utils.AppConstants.PATH_LOGIN_FXML));
+                    Stage stage = (Stage) tableVehiculos.getScene().getWindow();
+                    stage.setScene(new javafx.scene.Scene(loginRoot));
+                    stage.setTitle("AutoCiclo — Iniciar sesión");
+                } catch (Exception ex) {
+                    LoggerUtil.error("Error al volver al login", ex);
+                }
+            }
+        });
+    }
+
     private void salirAplicacion() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Salir de AutoCiclo");

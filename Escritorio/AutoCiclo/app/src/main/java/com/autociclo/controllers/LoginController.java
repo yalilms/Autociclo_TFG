@@ -36,6 +36,7 @@ public class LoginController implements Initializable {
 
     @FXML private ImageView logoImg;
     @FXML private TextField txtEmail;
+    @FXML private Label lblDominio;
     @FXML private PasswordField txtPassword;
     @FXML private TextField txtPasswordVisible;
     @FXML private Button btnVerPass;
@@ -43,12 +44,14 @@ public class LoginController implements Initializable {
     @FXML private Button btnAcceder;
     @FXML private Label lblError;
 
+    private static final String DOMINIO = "@autociclo.es";
     private boolean passwordVisible = false;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         Circle clip = new Circle(36, 36, 36);
         logoImg.setClip(clip);
+        if (lblDominio != null) lblDominio.setText(DOMINIO);
 
         txtPassword.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) handleLogin();
@@ -84,11 +87,12 @@ public class LoginController implements Initializable {
 
     @FXML
     private void handleLogin() {
-        String email    = txtEmail.getText().trim();
+        String prefijo  = txtEmail.getText().trim().toLowerCase();
+        String email    = prefijo.contains("@") ? prefijo : prefijo + "@autociclo.com";
         String password = passwordVisible ? txtPasswordVisible.getText() : txtPassword.getText();
 
-        if (email.isEmpty() || password.isEmpty()) {
-            mostrarError("Por favor, introduce tu correo y contraseña.");
+        if (prefijo.isEmpty() || password.isEmpty()) {
+            mostrarError("Por favor, introduce tu usuario y contraseña.");
             return;
         }
 

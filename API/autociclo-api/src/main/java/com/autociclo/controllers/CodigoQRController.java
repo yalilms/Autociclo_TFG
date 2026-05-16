@@ -28,6 +28,11 @@ public class CodigoQRController {
         return codigoQRService.findByCodigo(codigo);
     }
 
+    @GetMapping("/buscar")
+    public List<CodigoQR> buscar(@RequestParam String tipo, @RequestParam Integer id) {
+        return codigoQRService.findByTipoYReferencia(tipo, id);
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','EMPLEADO')")
     public ResponseEntity<CodigoQR> generate(@RequestBody Map<String, Object> body) {

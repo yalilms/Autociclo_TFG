@@ -322,6 +322,31 @@ public class SolicitudService {
         return findById(id);
     }
 
+    @Transactional
+    public SolicitudPresupuesto marcarPagada(Integer id, String emailCliente) {
+        SolicitudPresupuesto solicitud = findById(id);
+        if (!"aprobada".equals(solicitud.getEstado())) {
+            throw new IllegalStateException("Solo se puede pagar una solicitud aprobada");
+        }
+        solicitud.setEstado("pagada");
+        SolicitudPresupuesto saved = solicitudRepository.save(solicitud);
+
+        notificacionService.crearNotificacion(
+                solicitud.getCliente().getUsuario().getIdUsuario(),
+                "solicitud_actualizada",
+                "Pago completado para la solicitud #" + id + ". ¡Gracias por tu compra!"
+        );
+        usuarioRepository.findAll().stream()
+                .filter(u -> "ADMIN".equals(u.getRol().getNombre()))
+                .forEach(admin -> notificacionService.crearNotificacion(
+                        admin.getIdUsuario(),
+                        "solicitud_actualizada",
+                        "Pago recibido para la solicitud #" + id
+                                + " — " + solicitud.getPrecioTotal() + "€"
+                ));
+        return saved;
+    }
+
     public List<NegociacionHistorial> findHistorial(Integer idSolicitud) {
         return historialRepository.findBySolicitudIdSolicitudOrderByRondaAsc(idSolicitud);
     }

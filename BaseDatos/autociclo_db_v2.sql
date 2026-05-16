@@ -205,7 +205,7 @@ CREATE TABLE `SOLICITUDES_PRESUPUESTO` (
     `id_solicitud`          INT           NOT NULL AUTO_INCREMENT,
     `id_cliente`            INT           NOT NULL,
     `fecha_solicitud`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `estado`                ENUM('pendiente','en_negociacion','aprobada','rechazada') NOT NULL DEFAULT 'pendiente',
+    `estado`                ENUM('pendiente','en_negociacion','aprobada','rechazada','pagada') NOT NULL DEFAULT 'pendiente',
     `respuesta_admin`       TEXT          DEFAULT NULL,
     `precio_total`          DECIMAL(10,2) DEFAULT NULL,
     `precio_oferta_cliente` DECIMAL(10,2) DEFAULT NULL,

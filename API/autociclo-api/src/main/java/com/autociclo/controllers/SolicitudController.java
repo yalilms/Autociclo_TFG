@@ -27,9 +27,10 @@ public class SolicitudController {
 
     @GetMapping
     public List<SolicitudPresupuesto> getAll(@AuthenticationPrincipal UserDetails userDetails) {
-        boolean esAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        if (esAdmin) return solicitudService.findAll();
+        boolean esPersonal = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
+                            || a.getAuthority().equals("ROLE_EMPLEADO"));
+        if (esPersonal) return solicitudService.findAll();
         return solicitudService.findByClienteEmail(userDetails.getUsername());
     }
 
@@ -93,5 +94,12 @@ public class SolicitudController {
                                              @Valid @RequestBody ContarofertaRequest req,
                                              @AuthenticationPrincipal UserDetails userDetails) {
         return solicitudService.nuevaOfertaCliente(id, req, userDetails.getUsername());
+    }
+
+    @PutMapping("/{id}/pagar")
+    @PreAuthorize("hasRole('CLIENTE')")
+    public SolicitudPresupuesto marcarPagada(@PathVariable Integer id,
+                                              @AuthenticationPrincipal UserDetails userDetails) {
+        return solicitudService.marcarPagada(id, userDetails.getUsername());
     }
 }

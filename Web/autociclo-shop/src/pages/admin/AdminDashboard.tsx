@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Wrench, Car, Users, FileText, Clock, CheckCircle, XCircle, TrendingUp } from 'lucide-react'
+import { Wrench, Car, Users, Clock, CheckCircle, XCircle, TrendingUp, BadgeCheck } from 'lucide-react'
 import { formatPrice } from '../../lib/utils'
 import { motion } from 'motion/react'
 import client from '../../api/client'
@@ -11,6 +11,7 @@ interface Stats {
   solicitudesPendientes: number
   solicitudesAprobadas: number
   solicitudesRechazadas: number
+  solicitudesPagadas: number
   ingresosTotales: number
 }
 
@@ -31,10 +32,11 @@ export default function AdminDashboard() {
         vehiculos: vehiculos.data.length,
         usuarios: usuarios.data.length,
         solicitudesPendientes: sols.filter(s => s.estado === 'pendiente').length,
-        solicitudesAprobadas: sols.filter(s => s.estado === 'aprobada').length,
+        solicitudesAprobadas: sols.filter(s => s.estado === 'aprobada' || s.estado === 'pagada').length,
         solicitudesRechazadas: sols.filter(s => s.estado === 'rechazada').length,
+        solicitudesPagadas: sols.filter(s => s.estado === 'pagada').length,
         ingresosTotales: sols
-          .filter(s => s.estado === 'APROBADA')
+          .filter(s => s.estado === 'aprobada' || s.estado === 'pagada')
           .reduce((acc, s) => acc + (s.precioTotal ?? 0), 0),
       })
     }).catch(() => {}).finally(() => setLoading(false))
@@ -50,6 +52,7 @@ export default function AdminDashboard() {
   const solicStats = stats ? [
     { label: 'Pendientes',  value: stats.solicitudesPendientes,  Icon: Clock,         cls: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
     { label: 'Aprobadas',   value: stats.solicitudesAprobadas,   Icon: CheckCircle,   cls: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+    { label: 'Pagadas',     value: stats.solicitudesPagadas,     Icon: BadgeCheck,    cls: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
     { label: 'Rechazadas',  value: stats.solicitudesRechazadas,  Icon: XCircle,       cls: 'text-red-400 bg-red-500/10 border-red-500/20' },
   ] : []
 
@@ -95,7 +98,7 @@ export default function AdminDashboard() {
           {/* Solicitudes breakdown */}
           <div className="glass-card p-6">
             <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-violet-400" />
+              <TrendingUp className="w-5 h-5 text-violet-400" />
               Estado de Solicitudes
             </h2>
             <div className="grid grid-cols-3 gap-4">

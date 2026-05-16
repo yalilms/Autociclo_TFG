@@ -4,8 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 @Data
+@EqualsAndHashCode(exclude = "solicitud")
+@ToString(exclude = "solicitud")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "DETALLE_SOLICITUD")
@@ -15,6 +20,7 @@ public class DetalleSolicitud {
     private DetalleSolicitudId id;
 
     @JsonIgnore
+    @Getter(onMethod_ = {@JsonIgnore})
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("idSolicitud")
     @JoinColumn(name = "id_solicitud")

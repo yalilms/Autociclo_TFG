@@ -16,16 +16,24 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (!form.email || !form.password) { setError('Completa todos los campos.'); return }
+    if (!form.email.trim()) { setError('Introduce tu email.'); return }
+    if (!form.email.includes('@')) { setError('Introduce un email válido (ej: nombre@autociclo.es).'); return }
+    if (!form.password) { setError('Introduce tu contraseña.'); return }
     setLoading(true)
     try {
       const res = await client.post('/auth/login', form)
-      const { token, nombre, email, rol, id } = res.data
-      login(token, { id, nombre, email, rol })
+      const { token, nombre, email, rol } = res.data
+      login(token, { id: 0, nombre, email, rol })
       navigate(from, { replace: true })
     } catch (err: unknown) {
       const ae = err as { response?: { status?: number } }
-      setError(ae.response?.status === 401 ? 'Email o contraseña incorrectos.' : 'Error al conectar con el servidor.')
+      if (ae.response?.status === 401) {
+        setError('Email o contraseña incorrectos. Comprueba tus datos.')
+      } else if (ae.response?.status === 403) {
+        setError('Cuenta sin acceso. Contacta con el administrador.')
+      } else {
+        setError('No se pudo conectar con el servidor. Inténtalo de nuevo.')
+      }
     } finally {
       setLoading(false)
     }
@@ -52,7 +60,7 @@ export default function Login() {
           <p className="text-slate-500">Inicia sesión en tu cuenta de AutoCiclo</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           {error && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -65,11 +73,10 @@ export default function Login() {
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
               <input
-                required
-                type="email"
+                type="text"
                 value={form.email}
-                onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                placeholder="tu@email.com"
+                onChange={e => setForm(p => ({ ...p, email: e.target.value.trim() }))}
+                placeholder="admin@autociclo.es"
                 autoComplete="email"
                 className="w-full bg-slate-900/50 border border-white/10 rounded-xl p-4 pl-12 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
               />
@@ -81,7 +88,6 @@ export default function Login() {
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
               <input
-                required
                 type="password"
                 value={form.password}
                 onChange={e => setForm(p => ({ ...p, password: e.target.value }))}

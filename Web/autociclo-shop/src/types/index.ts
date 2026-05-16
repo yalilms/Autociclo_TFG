@@ -68,16 +68,25 @@ export interface NegociacionRonda {
   fecha: string
 }
 
+export interface SolicitudCliente {
+  idCliente: number
+  usuario?: { idUsuario: number; nombre: string; email: string }
+  telefono?: string
+  direccion?: string
+  nif?: string
+}
+
 export interface SolicitudPresupuesto {
   idSolicitud: number
   fechaSolicitud: string
-  estado: 'pendiente' | 'en_negociacion' | 'aprobada' | 'rechazada'
+  estado: 'pendiente' | 'en_negociacion' | 'aprobada' | 'rechazada' | 'pagada'
   respuestaAdmin?: string
   referenciaOdoo?: string
   precioTotal?: number
   precioOfertaCliente?: number
   precioContraoferta?: number
   turno?: 'cliente' | 'admin'
+  cliente?: SolicitudCliente
   detalles: DetalleSolicitud[]
   historial?: NegociacionRonda[]
 }

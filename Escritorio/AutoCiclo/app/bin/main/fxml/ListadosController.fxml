@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -39,19 +40,42 @@
          <children>
             <MenuBar styleClass="menu-bar">
               <menus>
+
+                <!-- ── Archivo ─────────────────────────── -->
                 <Menu mnemonicParsing="true" text="_Archivo">
                   <items>
+                    <MenuItem fx:id="menuCerrarSesion" mnemonicParsing="true" text="_Cerrar sesión" onAction="#cerrarSesion" />
+                    <SeparatorMenuItem />
                     <MenuItem fx:id="menuSalir" mnemonicParsing="true" text="_Salir" />
                   </items>
                 </Menu>
-                <Menu fx:id="Menu" mnemonicParsing="true" text="_Gestión">
+
+                <!-- ── Vista ──────────────────────────── -->
+                <Menu mnemonicParsing="true" text="_Vista">
                   <items>
-                    <MenuItem fx:id="menuvehiculos" mnemonicParsing="true" onAction="#mostrarVehiculos" text="_Vehículos" />
-                        <MenuItem fx:id="menupiezas" mnemonicParsing="true" onAction="#mostrarPiezas" text="_Piezas" />
-                        <MenuItem fx:id="MenuInventario" mnemonicParsing="true" onAction="#mostrarInventario" text="_Inventario" />
-                        <MenuItem fx:id="menuEstadisticas" mnemonicParsing="true" onAction="#mostrarEstadisticas" text="_Estadísticas" />
+                    <MenuItem fx:id="menuvehiculos"   mnemonicParsing="true" onAction="#mostrarVehiculos"   text="_Vehículos" />
+                    <MenuItem fx:id="menupiezas"      mnemonicParsing="true" onAction="#mostrarPiezas"      text="_Piezas" />
+                    <MenuItem fx:id="MenuInventario"  mnemonicParsing="true" onAction="#mostrarInventario"  text="_Inventario" />
+                    <SeparatorMenuItem />
+                    <MenuItem fx:id="menuEstadisticas" mnemonicParsing="true" onAction="#mostrarEstadisticas" text="_Estadísticas" />
+                    <MenuItem fx:id="menuUsuarios"    mnemonicParsing="true" onAction="#mostrarUsuarios"    text="_Usuarios" />
+                    <MenuItem fx:id="menuSolicitudes" mnemonicParsing="true" onAction="#mostrarSolicitudes" text="S_olicitudes" />
                   </items>
                 </Menu>
+
+                <!-- ── Registro ───────────────────────── -->
+                <Menu mnemonicParsing="true" text="_Registro">
+                  <items>
+                    <MenuItem fx:id="menuNuevo"       mnemonicParsing="true" text="_Nuevo registro" />
+                    <MenuItem fx:id="menuEditar"      mnemonicParsing="true" text="_Editar seleccionado" />
+                    <MenuItem fx:id="menuVerDetalle"  mnemonicParsing="true" text="_Ver detalles" />
+                    <SeparatorMenuItem />
+                    <MenuItem fx:id="menuEliminar"    mnemonicParsing="true" text="E_liminar seleccionado" />
+                    <SeparatorMenuItem />
+                    <MenuItem fx:id="menuActualizar"  mnemonicParsing="true" text="_Actualizar listado" />
+                  </items>
+                </Menu>
+
               </menus>
             </MenuBar>
 
