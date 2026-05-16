@@ -2,16 +2,23 @@ import { useCallback, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
   TextInput,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useFocusEffect, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import api, { Pieza, Vehiculo, formatPrecio } from '@/lib/api';
+import QRCode from 'qrcode';
+import { SvgXml } from 'react-native-svg';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import api, { Pieza, Vehiculo, CodigoQR, formatPrecio, AUTH_REDIRECT } from '@/lib/api';
+import { getToken, isTokenExpired } from '@/lib/auth';
 
 type TipoMovimiento = 'entrada' | 'salida';
 
@@ -69,6 +76,13 @@ export default function DetallePiezaScreen() {
   const [cantidad, setCantidad] = useState('1');
   const [notas, setNotas] = useState('');
   const [saving, setSaving] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
+  const [sessionOk, setSessionOk] = useState(true);
+  const [qrVisible, setQrVisible] = useState(false);
+  const [qrSvg, setQrSvg] = useState<string | null>(null);
+  const [qrCodigo, setQrCodigo] = useState<string | null>(null);
+  const [generandoQr, setGenerandoQr] = useState(false);
+  const [imprimiendo, setImprimiendo] = useState(false);
 
   const fetchPieza = useCallback(async () => {
     setLoading(true);
@@ -92,6 +106,8 @@ export default function DetallePiezaScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchPieza();
+      // Verificar sesión al entrar en la pantalla
+      getToken().then((t) => setSessionOk(!!t && !isTokenExpired(t)));
     }, [fetchPieza])
   );
 
@@ -112,7 +128,15 @@ export default function DetallePiezaScreen() {
     setCantidad(next.toString());
   }
 
-  function confirmarMovimiento() {
+  function prepararMovimiento() {
+    if (!sessionOk) {
+      Alert.alert(
+        'Sesión caducada',
+        'Tu sesión ha expirado. Inicia sesión de nuevo para continuar.',
+        [{ text: 'Iniciar sesión', onPress: () => router.replace('/login') }]
+      );
+      return;
+    }
     const qty = parseInt(cantidad);
     if (!qty || qty < 1) {
       Alert.alert('Cantidad inválida', 'Introduce una cantidad mayor a 0.');
@@ -122,22 +146,11 @@ export default function DetallePiezaScreen() {
       Alert.alert('Stock insuficiente', `Solo hay ${pieza!.stockDisponible} unidades disponibles.`);
       return;
     }
-
-    const resultante = tipo === 'entrada'
-      ? pieza!.stockDisponible + qty
-      : pieza!.stockDisponible - qty;
-
-    Alert.alert(
-      'Confirmar movimiento',
-      `${tipo === 'entrada' ? 'Añadir' : 'Retirar'} ${qty} ud(s). de "${pieza!.nombre}"\n\nStock resultante: ${resultante} uds.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Confirmar', onPress: ejecutarMovimiento },
-      ]
-    );
+    setConfirmando(true);
   }
 
   async function ejecutarMovimiento() {
+    setConfirmando(false);
     setSaving(true);
     try {
       await api.post('/api/stock/movimiento', {
@@ -146,15 +159,98 @@ export default function DetallePiezaScreen() {
         cantidad: parseInt(cantidad),
         notas: notas.trim() || undefined,
       });
-      Alert.alert('¡Listo!', 'Movimiento de stock registrado correctamente.');
       await fetchPieza();
       setCantidad('1');
       setNotas('');
     } catch (err: any) {
-      const msg = err.response?.data?.message ?? 'Error al registrar el movimiento.';
-      Alert.alert('Error', msg);
+      if (err === AUTH_REDIRECT) return;
+      const status = err.response?.status;
+      const msg = err.response?.data?.error ?? err.response?.data?.message
+        ?? (err.code === 'ECONNABORTED' ? 'Tiempo de espera agotado.' : 'Error de red.');
+      Alert.alert('Error', `${msg}${status ? ` [${status}]` : ''}`);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleVerQR() {
+    setGenerandoQr(true);
+    try {
+      // Primero buscamos si ya existe un QR para esta pieza
+      let codigoUnico: string;
+      const existentes = await api.get<CodigoQR[]>(`/api/codigos-qr/buscar?tipo=pieza&id=${pieza!.idPieza}`)
+        .catch(() => ({ data: [] as CodigoQR[] }));
+
+      if (existentes.data.length > 0) {
+        codigoUnico = existentes.data[0].codigoUnico;
+      } else {
+        // No existe — generamos uno nuevo
+        const res = await api.post<CodigoQR>('/api/codigos-qr', {
+          tipo: 'pieza',
+          idReferencia: pieza!.idPieza,
+        });
+        codigoUnico = res.data.codigoUnico;
+      }
+
+      const svg = await QRCode.toString(codigoUnico, { type: 'svg', width: 280, margin: 2 });
+      setQrSvg(svg);
+      setQrCodigo(codigoUnico);
+      setQrVisible(true);
+    } catch (err: any) {
+      if (err === AUTH_REDIRECT) return;
+      const msg = err.response?.data?.error ?? err.response?.data?.message ?? 'No se pudo generar el código QR.';
+      Alert.alert('Error QR', msg);
+    } finally {
+      setGenerandoQr(false);
+    }
+  }
+
+  async function handleImprimir() {
+    if (!qrCodigo || !pieza || !qrSvg) return;
+    setImprimiendo(true);
+    // SVG inline evita canvas (no disponible en React Native)
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 48px 32px; background: #fff; }
+    .titulo { font-size: 22px; font-weight: bold; margin-bottom: 4px; text-align: center; }
+    .sub    { font-size: 13px; color: #666; margin-bottom: 6px; text-align: center; }
+    .ubic   { font-size: 12px; color: #999; margin-bottom: 28px; text-align: center; }
+    .qr svg { width: 280px; height: 280px; }
+    .codigo { margin-top: 16px; font-size: 10px; color: #aaa; word-break: break-all; text-align: center; max-width: 300px; }
+    .footer { margin-top: 32px; font-size: 11px; color: #ccc; }
+  </style>
+</head>
+<body>
+  <div class="titulo">${pieza.nombre}</div>
+  <div class="sub">${pieza.codigoPieza}</div>
+  ${pieza.ubicacionAlmacen ? `<div class="ubic">${pieza.ubicacionAlmacen}</div>` : ''}
+  <div class="qr">${qrSvg}</div>
+  <div class="codigo">${qrCodigo}</div>
+  <div class="footer">AutoCiclo · Etiqueta de pieza</div>
+</body>
+</html>`;
+    try {
+      // printAsync abre el diálogo nativo de impresión (Android + iOS)
+      await Print.printAsync({ html });
+    } catch (printErr: any) {
+      // printAsync falló → fallback a PDF + share
+      try {
+        const { uri } = await Print.printToFileAsync({ html, base64: false });
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: `Etiqueta ${pieza.nombre}`,
+          UTI: 'com.adobe.pdf',
+        });
+      } catch (shareErr: any) {
+        const msg = shareErr?.message ?? printErr?.message ?? 'Error desconocido';
+        Alert.alert('Error al imprimir', msg);
+      }
+    } finally {
+      setImprimiendo(false);
     }
   }
 
@@ -171,17 +267,101 @@ export default function DetallePiezaScreen() {
   const stockColor = getStockColor(pieza.stockDisponible, pieza.stockMinimo);
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: '#0f172a' }}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
-    >
-      {/* Cabecera stock */}
-      <View style={{ backgroundColor: '#0f172a', padding: 20, paddingTop: 16 }}>
-        <Text style={{ color: '#f1f5f9', fontSize: 22, fontWeight: '900' }}>{pieza.nombre}</Text>
-        <Text style={{ color: '#475569', fontSize: 13, marginTop: 2 }}>{pieza.codigoPieza}</Text>
+    <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
+      {/* Modal QR — fuera del ScrollView para que funcione correctamente */}
+      <Modal visible={qrVisible && !!qrSvg} transparent animationType="fade" onRequestClose={() => setQrVisible(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+          <View style={{ backgroundColor: '#1e293b', borderRadius: 24, padding: 28, alignItems: 'center', width: '100%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
+            <Text style={{ color: '#f1f5f9', fontSize: 18, fontWeight: '800', marginBottom: 4 }}>
+              QR — {pieza.nombre}
+            </Text>
+            <Text style={{ color: '#475569', fontSize: 12, marginBottom: 20 }}>{pieza.codigoPieza}</Text>
+            <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 12 }}>
+              {qrSvg ? <SvgXml xml={qrSvg} width={220} height={220} /> : null}
+            </View>
+            {qrCodigo && (
+              <Text style={{ color: '#334155', fontSize: 10, marginTop: 10, textAlign: 'center' }} numberOfLines={2}>
+                {qrCodigo}
+              </Text>
+            )}
 
-        <View style={{ flexDirection: 'row', marginTop: 16, gap: 12 }}>
+            {/* Botones imprimir + cerrar */}
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 20, width: '100%' }}>
+              <TouchableOpacity
+                onPress={handleImprimir}
+                disabled={imprimiendo}
+                style={{
+                  flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
+                  backgroundColor: imprimiendo ? '#374151' : 'rgba(16,185,129,0.15)',
+                  borderRadius: 12, paddingVertical: 14,
+                  borderWidth: 1, borderColor: imprimiendo ? 'transparent' : 'rgba(16,185,129,0.4)',
+                }}
+              >
+                {imprimiendo
+                  ? <ActivityIndicator size="small" color="#10b981" />
+                  : <Ionicons name="print-outline" size={18} color="#10b981" />}
+                <Text style={{ color: '#10b981', fontWeight: '700', fontSize: 14 }}>
+                  {imprimiendo ? 'Abriendo...' : 'Imprimir'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setQrVisible(false)}
+                style={{
+                  flex: 1, alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: '#3b82f6', borderRadius: 12, paddingVertical: 14,
+                }}
+              >
+                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>Cerrar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
+      >
+      <View style={{ backgroundColor: '#0f172a', paddingBottom: 16 }}>
+        {/* Imagen de la pieza */}
+        {pieza.imagen ? (
+          <Image
+            source={{ uri: pieza.imagen }}
+            style={{ width: '100%', height: 220 }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={{ width: '100%', height: 140, backgroundColor: '#1e293b', alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name="construct-outline" size={48} color="#334155" />
+          </View>
+        )}
+
+        <View style={{ paddingHorizontal: 20, paddingTop: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <View style={{ flex: 1, marginRight: 12 }}>
+            <Text style={{ color: '#f1f5f9', fontSize: 22, fontWeight: '900' }}>{pieza.nombre}</Text>
+            <Text style={{ color: '#475569', fontSize: 13, marginTop: 2 }}>{pieza.codigoPieza}</Text>
+          </View>
+          <TouchableOpacity
+            onPress={handleVerQR}
+            disabled={generandoQr}
+            style={{
+              flexDirection: 'row', alignItems: 'center', gap: 6,
+              backgroundColor: 'rgba(59,130,246,0.12)',
+              borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
+              borderWidth: 1, borderColor: 'rgba(59,130,246,0.3)',
+            }}
+          >
+            {generandoQr
+              ? <ActivityIndicator size="small" color="#3b82f6" />
+              : <Ionicons name="qr-code-outline" size={16} color="#3b82f6" />}
+            <Text style={{ color: '#3b82f6', fontWeight: '700', fontSize: 13 }}>Ver QR</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ flexDirection: 'row', marginTop: 16, gap: 12, paddingHorizontal: 20 }}>
           {/* Stock actual */}
           <View
             style={{
@@ -325,12 +505,27 @@ export default function DetallePiezaScreen() {
           borderRadius: 18,
           padding: 20,
           borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.06)',
+          borderColor: sessionOk ? 'rgba(255,255,255,0.06)' : 'rgba(239,68,68,0.3)',
         }}
       >
         <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 }}>
           Actualizar Stock
         </Text>
+
+        {/* Aviso sesión caducada */}
+        {!sessionOk && (
+          <TouchableOpacity
+            onPress={() => router.replace('/login')}
+            style={{ backgroundColor: 'rgba(239,68,68,0.12)', borderRadius: 12, padding: 14, marginBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: 'rgba(239,68,68,0.35)' }}
+          >
+            <Ionicons name="lock-closed-outline" size={20} color="#ef4444" />
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: '#ef4444', fontWeight: '700', fontSize: 13 }}>Sesión caducada</Text>
+              <Text style={{ color: '#94a3b8', fontSize: 12, marginTop: 2 }}>Pulsa aquí para iniciar sesión de nuevo</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#ef4444" />
+          </TouchableOpacity>
+        )}
 
         {/* Entrada / Salida */}
         <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
@@ -458,35 +653,62 @@ export default function DetallePiezaScreen() {
           numberOfLines={2}
         />
 
-        {/* Botón confirmar */}
-        <TouchableOpacity
-          style={{
-            backgroundColor: saving ? '#1d4ed8' : '#3b82f6',
-            borderRadius: 14,
-            paddingVertical: 16,
-            alignItems: 'center',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            gap: 8,
-            shadowColor: '#3b82f6',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.35,
-            shadowRadius: 10,
-            elevation: 6,
-          }}
-          onPress={confirmarMovimiento}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
+        {/* Vista previa de confirmación inline */}
+        {confirmando && (
+          <View style={{ backgroundColor: tipo === 'entrada' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)', borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: tipo === 'entrada' ? '#10b981' : '#ef4444' }}>
+            <Text style={{ color: '#f1f5f9', fontWeight: '700', fontSize: 15, marginBottom: 4 }}>
+              {tipo === 'entrada' ? '+ Añadir' : '− Retirar'} {cantidad} ud(s). de {pieza.nombre}
+            </Text>
+            <Text style={{ color: '#64748b', fontSize: 13 }}>
+              Stock resultante: {tipo === 'entrada' ? pieza.stockDisponible + parseInt(cantidad || '0') : pieza.stockDisponible - parseInt(cantidad || '0')} uds.
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+              <TouchableOpacity
+                onPress={() => setConfirmando(false)}
+                style={{ flex: 1, paddingVertical: 13, borderRadius: 12, alignItems: 'center', backgroundColor: '#0f172a', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}
+              >
+                <Text style={{ color: '#94a3b8', fontWeight: '700' }}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={ejecutarMovimiento}
+                disabled={saving}
+                style={{ flex: 2, paddingVertical: 13, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8, backgroundColor: tipo === 'entrada' ? '#10b981' : '#ef4444' }}
+              >
+                {saving
+                  ? <ActivityIndicator color="#fff" size="small" />
+                  : <Ionicons name="checkmark-circle" size={18} color="#fff" />}
+                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
+                  {saving ? 'Registrando...' : 'Confirmar'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Botón principal */}
+        {!confirmando && (
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#3b82f6',
+              borderRadius: 14,
+              paddingVertical: 16,
+              alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              gap: 8,
+              elevation: 4,
+            }}
+            onPress={prepararMovimiento}
+            disabled={saving}
+          >
             <Ionicons name="checkmark-circle" size={20} color="#fff" />
-          )}
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
-            {saving ? 'Registrando...' : 'Confirmar movimiento'}
-          </Text>
-        </TouchableOpacity>
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
+              Registrar movimiento
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

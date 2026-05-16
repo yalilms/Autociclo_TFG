@@ -62,14 +62,20 @@ export default function EscanearScreen() {
         }
       }
     } catch (err: any) {
-      const is404 = err.response?.status === 404 || err.response?.status === 500;
-      Alert.alert(
-        is404 ? 'QR no reconocido' : 'Error de conexión',
-        is404
-          ? 'Este código QR no está registrado en el sistema.'
-          : 'No se pudo conectar con el servidor.',
-        [{ text: 'Reintentar', onPress: () => setScanned(false) }]
-      );
+      const status = err.response?.status;
+      let titulo = 'Error';
+      let mensaje = 'No se pudo conectar con el servidor.';
+      if (status === 404) {
+        titulo = 'QR no reconocido';
+        mensaje = 'Este código QR no está registrado en el sistema.';
+      } else if (status === 400) {
+        titulo = 'QR inválido';
+        mensaje = err.response?.data?.error ?? 'Código QR con formato incorrecto.';
+      } else if (!err.response) {
+        titulo = 'Sin conexión';
+        mensaje = 'Comprueba que tienes conexión a internet.';
+      }
+      Alert.alert(titulo, mensaje, [{ text: 'Reintentar', onPress: () => setScanned(false) }]);
     } finally {
       setProcessing(false);
     }

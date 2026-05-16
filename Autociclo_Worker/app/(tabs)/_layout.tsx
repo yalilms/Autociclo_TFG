@@ -54,6 +54,15 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="pedidos"
+        options={{
+          title: 'Pedidos',
+          tabBarIcon: ({ color, size }) => (
+            <TabIcon name="receipt" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="vehiculos"
         options={{
           title: 'Vehículos',

@@ -15,8 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import api, { LoginResponse } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
+const DOMAIN = '@autociclo.es';
+
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,9 +26,19 @@ export default function LoginScreen() {
 
   const login = useAuthStore((s) => s.login);
 
+  // Permite pegar el email completo o escribir solo el usuario
+  function handleUsernameChange(text: string) {
+    if (text.includes('@')) {
+      setUsername(text.split('@')[0]);
+    } else {
+      setUsername(text);
+    }
+  }
+
   async function handleLogin() {
-    if (!email.trim() || !password.trim()) {
-      setError('Introduce email y contraseña.');
+    const email = username.trim().toLowerCase() + DOMAIN;
+    if (!username.trim() || !password.trim()) {
+      setError('Introduce usuario y contraseña.');
       return;
     }
     setError('');
@@ -109,28 +121,43 @@ export default function LoginScreen() {
             }}
           >
             <Text style={{ color: '#94a3b8', fontSize: 12, fontWeight: '600', marginBottom: 6 }}>
-              EMAIL
+              USUARIO
             </Text>
-            <TextInput
+            <View
               style={{
                 backgroundColor: 'rgba(255,255,255,0.08)',
                 borderWidth: 1,
                 borderColor: 'rgba(255,255,255,0.12)',
                 borderRadius: 12,
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                color: '#ffffff',
+                flexDirection: 'row',
+                alignItems: 'center',
                 marginBottom: 16,
-                fontSize: 15,
+                overflow: 'hidden',
               }}
-              placeholder="empleado@autociclo.es"
-              placeholderTextColor="#475569"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            >
+              <TextInput
+                style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 14, color: '#ffffff', fontSize: 15 }}
+                placeholder="pedro"
+                placeholderTextColor="#475569"
+                value={username}
+                onChangeText={handleUsernameChange}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="username"
+              />
+              <View
+                style={{
+                  backgroundColor: 'rgba(59,130,246,0.15)',
+                  paddingHorizontal: 12,
+                  paddingVertical: 14,
+                  borderLeftWidth: 1,
+                  borderLeftColor: 'rgba(255,255,255,0.1)',
+                }}
+              >
+                <Text style={{ color: '#60a5fa', fontSize: 14, fontWeight: '600' }}>{DOMAIN}</Text>
+              </View>
+            </View>
 
             <Text style={{ color: '#94a3b8', fontSize: 12, fontWeight: '600', marginBottom: 6 }}>
               CONTRASEÑA

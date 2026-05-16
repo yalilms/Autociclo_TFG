@@ -16,7 +16,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(tabs)" options={{ title: '' }} />
         <Stack.Screen
           name="pieza/[id]"
           options={{
@@ -24,8 +24,11 @@ export default function RootLayout() {
             title: 'Detalle Pieza',
             headerStyle: { backgroundColor: '#1e40af' },
             headerTintColor: '#fff',
+            headerBackTitle: ' ',
           }}
         />
+        <Stack.Screen name="solicitud/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="vehiculo/[id]" options={{ headerShown: false }} />
       </Stack>
     </SafeAreaProvider>
   );
