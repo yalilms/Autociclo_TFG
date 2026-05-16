@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
-import { getToken, clearAuth } from './auth';
+import { getTokenSync, clearAuth } from './auth';
+import { useAuthStore } from '@/store/authStore';
 
 // Marcador para que los catch locales sepan que ya se redirigió al login y no muestren error
 export const AUTH_REDIRECT = '__authRedirect__';
@@ -11,9 +12,10 @@ const api = axios.create({
   timeout: 10000,
 });
 
-// Interceptor: añade el JWT en cada petición
-api.interceptors.request.use(async (config) => {
-  const token = await getToken();
+// Interceptor síncrono: memoria → zustand store → sin token
+// (el fallback a zustand cubre el caso de Fast Refresh que resetea variables de módulo)
+api.interceptors.request.use((config) => {
+  const token = getTokenSync() ?? useAuthStore.getState().user?.token ?? null;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
