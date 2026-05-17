@@ -34,6 +34,7 @@ import java.util.ResourceBundle;
  */
 public class LoginController implements Initializable {
 
+    @FXML private ImageView bgImage;
     @FXML private ImageView logoImg;
     @FXML private TextField txtEmail;
     @FXML private Label lblDominio;
@@ -52,6 +53,14 @@ public class LoginController implements Initializable {
         Circle clip = new Circle(36, 36, 36);
         logoImg.setClip(clip);
         if (lblDominio != null) lblDominio.setText(DOMINIO);
+
+        // Bindear el fondo al tamaño real de la escena cuando esté disponible
+        bgImage.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                bgImage.fitWidthProperty().bind(newScene.widthProperty());
+                bgImage.fitHeightProperty().bind(newScene.heightProperty());
+            }
+        });
 
         txtPassword.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) handleLogin();
@@ -88,7 +97,7 @@ public class LoginController implements Initializable {
     @FXML
     private void handleLogin() {
         String prefijo  = txtEmail.getText().trim().toLowerCase();
-        String email    = prefijo.contains("@") ? prefijo : prefijo + "@autociclo.com";
+        String email    = prefijo.contains("@") ? prefijo : prefijo + DOMINIO;
         String password = passwordVisible ? txtPasswordVisible.getText() : txtPassword.getText();
 
         if (prefijo.isEmpty() || password.isEmpty()) {

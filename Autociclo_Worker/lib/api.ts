@@ -27,8 +27,9 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const status = error.response?.status;
-    // 401 = sin token; 403 = token expirado (body vacío) o rol incorrecto — en ambos casos, login
-    if (status === 401 || status === 403) {
+    const isLoginRequest = error.config?.url?.includes('/auth/login');
+    // 401/403 del endpoint de login = credenciales malas, no sesión caducada
+    if ((status === 401 || status === 403) && !isLoginRequest) {
       await clearAuth();
       Alert.alert(
         'Sesión caducada',

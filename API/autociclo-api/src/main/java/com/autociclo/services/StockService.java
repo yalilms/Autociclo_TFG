@@ -38,6 +38,7 @@ public class StockService {
         Pieza pieza = piezaRepository.findById(req.getIdPieza())
                 .orElseThrow(() -> new IllegalArgumentException("Pieza no encontrada: " + req.getIdPieza()));
         Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
+                .or(() -> usuarioRepository.findByEmail("empleado@autociclo.com"))
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
         // Actualizar stock

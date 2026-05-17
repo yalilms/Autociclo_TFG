@@ -45,6 +45,14 @@ public class UsuariosController implements Initializable {
     private int paginaActual = 0;
     private static final int PAGE_SIZE = 8;
 
+    private int getPageSize() {
+        if (tableUsuarios != null && tableUsuarios.getHeight() > 60) {
+            int rows = (int) ((tableUsuarios.getHeight() - 30) / 27);
+            return Math.max(rows, 5);
+        }
+        return PAGE_SIZE;
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         configurarColumnas();
@@ -92,8 +100,8 @@ public class UsuariosController implements Initializable {
     }
 
     private void actualizarTablaPaginada() {
-        int inicio = paginaActual * PAGE_SIZE;
-        int fin = Math.min(inicio + PAGE_SIZE, listaFiltrada.size());
+        int inicio = paginaActual * getPageSize();
+        int fin = Math.min(inicio + getPageSize(), listaFiltrada.size());
         if (inicio < listaFiltrada.size()) {
             tableUsuarios.setItems(FXCollections.observableArrayList(listaFiltrada.subList(inicio, fin)));
         } else {
@@ -118,7 +126,7 @@ public class UsuariosController implements Initializable {
     }
 
     public boolean hayPaginaSiguiente() {
-        return (paginaActual + 1) * PAGE_SIZE < listaFiltrada.size();
+        return (paginaActual + 1) * getPageSize() < listaFiltrada.size();
     }
 
     public boolean hayPaginaAnterior() {

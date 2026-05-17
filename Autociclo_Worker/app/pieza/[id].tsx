@@ -18,7 +18,8 @@ import { SvgXml } from 'react-native-svg';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import api, { Pieza, Vehiculo, CodigoQR, formatPrecio, AUTH_REDIRECT } from '@/lib/api';
-import { getToken, isTokenExpired } from '@/lib/auth';
+import { isTokenExpired } from '@/lib/auth';
+import { useAuthStore } from '@/store/authStore';
 
 type TipoMovimiento = 'entrada' | 'salida';
 
@@ -76,7 +77,6 @@ export default function DetallePiezaScreen() {
   const [cantidad, setCantidad] = useState('1');
   const [notas, setNotas] = useState('');
   const [saving, setSaving] = useState(false);
-  const [confirmando, setConfirmando] = useState(false);
   const [sessionOk, setSessionOk] = useState(true);
   const [qrVisible, setQrVisible] = useState(false);
   const [qrSvg, setQrSvg] = useState<string | null>(null);
@@ -106,8 +106,9 @@ export default function DetallePiezaScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchPieza();
-      // Verificar sesión al entrar en la pantalla
-      getToken().then((t) => setSessionOk(!!t && !isTokenExpired(t)));
+      // Verificar sesión usando zustand (siempre en memoria, no depende de SecureStore)
+      const token = useAuthStore.getState().user?.token ?? null;
+      setSessionOk(!!token && !isTokenExpired(token));
     }, [fetchPieza])
   );
 
@@ -128,15 +129,7 @@ export default function DetallePiezaScreen() {
     setCantidad(next.toString());
   }
 
-  function prepararMovimiento() {
-    if (!sessionOk) {
-      Alert.alert(
-        'Sesión caducada',
-        'Tu sesión ha expirado. Inicia sesión de nuevo para continuar.',
-        [{ text: 'Iniciar sesión', onPress: () => router.replace('/login') }]
-      );
-      return;
-    }
+  async function ejecutarMovimiento() {
     const qty = parseInt(cantidad);
     if (!qty || qty < 1) {
       Alert.alert('Cantidad inválida', 'Introduce una cantidad mayor a 0.');
@@ -146,28 +139,31 @@ export default function DetallePiezaScreen() {
       Alert.alert('Stock insuficiente', `Solo hay ${pieza!.stockDisponible} unidades disponibles.`);
       return;
     }
-    setConfirmando(true);
-  }
-
-  async function ejecutarMovimiento() {
-    setConfirmando(false);
     setSaving(true);
     try {
-      await api.post('/api/stock/movimiento', {
+      const res = await api.post('/api/stock/movimiento', {
         idPieza: pieza!.idPieza,
         tipo,
         cantidad: parseInt(cantidad),
         notas: notas.trim() || undefined,
       });
-      await fetchPieza();
+      console.log('[Stock] Movimiento registrado OK', res.data?.idMovimiento);
+      // Actualizar stock en estado local para no depender de un GET extra que podría fallar
+      const nuevoStock = tipo === 'entrada'
+        ? pieza!.stockDisponible + qty
+        : pieza!.stockDisponible - qty;
+      setPieza((prev) => prev ? { ...prev, stockDisponible: nuevoStock } : prev);
       setCantidad('1');
       setNotas('');
+      const accion = tipo === 'entrada' ? 'añadidas' : 'retiradas';
+      Alert.alert('Movimiento registrado', `${qty} ud(s) ${accion} correctamente.`);
     } catch (err: any) {
+      console.log('[Stock] Error en movimiento:', err?.response?.status, err?.message, err);
       if (err === AUTH_REDIRECT) return;
       const status = err.response?.status;
       const msg = err.response?.data?.error ?? err.response?.data?.message
         ?? (err.code === 'ECONNABORTED' ? 'Tiempo de espera agotado.' : 'Error de red.');
-      Alert.alert('Error', `${msg}${status ? ` [${status}]` : ''}`);
+      Alert.alert('Error en movimiento', `${msg}${status ? ` [${status}]` : ''}`);
     } finally {
       setSaving(false);
     }
@@ -653,60 +649,28 @@ export default function DetallePiezaScreen() {
           numberOfLines={2}
         />
 
-        {/* Vista previa de confirmación inline */}
-        {confirmando && (
-          <View style={{ backgroundColor: tipo === 'entrada' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)', borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: tipo === 'entrada' ? '#10b981' : '#ef4444' }}>
-            <Text style={{ color: '#f1f5f9', fontWeight: '700', fontSize: 15, marginBottom: 4 }}>
-              {tipo === 'entrada' ? '+ Añadir' : '− Retirar'} {cantidad} ud(s). de {pieza.nombre}
-            </Text>
-            <Text style={{ color: '#64748b', fontSize: 13 }}>
-              Stock resultante: {tipo === 'entrada' ? pieza.stockDisponible + parseInt(cantidad || '0') : pieza.stockDisponible - parseInt(cantidad || '0')} uds.
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-              <TouchableOpacity
-                onPress={() => setConfirmando(false)}
-                style={{ flex: 1, paddingVertical: 13, borderRadius: 12, alignItems: 'center', backgroundColor: '#0f172a', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}
-              >
-                <Text style={{ color: '#94a3b8', fontWeight: '700' }}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={ejecutarMovimiento}
-                disabled={saving}
-                style={{ flex: 2, paddingVertical: 13, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8, backgroundColor: tipo === 'entrada' ? '#10b981' : '#ef4444' }}
-              >
-                {saving
-                  ? <ActivityIndicator color="#fff" size="small" />
-                  : <Ionicons name="checkmark-circle" size={18} color="#fff" />}
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-                  {saving ? 'Registrando...' : 'Confirmar'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {/* Botón principal */}
-        {!confirmando && (
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#3b82f6',
-              borderRadius: 14,
-              paddingVertical: 16,
-              alignItems: 'center',
-              flexDirection: 'row',
-              justifyContent: 'center',
-              gap: 8,
-              elevation: 4,
-            }}
-            onPress={prepararMovimiento}
-            disabled={saving}
-          >
-            <Ionicons name="checkmark-circle" size={20} color="#fff" />
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
-              Registrar movimiento
-            </Text>
-          </TouchableOpacity>
-        )}
+        {/* Botón principal — llama directamente a la API */}
+        <TouchableOpacity
+          style={{
+            backgroundColor: tipo === 'entrada' ? '#10b981' : '#ef4444',
+            borderRadius: 14,
+            paddingVertical: 16,
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: 8,
+            elevation: 4,
+          }}
+          onPress={ejecutarMovimiento}
+          disabled={saving}
+        >
+          {saving
+            ? <ActivityIndicator color="#fff" size="small" />
+            : <Ionicons name="checkmark-circle" size={20} color="#fff" />}
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
+            {saving ? 'Registrando...' : (tipo === 'entrada' ? 'Añadir stock' : 'Retirar stock')}
+          </Text>
+        </TouchableOpacity>
       </View>
       </ScrollView>
     </View>

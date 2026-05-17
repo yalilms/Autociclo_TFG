@@ -21,11 +21,15 @@
 
 ## Credenciales de prueba
 
-| Rol | Email | Contraseña |
-|-----|-------|-----------|
-| Admin | `admin@autociclo.com` | `Autociclo2026!` |
-| Empleado | `empleado@autociclo.com` | `Autociclo2026!` |
-| Cliente | `cliente@autociclo.com` | `Autociclo2026!` |
+> Regla: cuentas internas (admin/empleado) usan siempre `@autociclo.es`. Clientes en web usan cualquier email.
+
+| Rol | Email | Contraseña | Plataforma |
+|-----|-------|-----------|-----------|
+| Admin | `admin@autociclo.es` | `admin123` | Desktop / Worker / API |
+| Empleado | `pedro@autociclo.es` | `admin123` | Desktop / Worker / API |
+| Cliente | `cliente@autociclo.com` | `admin123` | Web Shop |
+
+> **Worker Móvil:** la app añade `@autociclo.es` automáticamente. Escribe solo el usuario sin dominio: `admin` o `pedro`.
 
 **Tarjeta Stripe test:** `4242 4242 4242 4242` · Fecha: `12/29` · CVC: `123`
 
@@ -74,16 +78,16 @@ Usar Postman, Insomnia o `curl`. Probar la API directamente para confirmar que t
 ```bash
 curl -s -X POST http://109.123.247.31:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@autociclo.com","password":"Autociclo2026!"}'
+  -d '{"email":"admin@autociclo.es","password":"admin123"}'
 ```
-- [ ] Respuesta `200` con `{"token":"eyJ...","email":"admin@autociclo.com","rol":"ADMIN"}`
+- [ ] Respuesta `200` con `{"token":"eyJ...","email":"admin@autociclo.es","rol":"ADMIN"}`
 - [ ] Copiar el valor de `token` para las siguientes peticiones
 
 **Login como cliente:**
 ```bash
 curl -s -X POST http://109.123.247.31:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"cliente@autociclo.com","password":"Autociclo2026!"}'
+  -d '{"email":"cliente@autociclo.com","password":"admin123"}'
 ```
 - [ ] Respuesta `200` con `rol: "CLIENTE"`
 
@@ -103,8 +107,8 @@ curl -s -X POST http://109.123.247.31:8080/api/auth/login \
 # Listar todas las piezas
 curl http://109.123.247.31:8080/api/piezas
 
-# Buscar por texto (nombre/código)
-curl "http://109.123.247.31:8080/api/piezas?search=motor"
+# Buscar por texto (nombre/código) — endpoint correcto: /buscar?q=
+curl "http://109.123.247.31:8080/api/piezas/buscar?q=motor"
 
 # Detalle de una pieza (usar id real de la lista)
 curl http://109.123.247.31:8080/api/piezas/1
@@ -163,13 +167,13 @@ curl http://109.123.247.31:8080/api/vehiculos \
 # Primero obtener token de cliente
 TOKEN_CLIENTE=$(curl -s -X POST http://109.123.247.31:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"cliente@autociclo.com","password":"Autociclo2026!"}' \
+  -d '{"email":"cliente@autociclo.com","password":"admin123"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
 
 curl -X POST http://109.123.247.31:8080/api/solicitudes \
   -H "Authorization: Bearer $TOKEN_CLIENTE" \
   -H "Content-Type: application/json" \
-  -d '{"detalles":[{"idPieza":1,"cantidad":1,"notas":"Prueba directa API"}]}'
+  -d '{"detalles":[{"idPieza":1,"cantidad":1,"notas":"Prueba directa API"}],"precioOfertaCliente":100.00}'
 ```
 - [ ] Respuesta `201` con `idSolicitud` y `estado: "pendiente"`
 - [ ] Guardar el `idSolicitud` para el resto de pruebas (ej. `ID=5`)
@@ -262,7 +266,7 @@ Abrir `http://109.123.247.31:8090` en el navegador. Tener la consola del navegad
 ### 3.2 Registro de nuevo cliente
 
 1. Ir a la página de registro (enlace desde login)
-2. Rellenar con un email nuevo: `nuevo_test@mail.com`, nombre, contraseña `Autociclo2026!`, teléfono, NIF
+2. Rellenar con un email nuevo: `nuevo_test@mail.com`, nombre, contraseña `admin123`, teléfono, NIF
 3. Clic "Registrarse"
 
 - [ ] Redirige al inicio con sesión iniciada
@@ -271,7 +275,7 @@ Abrir `http://109.123.247.31:8090` en el navegador. Tener la consola del navegad
 
 ### 3.3 Login y sesión
 
-- [ ] Login con `cliente@autociclo.com` / `Autociclo2026!` → sesión activa
+- [ ] Login con `cliente@autociclo.com` / `admin123` → sesión activa
 - [ ] Recargar página (F5) → sesión persiste
 - [ ] Login con contraseña incorrecta → mensaje de error claro (no crash, no pantalla blanca)
 - [ ] Cerrar sesión → vuelve al inicio, las rutas protegidas redirigen al login
@@ -305,7 +309,7 @@ Abrir `http://109.123.247.31:8090` en el navegador. Tener la consola del navegad
 ### 3.6 Panel de administración (como admin)
 
 1. Cerrar sesión del cliente
-2. Login como `admin@autociclo.com`
+2. Login como `admin@autociclo.es`
 3. Acceder a `/admin` o al enlace de administración
 
 - [ ] Dashboard carga con métricas: total solicitudes, pendientes, aprobadas, etc.
@@ -332,8 +336,8 @@ O desde IntelliJ/VSCode usando el task Gradle `run`.
 
 | Prueba | Credenciales | Resultado esperado |
 |--------|-------------|-------------------|
-| Login correcto admin | `admin@autociclo.com` / `Autociclo2026!` | Entra al panel principal |
-| Login empleado | `empleado@autociclo.com` / `Autociclo2026!` | Entra (puede tener vista limitada) |
+| Login correcto admin | `admin@autociclo.es` / `admin123` | Entra al panel principal |
+| Login empleado | `pedro@autociclo.es` / `admin123` | Entra (puede tener vista limitada) |
 | Login incorrecto | `fake@mail.com` / `wrong` | Mensaje de error visible, sin crash |
 | Campo vacío | (dejar en blanco) | Validación sin crash |
 
@@ -392,8 +396,8 @@ Escanear el QR con la app **Expo Go** en el móvil (Android o iOS).
 
 | Prueba | Credenciales | Resultado esperado |
 |--------|-------------|-------------------|
-| Login correcto | `empleado@autociclo.com` / `Autociclo2026!` | Accede al dashboard |
-| Login como admin | `admin@autociclo.com` / `Autociclo2026!` | También accede |
+| Login correcto | `pedro@autociclo.es` / `admin123` | Accede al dashboard |
+| Login como admin | `admin@autociclo.es` / `admin123` | También accede |
 | Login incorrecto | email/password incorrectos | Mensaje de error, no crash |
 | Cerrar y reabrir app | — | Sesión persiste (no pide login de nuevo) |
 | Logout | Icono en header | Vuelve al login |
@@ -666,7 +670,7 @@ Simular Odoo no disponible y aprobar una solicitud:
 # Obtener token de cliente
 TOKEN_CLIENTE=$(curl -s -X POST http://109.123.247.31:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"cliente@autociclo.com","password":"Autociclo2026!"}' \
+  -d '{"email":"cliente@autociclo.com","password":"admin123"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
 
 # Crear intento de pago (usar id de una solicitud APROBADA con precioTotal > 0)

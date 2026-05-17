@@ -37,6 +37,14 @@ public class SolicitudesController implements Initializable {
     private int paginaActual = 0;
     private static final int PAGE_SIZE = 8;
 
+    private int getPageSize() {
+        if (tableSolicitudes != null && tableSolicitudes.getHeight() > 60) {
+            int rows = (int) ((tableSolicitudes.getHeight() - 30) / 27);
+            return Math.max(rows, 5);
+        }
+        return PAGE_SIZE;
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         configurarColumnas();
@@ -97,8 +105,8 @@ public class SolicitudesController implements Initializable {
     }
 
     private void actualizarTablaPaginada() {
-        int inicio = paginaActual * PAGE_SIZE;
-        int fin = Math.min(inicio + PAGE_SIZE, listaFiltrada.size());
+        int inicio = paginaActual * getPageSize();
+        int fin = Math.min(inicio + getPageSize(), listaFiltrada.size());
         if (inicio < listaFiltrada.size()) {
             tableSolicitudes.setItems(FXCollections.observableArrayList(listaFiltrada.subList(inicio, fin)));
         } else {
@@ -122,7 +130,7 @@ public class SolicitudesController implements Initializable {
         }
     }
 
-    public boolean hayPaginaSiguiente() { return (paginaActual + 1) * PAGE_SIZE < listaFiltrada.size(); }
+    public boolean hayPaginaSiguiente() { return (paginaActual + 1) * getPageSize() < listaFiltrada.size(); }
     public boolean hayPaginaAnterior()  { return paginaActual > 0; }
 
     @FXML

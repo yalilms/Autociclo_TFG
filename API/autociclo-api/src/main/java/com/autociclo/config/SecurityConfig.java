@@ -46,6 +46,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/api/pagos/webhook").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/piezas", "/api/piezas/**", "/api/vehiculos", "/api/vehiculos/**", "/api/inventario/pieza/**", "/api/codigos-qr", "/api/codigos-qr/**").permitAll()
+                // Stock: permitAll para que funcione con y sin token (demo TFG)
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/stock/movimiento").permitAll()
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())

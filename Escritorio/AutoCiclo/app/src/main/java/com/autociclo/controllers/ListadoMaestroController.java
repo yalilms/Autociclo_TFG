@@ -153,12 +153,6 @@ public class ListadoMaestroController implements Initializable {
     @FXML
     private TableColumn<InventarioPieza, String> colAlmacen;
 
-    // Botones inferior
-    @FXML
-    private Button btnAnterior;
-    @FXML
-    private Button btnSiguiente;
-
     @FXML
     private Label lblErrorConexion;
 
@@ -171,9 +165,6 @@ public class ListadoMaestroController implements Initializable {
     private ObservableList<Vehiculo> listaVehiculosFiltrada = FXCollections.observableArrayList();
     private ObservableList<Pieza> listaPiezasFiltrada = FXCollections.observableArrayList();
     private ObservableList<InventarioPieza> listaInventarioFiltrada = FXCollections.observableArrayList();
-
-    // Variables de paginación
-    private int paginaActual = 0;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -208,11 +199,6 @@ public class ListadoMaestroController implements Initializable {
 
         // Mostrar vehículos por defecto al iniciar
         mostrarVehiculos();
-
-        // Configurar botones de paginación
-        btnAnterior.setOnAction(event -> paginaAnterior());
-        btnSiguiente.setOnAction(event -> paginaSiguiente());
-        actualizarBotonesPaginacion();
 
         // Conectar eventos de botones del toolbar
         btnNuevo.setOnAction(event -> abrirFormularioNuevo());
@@ -287,7 +273,7 @@ public class ListadoMaestroController implements Initializable {
                     if (tableVehiculos.isVisible()) {
                         listaVehiculosFiltrada.setAll(listaVehiculos);
                         actualizarTablaVehiculos();
-                        actualizarBotonesPaginacion();
+
                     }
                 } else {
                     LoggerUtil.error("Error API vehículos: " + resp.getStatusCode(), null);
@@ -320,7 +306,7 @@ public class ListadoMaestroController implements Initializable {
                     if (tablePiezas.isVisible()) {
                         listaPiezasFiltrada.setAll(listaPiezas);
                         actualizarTablaPiezas();
-                        actualizarBotonesPaginacion();
+
                     }
                 } else {
                     LoggerUtil.error("Error API piezas: " + resp.getStatusCode(), null);
@@ -366,7 +352,7 @@ public class ListadoMaestroController implements Initializable {
                     if (tableInventario.isVisible()) {
                         listaInventarioFiltrada.setAll(listaInventario);
                         actualizarTablaInventario();
-                        actualizarBotonesPaginacion();
+
                     }
                 } else {
                     LoggerUtil.error("Error API inventario: " + resp.getStatusCode(), null);
@@ -392,7 +378,7 @@ public class ListadoMaestroController implements Initializable {
             aplicarFadeTransition(vistaUsuarios);
             actualizarEstilosNavegacion(btnNavUsuarios);
             habilitarBotonesCRUD(false);
-            actualizarBotonesPaginacion();
+
         } catch (Exception e) {
             LoggerUtil.error("Error al cargar Usuarios.fxml", e);
         }
@@ -413,7 +399,7 @@ public class ListadoMaestroController implements Initializable {
             actualizarEstilosNavegacion(btnNavSolicitudes);
             habilitarBotonesCRUD(false);
             resetearBadge();
-            actualizarBotonesPaginacion();
+
         } catch (Exception e) {
             LoggerUtil.error("Error al cargar Solicitudes.fxml", e);
         }
@@ -515,8 +501,8 @@ public class ListadoMaestroController implements Initializable {
         }
 
         // Resetear paginación y actualizar
-        paginaActual = 0;
-        actualizarBotonesPaginacion();
+
+
     }
 
     /**
@@ -585,45 +571,21 @@ public class ListadoMaestroController implements Initializable {
      * Actualiza la tabla de vehículos con la lista filtrada
      */
     private void actualizarTablaVehiculos() {
-        int inicio = paginaActual * AppConstants.ITEMS_PER_PAGE;
-        int fin = Math.min(inicio + AppConstants.ITEMS_PER_PAGE, listaVehiculosFiltrada.size());
-
-        if (inicio < listaVehiculosFiltrada.size()) {
-            tableVehiculos.setItems(FXCollections.observableArrayList(
-                    listaVehiculosFiltrada.subList(inicio, fin)));
-        } else {
-            tableVehiculos.setItems(FXCollections.observableArrayList());
-        }
+        tableVehiculos.setItems(FXCollections.observableArrayList(listaVehiculosFiltrada));
     }
 
     /**
      * Actualiza la tabla de piezas con la lista filtrada
      */
     private void actualizarTablaPiezas() {
-        int inicio = paginaActual * AppConstants.ITEMS_PER_PAGE;
-        int fin = Math.min(inicio + AppConstants.ITEMS_PER_PAGE, listaPiezasFiltrada.size());
-
-        if (inicio < listaPiezasFiltrada.size()) {
-            tablePiezas.setItems(FXCollections.observableArrayList(
-                    listaPiezasFiltrada.subList(inicio, fin)));
-        } else {
-            tablePiezas.setItems(FXCollections.observableArrayList());
-        }
+        tablePiezas.setItems(FXCollections.observableArrayList(listaPiezasFiltrada));
     }
 
     /**
      * Actualiza la tabla de inventario con la lista filtrada
      */
     private void actualizarTablaInventario() {
-        int inicio = paginaActual * AppConstants.ITEMS_PER_PAGE;
-        int fin = Math.min(inicio + AppConstants.ITEMS_PER_PAGE, listaInventarioFiltrada.size());
-
-        if (inicio < listaInventarioFiltrada.size()) {
-            tableInventario.setItems(FXCollections.observableArrayList(
-                    listaInventarioFiltrada.subList(inicio, fin)));
-        } else {
-            tableInventario.setItems(FXCollections.observableArrayList());
-        }
+        tableInventario.setItems(FXCollections.observableArrayList(listaInventarioFiltrada));
     }
 
     private void abrirFormularioNuevo() {
@@ -840,7 +802,7 @@ public class ListadoMaestroController implements Initializable {
         tableVehiculos.setVisible(true);
         txtBuscar.clear();
         listaVehiculosFiltrada.setAll(listaVehiculos);
-        reiniciarPaginacion();
+        actualizarTablaVehiculos();
         aplicarFadeTransition(tableVehiculos);
         actualizarEstilosNavegacion(btnNavVehiculos);
         habilitarBotonesCRUD(true);
@@ -852,7 +814,7 @@ public class ListadoMaestroController implements Initializable {
         tablePiezas.setVisible(true);
         txtBuscar.clear();
         listaPiezasFiltrada.setAll(listaPiezas);
-        reiniciarPaginacion();
+        actualizarTablaPiezas();
         aplicarFadeTransition(tablePiezas);
         actualizarEstilosNavegacion(btnNavPiezas);
         habilitarBotonesCRUD(true);
@@ -864,7 +826,7 @@ public class ListadoMaestroController implements Initializable {
         tableInventario.setVisible(true);
         txtBuscar.clear();
         listaInventarioFiltrada.setAll(listaInventario);
-        reiniciarPaginacion();
+        actualizarTablaInventario();
         aplicarFadeTransition(tableInventario);
         actualizarEstilosNavegacion(btnNavInventario);
         habilitarBotonesCRUD(true);
@@ -1113,154 +1075,6 @@ public class ListadoMaestroController implements Initializable {
 
         contextMenu.getItems().addAll(itemCopiar, itemPegar, itemCortar, separador, itemSeleccionar, itemLimpiar);
         return contextMenu;
-    }
-
-    // ==================================================================================
-    // PAGINACIÓN CON ANIMACIONES
-    // ==================================================================================
-
-    /**
-     * Avanza a la página siguiente con animación
-     */
-    private void paginaSiguiente() {
-        if (vistaUsuarios != null && vistaUsuarios.isVisible() && controllerUsuarios != null) {
-            controllerUsuarios.paginaSiguiente();
-            actualizarBotonesPaginacion();
-            return;
-        }
-        if (vistaSolicitudes != null && vistaSolicitudes.isVisible() && controllerSolicitudes != null) {
-            controllerSolicitudes.paginaSiguiente();
-            actualizarBotonesPaginacion();
-            return;
-        }
-        int totalPaginas = calcularTotalPaginas();
-        if (paginaActual < totalPaginas - 1) {
-            paginaActual++;
-            aplicarAnimacionCambioPagina(true);
-            actualizarTablaPaginada();
-            actualizarBotonesPaginacion();
-        }
-    }
-
-    private void paginaAnterior() {
-        if (vistaUsuarios != null && vistaUsuarios.isVisible() && controllerUsuarios != null) {
-            controllerUsuarios.paginaAnterior();
-            actualizarBotonesPaginacion();
-            return;
-        }
-        if (vistaSolicitudes != null && vistaSolicitudes.isVisible() && controllerSolicitudes != null) {
-            controllerSolicitudes.paginaAnterior();
-            actualizarBotonesPaginacion();
-            return;
-        }
-        if (paginaActual > 0) {
-            paginaActual--;
-            aplicarAnimacionCambioPagina(false);
-            actualizarTablaPaginada();
-            actualizarBotonesPaginacion();
-        }
-    }
-
-    /**
-     * Calcula el número total de páginas según la tabla visible
-     */
-    private int calcularTotalPaginas() {
-        int totalElementos = 0;
-
-        if (tableVehiculos.isVisible()) {
-            totalElementos = listaVehiculosFiltrada.size();
-        } else if (tablePiezas.isVisible()) {
-            totalElementos = listaPiezasFiltrada.size();
-        } else if (tableInventario.isVisible()) {
-            totalElementos = listaInventarioFiltrada.size();
-        }
-
-        return (int) Math.ceil((double) totalElementos / AppConstants.ITEMS_PER_PAGE);
-    }
-
-    /**
-     * Actualiza la tabla visible con los elementos de la página actual
-     */
-    private void actualizarTablaPaginada() {
-        int inicio = paginaActual * AppConstants.ITEMS_PER_PAGE;
-        int fin = Math.min(inicio + AppConstants.ITEMS_PER_PAGE, obtenerTotalElementosActual());
-
-        if (tableVehiculos.isVisible()) {
-            ObservableList<Vehiculo> paginaActualLista = FXCollections.observableArrayList(
-                    listaVehiculosFiltrada.subList(inicio, fin));
-            tableVehiculos.setItems(paginaActualLista);
-        } else if (tablePiezas.isVisible()) {
-            ObservableList<Pieza> paginaActualLista = FXCollections.observableArrayList(
-                    listaPiezasFiltrada.subList(inicio, fin));
-            tablePiezas.setItems(paginaActualLista);
-        } else if (tableInventario.isVisible()) {
-            ObservableList<InventarioPieza> paginaActualLista = FXCollections.observableArrayList(
-                    listaInventarioFiltrada.subList(inicio, fin));
-            tableInventario.setItems(paginaActualLista);
-        }
-    }
-
-    /**
-     * Obtiene el total de elementos de la lista visible
-     */
-    private int obtenerTotalElementosActual() {
-        if (tableVehiculos.isVisible()) {
-            return listaVehiculosFiltrada.size();
-        } else if (tablePiezas.isVisible()) {
-            return listaPiezasFiltrada.size();
-        } else if (tableInventario.isVisible()) {
-            return listaInventarioFiltrada.size();
-        }
-        return 0;
-    }
-
-    /**
-     * Actualiza el estado de los botones de paginación (habilitado/deshabilitado)
-     */
-    private void actualizarBotonesPaginacion() {
-        if (vistaUsuarios != null && vistaUsuarios.isVisible() && controllerUsuarios != null) {
-            btnAnterior.setDisable(!controllerUsuarios.hayPaginaAnterior());
-            btnSiguiente.setDisable(!controllerUsuarios.hayPaginaSiguiente());
-            return;
-        }
-        if (vistaSolicitudes != null && vistaSolicitudes.isVisible() && controllerSolicitudes != null) {
-            btnAnterior.setDisable(!controllerSolicitudes.hayPaginaAnterior());
-            btnSiguiente.setDisable(!controllerSolicitudes.hayPaginaSiguiente());
-            return;
-        }
-        int totalPaginas = calcularTotalPaginas();
-        btnAnterior.setDisable(paginaActual == 0);
-        btnSiguiente.setDisable(paginaActual >= totalPaginas - 1 || totalPaginas == 0);
-    }
-
-    private void aplicarAnimacionCambioPagina(boolean adelante) {
-        TableView<?> tablaVisible = obtenerTablaVisible();
-        if (tablaVisible != null) {
-            AnimationFactory.playPageChangeAnimation(tablaVisible, null);
-        }
-    }
-
-    /**
-     * Obtiene la tabla actualmente visible
-     */
-    private TableView<?> obtenerTablaVisible() {
-        if (tableVehiculos.isVisible()) {
-            return tableVehiculos;
-        } else if (tablePiezas.isVisible()) {
-            return tablePiezas;
-        } else if (tableInventario.isVisible()) {
-            return tableInventario;
-        }
-        return null;
-    }
-
-    /**
-     * Reinicia la paginación al cambiar de tabla
-     */
-    private void reiniciarPaginacion() {
-        paginaActual = 0;
-        actualizarTablaPaginada();
-        actualizarBotonesPaginacion();
     }
 
     /**

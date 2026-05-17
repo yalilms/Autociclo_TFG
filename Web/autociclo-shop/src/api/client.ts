@@ -17,11 +17,12 @@ client.interceptors.request.use((config) => {
   return config
 })
 
-// Interceptor: si 401 → logout
+// Interceptor: si 401 → logout (excepto en /auth/login para mostrar el error en el formulario)
 client.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401) {
+    const isLoginRequest = error.config?.url?.includes('/auth/login')
+    if (error.response?.status === 401 && !isLoginRequest) {
       useAuthStore.getState().logout()
       window.location.href = '/login'
     }

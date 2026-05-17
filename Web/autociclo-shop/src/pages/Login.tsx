@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Mail, Lock, LogIn, AlertCircle, ArrowLeft } from 'lucide-react'
+import { Mail, Lock, LogIn, AlertCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import client from '../api/client'
 import { useAuthStore } from '../store/authStore'
 
@@ -12,6 +12,7 @@ export default function Login() {
   const [form, setForm]   = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,13 +89,20 @@ export default function Login() {
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={form.password}
                 onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="w-full bg-slate-900/50 border border-white/10 rounded-xl p-4 pl-12 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                className="w-full bg-slate-900/50 border border-white/10 rounded-xl p-4 pl-12 pr-12 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(v => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+              >
+                {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 

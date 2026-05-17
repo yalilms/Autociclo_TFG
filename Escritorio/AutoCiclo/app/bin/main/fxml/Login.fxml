@@ -21,7 +21,7 @@
            styleClass="root">
 
     <!-- Fondo con blur -->
-    <ImageView fitHeight="750.0" fitWidth="1150.0" preserveRatio="false">
+    <ImageView fx:id="bgImage" fitHeight="750.0" fitWidth="1150.0" preserveRatio="false">
         <image>
             <Image url="@../images/listados_background.png" />
         </image>
@@ -31,7 +31,7 @@
     </ImageView>
 
     <!-- Tarjeta central de login -->
-    <VBox alignment="CENTER" spacing="20.0" maxWidth="420.0" styleClass="glass-pane">
+    <VBox alignment="CENTER" spacing="20.0" maxWidth="420.0" maxHeight="-Infinity" styleClass="glass-pane">
         <padding>
             <Insets top="45" right="45" bottom="45" left="45" />
         </padding>

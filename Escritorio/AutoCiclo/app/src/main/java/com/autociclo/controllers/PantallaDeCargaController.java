@@ -10,6 +10,9 @@ import javafx.fxml.FXML;
 public class PantallaDeCargaController implements javafx.fxml.Initializable {
 
     @FXML
+    private javafx.scene.image.ImageView bgSplash;
+
+    @FXML
     private javafx.scene.layout.VBox contentPane;
 
     @FXML
@@ -17,6 +20,12 @@ public class PantallaDeCargaController implements javafx.fxml.Initializable {
 
     @Override
     public void initialize(java.net.URL location, java.util.ResourceBundle resources) {
+        bgSplash.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                bgSplash.fitWidthProperty().bind(newScene.widthProperty());
+                bgSplash.fitHeightProperty().bind(newScene.heightProperty());
+            }
+        });
         // Animación de entrada
         javafx.animation.ScaleTransition scaleTransition = new javafx.animation.ScaleTransition(
                 javafx.util.Duration.millis(800), contentPane);

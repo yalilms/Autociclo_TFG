@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import PrivateRoute from './components/PrivateRoute'
 import AdminRoute from './components/AdminRoute'
+import ClienteRoute from './components/ClienteRoute'
 import AdminLayout from './components/AdminLayout'
 import Home from './pages/Home'
 import Catalogo from './pages/Catalogo'
@@ -54,7 +55,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
         <Route path="/solicitar" element={<PrivateRoute><Layout><SolicitarPresupuesto /></Layout></PrivateRoute>} />
-        <Route path="/mis-solicitudes" element={<PrivateRoute><Layout><MisSolicitudes /></Layout></PrivateRoute>} />
+        <Route path="/mis-solicitudes" element={<ClienteRoute><Layout><MisSolicitudes /></Layout></ClienteRoute>} />
         <Route path="/pagar" element={<PrivateRoute><Layout><Pago /></Layout></PrivateRoute>} />
 
         {/* Panel Admin */}

@@ -195,20 +195,5 @@
          </children>
       </StackPane>
    </center>
-   <bottom>
-      <HBox alignment="CENTER" prefHeight="60.0" prefWidth="200.0" spacing="20.0" BorderPane.alignment="CENTER">
-         <padding>
-            <Insets bottom="15.0" left="15.0" right="15.0" top="5.0" />
-         </padding>
-         <children>
-            <Button fx:id="btnAnterior" mnemonicParsing="true" prefWidth="120.0" text="◀ _Anterior" styleClass="button-primary">
-                <tooltip><Tooltip text="Ir a la página anterior (Alt+A)" /></tooltip>
-            </Button>
-            <Button fx:id="btnSiguiente" mnemonicParsing="true" prefWidth="120.0" text="_Siguiente ▶" styleClass="button-primary">
-                <tooltip><Tooltip text="Ir a la página siguiente (Alt+S)" /></tooltip>
-            </Button>
-         </children>
-      </HBox>
-   </bottom>
    </BorderPane>
 </StackPane>

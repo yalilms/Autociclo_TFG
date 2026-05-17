@@ -47,8 +47,8 @@ public class Main extends Application {
         primaryStage.setMinWidth(AppConstants.MIN_WINDOW_WIDTH);
         primaryStage.setMinHeight(AppConstants.MIN_WINDOW_HEIGHT);
 
+        primaryStage.setMaximized(true);
         primaryStage.show();
-        primaryStage.centerOnScreen();
 
         // Configurar confirmación al cerrar
         configurarCierreVentana(primaryStage);

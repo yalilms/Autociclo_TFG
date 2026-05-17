@@ -170,7 +170,7 @@ export default function DetallePieza() {
             {[
               { label: 'Referencia',    value: pieza.codigoPieza },
               { label: 'Categoría',     value: pieza.categoria },
-              { label: 'Stock mínimo',  value: `${pieza.stockMinimo} ud.` },
+              { label: 'En stock',  value: `${pieza.stockDisponible} ud.` },
               ...(pieza.ubicacionAlmacen ? [{ label: 'Ubicación', value: pieza.ubicacionAlmacen }] : []),
             ].map((item, i) => (
               <div key={i} className="flex items-center justify-between p-4 glass rounded-xl border-white/5">
@@ -189,18 +189,29 @@ export default function DetallePieza() {
       {inventario.length > 0 && (
         <section className="mt-16">
           <h2 className="text-2xl font-bold text-white mb-6 border-l-4 border-blue-600 pl-4">
-            Vehículos Compatibles
+            Vehículo de Origen
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {inventario.map((inv, i) => (
-              <div key={i} className="glass-card p-5 flex items-center justify-between">
-                <div>
-                  <p className="text-white font-bold">Vehículo #{inv.id.idVehiculo}</p>
-                  <p className="text-slate-500 text-xs mt-1">{inv.estadoPieza} · {inv.cantidad} ud.</p>
+            {inventario.map((inv, i) => {
+              const v = inv.vehiculo
+              return (
+                <div key={i} className="glass-card p-5 flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-bold">
+                      {v ? `${v.marca} ${v.modelo} (${v.anio})` : `Vehículo #${inv.id.idVehiculo}`}
+                    </p>
+                    {v && (
+                      <p className="text-slate-400 text-xs mt-0.5 font-mono">{v.matricula}</p>
+                    )}
+                    <p className="text-slate-500 text-xs mt-1 capitalize">
+                      {inv.estadoPieza} · {inv.cantidad} ud.
+                      {v && <span className="ml-2 text-blue-400">{v.estado}</span>}
+                    </p>
+                  </div>
+                  <span className="text-white font-mono font-bold">{formatPrice(inv.precioUnitario)}</span>
                 </div>
-                <span className="text-white font-mono font-bold">{formatPrice(inv.precioUnitario)}</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
       )}

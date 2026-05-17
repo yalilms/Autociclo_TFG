@@ -26,7 +26,6 @@ export default function LoginScreen() {
 
   const login = useAuthStore((s) => s.login);
 
-  // Permite pegar el email completo o escribir solo el usuario
   function handleUsernameChange(text: string) {
     if (text.includes('@')) {
       setUsername(text.split('@')[0]);
@@ -137,7 +136,7 @@ export default function LoginScreen() {
             >
               <TextInput
                 style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 14, color: '#ffffff', fontSize: 15 }}
-                placeholder="pedro"
+                placeholder="admin"
                 placeholderTextColor="#475569"
                 value={username}
                 onChangeText={handleUsernameChange}
@@ -182,7 +181,7 @@ export default function LoginScreen() {
                 secureTextEntry={!showPassword}
               />
               <TouchableOpacity style={{ paddingHorizontal: 14 }} onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color="#475569" />
+                <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={20} color="#475569" />
               </TouchableOpacity>
             </View>
 
