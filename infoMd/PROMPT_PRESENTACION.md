@@ -1,221 +1,173 @@
-# Prompt para Claude — Generar presentación AutoCiclo TFG
+# Prompt para Claude — Diseño de la Presentación TFG AutoCiclo
 
-Usa este prompt en Claude (claude.ai o Claude Code) con capacidad de generar documentos formateados o presentaciones.
+Copia este prompt completo y pégalo a Claude para que te genere el contenido de las diapositivas.
 
 ---
 
 ## PROMPT
 
-```
-Eres un diseñador de presentaciones experto. Necesito que crees una presentación profesional y visualmente impactante para la defensa de mi Trabajo de Fin de Grado (TFG) del Ciclo Formativo de Grado Superior de DAM (Desarrollo de Aplicaciones Multiplataforma) en el IES P. Hermenegildo Lanz, Granada.
+Eres un diseñador de presentaciones técnicas para FP. Necesito que me generes el **contenido completo** de una presentación de defensa de TFG para el ciclo CFGS DAM (Desarrollo de Aplicaciones Multiplataforma) con estas características:
 
-## CONTEXTO DEL PROYECTO
-
-**Nombre del proyecto:** AutoCiclo — Sistema de gestión para desguace de vehículos
-
-**Idea central:** AutoCiclo es un ecosistema de software multiplataforma diseñado para digitalizar y automatizar la gestión completa de un negocio de desguace de coches. Permite gestionar vehículos, piezas, stock, presupuestos, negociación de precios, pagos y facturación desde cualquier dispositivo.
-
-## COMPONENTES DESARROLLADOS (4 aplicaciones + integraciones)
-
-1. **AutoCiclo Desktop** — Aplicación Java 21 + JavaFX para el personal interno del desguace. Gestión de vehículos, piezas, usuarios, solicitudes de presupuesto con negociación en tiempo real, alertas RabbitMQ y códigos QR.
-
-2. **AutoCiclo Shop** (Web) — Tienda online en React + TypeScript + Tailwind para clientes. Los clientes pueden navegar piezas, solicitar presupuesto personalizado, negociar precios con el desguace y pagar con Stripe.
-
-3. **AutoCiclo Worker** (Móvil) — App React Native + Expo para empleados del almacén. Escaneo de códigos QR, gestión de stock en tiempo real, visualización de vehículos y solicitudes.
-
-4. **API REST** — Backend Spring Boot 3 + JWT + Spring Security. Arquitectura stateless, roles (ADMIN/EMPLEADO/CLIENTE), 10 módulos, ~45 endpoints.
-
-5. **Odoo 17 Community** — ERP integrado para facturación. Cuando el admin aprueba un presupuesto, la API llama automáticamente a Odoo via JSON-RPC y crea el pedido de venta.
-
-6. **RabbitMQ** — Mensajería asíncrona. Eventos en tiempo real: nueva solicitud → Desktop; stock bajo → Worker.
-
-## BASE DE DATOS (MySQL 8.0)
-
-**12 tablas:**
-- ROLES, USUARIOS, CLIENTES
-- VEHICULOS, PIEZAS, INVENTARIO_PIEZAS
-- SOLICITUDES_PRESUPUESTO, DETALLE_SOLICITUD, NEGOCIACION_HISTORIAL
-- MOVIMIENTOS_STOCK, CODIGOS_QR, NOTIFICACIONES
-
-## INFRAESTRUCTURA
-
-Servidor Ubuntu en Contabo (8GB RAM, 150GB SSD) con todos los servicios productivos:
-- Spring Boot API en puerto 8080
-- Nginx como proxy en 8090
-- MySQL 8.0
-- Odoo 17 Community
-- RabbitMQ 3.x
-
-## FLUJO PRINCIPAL (explicar como historia)
-
-1. El cliente entra en la web → busca una pieza → solicita presupuesto con su precio ofertado
-2. El admin recibe notificación en Desktop (RabbitMQ) → negocia precio → aprueba o contraoferta
-3. Si se aprueba → Odoo crea el pedido de venta automáticamente → cliente paga con Stripe
-4. El empleado en almacén recibe alerta en móvil de stock bajo → escanea QR de pieza → actualiza stock
+**Proyecto:** AutoCiclo — Ecosistema multiplataforma de gestión de desguace de vehículos  
+**Centro:** IES P. Hermenegildo Lanz, Granada  
+**Alumno:** Yalil Musa Talhaoui  
+**Duración total:** ~15 minutos (presentación + demo en vivo)  
+**Formato:** Alterno entre diapositivas y demo en directo de la aplicación
 
 ---
 
-## FORMATO DE LA PRESENTACIÓN
+### ESTRUCTURA DE LA PRESENTACIÓN
 
-- **Duración objetivo:** 15 minutos (aproximadamente 15-18 diapositivas)
-- **Estilo visual:** Moderno, oscuro (fondo #0f172a o similar azul oscuro/negro), acentos en azul eléctrico (#3b82f6) y verde (#10b981). Tipografía limpia tipo Inter o Poppins.
-- **Tono:** Profesional pero dinámico. Orientado a demostrar valor práctico, no solo código.
-- **Idioma:** Español
+La presentación tiene **6 bloques** que siguen exactamente este orden. En cada bloque habrá diapositivas que enmarcan la demo en vivo — el tribunal ve las slides mientras yo cambio a la app real.
 
-## ESTRUCTURA REQUERIDA (una sección = una diapositiva a menos que indique)
-
-### DIAPOSITIVA 1 — PORTADA
-- Título: "AutoCiclo"
-- Subtítulo: "Sistema de gestión multiplataforma para desguace de vehículos"
-- Nombre: Yalil Musa Talhaoui
-- Centro: IES P. Hermenegildo Lanz — DAM 2025/26
-- [ESPACIO IMAGEN: Logo de AutoCiclo — captura circular del logo en fondo blanco]
-
-### DIAPOSITIVA 2 — EL PROBLEMA QUE RESUELVE
-- Problema: Los desguaces gestionan todo con papel, hojas Excel o llamadas telefónicas. No hay trazabilidad de piezas, stock desfasado, presupuestos sin seguimiento.
-- Solución: AutoCiclo digitaliza todo el flujo, desde la entrada del vehículo hasta el cobro al cliente.
-- Icono/gráfico visual de contraste "antes vs. después"
-
-### DIAPOSITIVA 3 — ARQUITECTURA GENERAL
-- Diagrama visual con 4 capas:
-  - Capa cliente: Desktop (JavaFX) + Web Shop (React) + Mobile Worker (Expo)
-  - Capa API: Spring Boot 3 REST + JWT
-  - Capa mensajería: RabbitMQ
-  - Capa datos/ERP: MySQL 8.0 + Odoo 17
-- Flechas mostrando comunicación entre capas
-- [ESPACIO IMAGEN: diagrama de arquitectura o screenshot del servidor]
-
-### DIAPOSITIVA 4 — BASE DE DATOS (12 tablas)
-- Título: "Base de datos — 12 tablas MySQL"
-- Lista organizada por módulos:
-  - Usuarios/Roles: ROLES, USUARIOS, CLIENTES
-  - Inventario: VEHICULOS, PIEZAS, INVENTARIO_PIEZAS
-  - Comercial: SOLICITUDES_PRESUPUESTO, DETALLE_SOLICITUD, NEGOCIACION_HISTORIAL
-  - Operaciones: MOVIMIENTOS_STOCK, CODIGOS_QR, NOTIFICACIONES
-- Pequeño dato de contexto: "Diseño normalizado en 3FN. Enum para estados y roles."
-
-### DIAPOSITIVA 5 — API REST (Spring Boot 3)
-- Título: "API REST — El corazón del sistema"
-- Bullets clave:
-  - Spring Boot 3 + Spring Security (JWT stateless)
-  - 10 módulos: Auth, Piezas, Vehículos, Inventario, Stock, Solicitudes, Notificaciones, Pagos, Usuarios, QR
-  - ~45 endpoints REST
-  - 3 roles: ADMIN / EMPLEADO / CLIENTE
-  - Interceptores de respuesta para manejo automático de sesión
-- [ESPACIO IMAGEN: Captura de Postman o tabla de endpoints]
-
-### DIAPOSITIVA 6 — DESKTOP (2 diapositivas)
-**6a — Vista general Desktop:**
-- JavaFX + Java 21 + Gradle
-- Login con autenticación JWT
-- Gestión completa: usuarios, vehículos, piezas, solicitudes
-- Notificaciones en tiempo real via RabbitMQ
-- [ESPACIO IMAGEN: pantalla principal Desktop con solicitudes]
-
-**6b — Negociación en Desktop:**
-- Admin recibe solicitud → puede aprobar, rechazar o hacer contraoferta
-- Historial de rondas de negociación
-- Al aprobar → llamada automática a Odoo (pedido de venta creado)
-- [ESPACIO IMAGEN: pantalla de detalle solicitud/negociación Desktop]
-
-### DIAPOSITIVA 7 — WEB SHOP (2 diapositivas)
-**7a — Tienda para clientes:**
-- React + TypeScript + Tailwind CSS + Vite
-- Catálogo de piezas con búsqueda y filtros
-- Registro/Login para clientes
-- Formulario de solicitud de presupuesto con precio ofertado
-- [ESPACIO IMAGEN: página de catálogo o detalle pieza Web]
-
-**7b — Pago y negociación web:**
-- Seguimiento de solicitudes en "Mis Solicitudes"
-- Chat de negociación: cliente contraoferta ↔ admin responde
-- Pago online con Stripe (entorno de pruebas integrado)
-- [ESPACIO IMAGEN: pantalla Mis Solicitudes o proceso de pago]
-
-### DIAPOSITIVA 8 — MOBILE WORKER (2 diapositivas)
-**8a — App para empleados:**
-- React Native + Expo
-- Login seguro con JWT (SecureStore cifrado)
-- Dashboard con alertas de stock bajo en tiempo real
-- Búsqueda de piezas y vehículos
-- [ESPACIO IMAGEN: pantalla login o dashboard móvil]
-
-**8b — QR y gestión de stock:**
-- Escaneo de códigos QR con cámara → acceso directo a pieza/vehículo
-- Detalle de pieza con imagen, stock actual, historial
-- Registro de entradas/salidas de stock desde el almacén
-- Impresión de etiquetas QR en PDF
-- [ESPACIO IMAGEN: pantalla escaneo QR o detalle pieza móvil]
-
-### DIAPOSITIVA 9 — FLUJO END-TO-END
-- Diagrama o story board visual del flujo completo:
-  1. Cliente solicita presupuesto (web) → 2. Admin negocia (Desktop) → 3. Aprobado → Odoo genera pedido → 4. Cliente paga (Stripe) → 5. Empleado actualiza stock (móvil)
-- Destacar la integración real entre componentes
-- [ESPACIO IMAGEN: collage de pantallas de las 3 apps]
-
-### DIAPOSITIVA 10 — TECNOLOGÍAS (resumen visual)
-- Grid visual con logos/iconos de las tecnologías:
-  - Backend: Spring Boot 3, Java 21, JWT, MySQL 8, RabbitMQ, Odoo 17
-  - Frontend Desktop: JavaFX, FXML
-  - Frontend Web: React, TypeScript, Tailwind, Vite, Stripe
-  - Frontend Móvil: React Native, Expo, SecureStore
-  - Infraestructura: Ubuntu Server, Nginx, Contabo VPS
-
-### DIAPOSITIVA 11 — RETOS Y APRENDIZAJES
-- Retos enfrentados:
-  - Sincronización entre 4 plataformas con autenticación unificada
-  - Serialización circular en Hibernate/Jackson con relaciones bidireccionales
-  - Integración Odoo via JSON-RPC
-  - Diseño de flujo de negociación (rondas, estados, turnos)
-- Aprendizajes clave:
-  - Arquitectura REST stateless con JWT
-  - Mensajería asíncrona con RabbitMQ
-  - Desarrollo multiplataforma real (3 tecnologías de frontend)
-
-### DIAPOSITIVA 12 — DEMO EN VIVO (placeholder)
-- "A continuación — demostración en vivo"
-- Guía de la demo:
-  1. Login en Web Shop → solicitar presupuesto
-  2. Recibir notificación en Desktop → negociar → aprobar
-  3. Confirmar pedido en Odoo
-  4. Login en Worker móvil → escanear QR → registrar movimiento de stock
-- [ESPACIO IMAGEN: QR de acceso a la web demo]
-
-### DIAPOSITIVA 13 — CONCLUSIONES
-- Objetivos conseguidos: ecosistema real y funcional, 4 plataformas integradas, desplegado en servidor real
-- Líneas futuras: notificaciones push, app offline con sync, módulo de informes con gráficos
-- Agradecimientos breves
+Genera el contenido diapositiva a diapositiva. Para cada slide indica:
+- **Título** de la diapositiva
+- **Contenido** (bullets cortos, máximo 5 líneas, sin texto largo)
+- **Nota del orador** (lo que digo yo en voz, 2-3 frases)
+- Si hay una transición a demo, añade un bloque `🖥️ DEMO EN VIVO →` con una línea describiendo qué enseño
 
 ---
 
-## INSTRUCCIONES PARA EL DISEÑO
+### BLOQUE 1 — Portada e introducción (0:00 – 1:00) · 2 slides
 
-1. Usa un esquema de colores oscuro: fondo principal #0f172a (azul marino muy oscuro), tarjetas/secciones en #1e293b, acentos en #3b82f6 (azul) y #10b981 (verde esmeralda).
+**Slide 1 — Portada**
+- Título: AutoCiclo
+- Subtítulo: Ecosistema multiplataforma de gestión de desguace
+- Alumno, centro, curso 2025/26
 
-2. En cada diapositiva que tenga [ESPACIO IMAGEN], deja un recuadro claramente marcado con borde discontinuo o punteado y la etiqueta "📸 [descripción de la captura]" centrada en ese espacio. El recuadro debe tener proporción 16:9 o 4:3 según el contenido.
+**Slide 2 — ¿Qué es AutoCiclo?**
+- Problema que resuelve: los desguaces gestionan piezas, clientes y empleados con sistemas desconectados o en papel
+- Solución: tres apps interconectadas sobre una API REST central
+- Stack a mencionar de forma breve (sin entrar en detalle todavía)
 
-3. Iconos: usa emojis o iconos simples para los puntos de lista. No sobrecargues con elementos decorativos.
-
-4. Progresión visual: en la diapositiva de arquitectura (diap 3) y el flujo end-to-end (diap 9), crea diagramas con flechas y cajas de colores diferenciados por capa.
-
-5. Para la diapositiva de tecnologías (diap 10), crea un grid de tarjetas con el nombre de la tecnología, su categoría y una frase de una línea de por qué se usó.
-
-6. Tiempo estimado por sección:
-   - Portada + problema: 1.5 min
-   - Arquitectura + BD + API: 3 min
-   - Desktop + Web: 3 min
-   - Móvil + Flujo: 2.5 min
-   - Tecnologías + Retos: 2 min
-   - Demo + Conclusiones: 3 min
-   TOTAL: ~15 minutos
-
-7. Genera la presentación como HTML con CSS embebido para que pueda abrirse en cualquier navegador (sin dependencias externas). Alternativamente puedes generarla en formato Markdown con estructura clara que luego yo adapte a PowerPoint/Google Slides.
-
-8. Haz que sea VISUALMENTE IMPACTANTE. Que quien la vea diga "esto es de nivel profesional". Usa gradientes, sombras sutiles, líneas divisoras con color de acento.
-
-Por favor genera ahora la presentación completa con todas las diapositivas, los espacios para imágenes marcados, y el tiempo estimado al pie de cada sección.
-```
+`🖥️ DEMO EN VIVO →` Mostrar las tres apps abiertas a la vez durante 5 segundos como vista general
 
 ---
 
-*Nota: Si usas Claude con artifacts (claude.ai), puede generar el HTML directamente y verlo en pantalla. Si lo usas en Claude Code, generará el archivo HTML o MD.*
+### BLOQUE 2 — Arquitectura del sistema (1:00 – 2:30) · 2 slides
+
+**Slide 3 — Diagrama de arquitectura**
+- Diagrama visual con las tres apps (Shop, Desktop, Worker) apuntando a la API REST
+- La API conecta con: MySQL, Odoo 17, RabbitMQ (mencionar pero no demostrar), Stripe
+- Servidor real en Contabo (Ubuntu Server)
+
+**Slide 4 — Stack tecnológico**
+- Tabla o lista visual con las 4 capas:
+  - API: Spring Boot 3, JWT, MySQL 8
+  - Shop: React + Vite + TypeScript + Tailwind + Stripe
+  - Desktop: Java 21 + JavaFX + Gradle
+  - Worker: React Native + Expo
+
+---
+
+### BLOQUE 3 — Web Shop: el cliente (2:30 – 6:00) · 2 slides + 2 demos
+
+**Slide 5 — Web Shop — Cliente**
+- Acceso público con login JWT
+- Catálogo de piezas con filtros
+- Sistema de solicitud de presupuesto (el cliente negocia el precio)
+
+`🖥️ DEMO EN VIVO →` Login en la Shop → catálogo → ficha de pieza → crear solicitud de presupuesto → aparece en "Mis solicitudes" con estado Pendiente
+
+**Slide 6 — Flujo de negociación**
+- El cliente no paga precio fijo: propone un precio
+- El admin puede aprobar, rechazar o hacer contraoferta
+- El estado de la solicitud se actualiza en tiempo real para ambos lados
+
+`🖥️ DEMO EN VIVO →` Cambiar al Desktop: mostrar que la solicitud ya apareció en la bandeja del admin
+
+---
+
+### BLOQUE 4 — Desktop: el administrador (6:00 – 9:30) · 3 slides + 1 demo
+
+**Slide 7 — Aplicación Desktop (JavaFX)**
+- Rol: administrador del desguace
+- Dashboard con estadísticas: solicitudes activas, stock bajo, últimos movimientos
+- Hecho en Java 21 + JavaFX, instalador .deb para Linux (no requiere Java instalado)
+
+**Slide 8 — Gestión de solicitudes**
+- El admin ve todas las solicitudes entrantes en tiempo real
+- Puede aprobar con precio propuesto o lanzar contraoferta
+- Historial de negociación completo por solicitud
+
+**Slide 9 — Inventario y stock**
+- Módulo de piezas y vehículos
+- Control de stock con movimientos de entrada/salida
+- Se actualiza automáticamente cuando el Worker recoge piezas
+
+`🖥️ DEMO EN VIVO →` Aprobar la solicitud desde el Desktop → mostrar inventario → el estado en la Shop cambia a "Aprobada"
+
+---
+
+### BLOQUE 5 — Pago con Stripe + Odoo (9:30 – 11:30) · 2 slides + 1 demo
+
+**Slide 10 — Pasarela de pago con Stripe**
+- El cliente paga solo cuando la solicitud está aprobada
+- Integración real con Stripe: PaymentIntent en el backend, Stripe Elements en el frontend
+- No se almacenan datos de tarjeta (PCI compliance delegado a Stripe)
+
+**Slide 11 — Integración con Odoo 17**
+- Al confirmar el pago, Spring Boot llama a Odoo mediante JSON-RPC
+- Odoo crea automáticamente un pedido de venta con las líneas de la solicitud
+- El número de referencia de Odoo (S000XX) queda visible para el cliente
+
+`🖥️ DEMO EN VIVO →` Pagar en la Shop con tarjeta de prueba 4242 4242 4242 4242 → pantalla de éxito → solicitud pasa a estado "Pagada" → (opcional) mostrar el pedido en Odoo
+
+---
+
+### BLOQUE 6 — Worker móvil: el empleado (11:30 – 13:30) · 2 slides + 2 demos
+
+**Slide 12 — Aplicación Worker (React Native)**
+- Rol: operario del almacén
+- Ve solo los pedidos ya pagados que debe preparar
+- Interfaz simple pensada para uso en almacén (pantalla pequeña, acciones claras)
+
+**Slide 13 — Flujo de preparación y envío**
+- El empleado abre el pedido → ve las piezas y su ubicación en el almacén
+- Marca cada pieza como recogida → el stock baja automáticamente en el sistema
+- Cuando todas están recogidas puede marcar el pedido como "Enviado"
+
+`🖥️ DEMO EN VIVO →` Worker: abrir pedido → recoger piezas → marcar como enviado
+
+`🖥️ DEMO EN VIVO →` Volver a la Shop como cliente → solicitud aparece con estado "Enviado" con icono de camión
+
+---
+
+### BLOQUE 7 — Cierre (13:30 – 15:00) · 2 slides
+
+**Slide 14 — Conclusiones**
+- AutoCiclo resuelve el ciclo completo: solicitud → negociación → pago → preparación → envío
+- Desplegado en servidor real (Contabo), no en localhost
+- Tres plataformas distintas con una única fuente de verdad: la API REST
+
+**Slide 15 — Gracias / Preguntas**
+- Slide limpia: "¿Preguntas?" + nombre + datos de contacto si quieres
+- (Opcional) QR al repositorio GitHub
+
+---
+
+### INSTRUCCIONES DE FORMATO
+
+- Genera el contenido para cada slide con bullets cortos (máximo 4-5 puntos)
+- Las notas del orador deben ser frases naturales, no texto formal de memoria
+- Donde hay `🖥️ DEMO EN VIVO →` no hay slide visible — yo cambio a la app en directo
+- El diseño visual lo haré yo en Canva/PowerPoint — solo necesito el contenido textual
+- Usa lenguaje técnico pero accesible para un tribunal de FP
+- Total de slides: **15 slides** (sin contar las transiciones de demo)
+- **Para imágenes:** indica siempre con un bloque `📷 IMAGEN: [descripción de qué poner]` en la posición exacta donde debe ir dentro de la slide. Especifica si ocupa media slide, toda la slide, o va en un lado junto al texto. Ejemplos de uso:
+  - `📷 IMAGEN: captura del dashboard de la app Desktop (media slide, lado derecho)`
+  - `📷 IMAGEN: diagrama de arquitectura con las 3 apps apuntando a la API (slide completa, centrado)`
+  - `📷 IMAGEN: logo de Stripe + logo de Odoo juntos (pequeño, esquina inferior derecha)`
+  - `📷 IMAGEN: captura del formulario de pago en la Web Shop (media slide, lado izquierdo)`
+
+---
+
+### CONTEXTO ADICIONAL
+
+- La API está en Spring Boot 3 con autenticación JWT. Cada app (Shop, Desktop, Worker) se autentica con JWT propio.
+- La base de datos es MySQL 8 con 12 tablas. Está en un servidor Ubuntu en Contabo con Nginx como proxy.
+- El instalador del Desktop genera un `.deb` (Linux) y un `.zip` portable (Windows) con JRE embebido — no requiere Java instalado.
+- El pago con Stripe usa el flujo: frontend llama a `POST /api/pagos/intento` → backend crea PaymentIntent → frontend confirma con Stripe Elements.
+- La integración Odoo funciona con JSON-RPC: cuando el pago es `succeeded`, Spring Boot crea el pedido de venta en Odoo automáticamente.
+- RabbitMQ está integrado en la API pero NO se va a demostrar en la presentación.
+- La defensa es ante un tribunal de IES P. Hermenegildo Lanz (Granada) el 20-21 de Mayo de 2026.
