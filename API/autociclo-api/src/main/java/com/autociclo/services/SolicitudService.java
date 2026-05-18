@@ -7,7 +7,11 @@ import com.autociclo.messaging.RabbitMQPublisher;
 import com.autociclo.models.*;
 import com.autociclo.repositories.*;
 import com.autociclo.utils.OdooClient;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +24,9 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class SolicitudService {
+
+    @Value("${stripe.secret.key}")
+    private String stripeSecretKey;
 
     private final SolicitudPresupuestoRepository solicitudRepository;
     private final DetalleSolicitudRepository detalleRepository;
@@ -279,7 +286,19 @@ public class SolicitudService {
     }
 
     @Transactional
-    public SolicitudPresupuesto marcarPagada(Integer id, String emailCliente) {
+    public SolicitudPresupuesto marcarPagada(Integer id, String emailCliente, String paymentIntentId) {
+        if (paymentIntentId == null || paymentIntentId.isBlank()) {
+            throw new IllegalStateException("paymentIntentId requerido");
+        }
+        try {
+            Stripe.apiKey = stripeSecretKey;
+            PaymentIntent intent = PaymentIntent.retrieve(paymentIntentId);
+            if (!"succeeded".equals(intent.getStatus())) {
+                throw new IllegalStateException("El pago no está confirmado en Stripe (estado: " + intent.getStatus() + ")");
+            }
+        } catch (StripeException e) {
+            throw new IllegalStateException("No se pudo verificar el pago con Stripe: " + e.getMessage());
+        }
         SolicitudPresupuesto solicitud = findById(id);
         if (!"aprobada".equals(solicitud.getEstado())) {
             throw new IllegalStateException("Solo se puede pagar una solicitud aprobada");

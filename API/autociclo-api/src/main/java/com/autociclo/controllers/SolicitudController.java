@@ -99,8 +99,9 @@ public class SolicitudController {
     @PutMapping("/{id}/pagar")
     @PreAuthorize("hasRole('CLIENTE')")
     public SolicitudPresupuesto marcarPagada(@PathVariable Integer id,
+                                              @RequestBody Map<String, String> body,
                                               @AuthenticationPrincipal UserDetails userDetails) {
-        return solicitudService.marcarPagada(id, userDetails.getUsername());
+        return solicitudService.marcarPagada(id, userDetails.getUsername(), body.get("paymentIntentId"));
     }
 
     @PutMapping("/{id}/entregar")

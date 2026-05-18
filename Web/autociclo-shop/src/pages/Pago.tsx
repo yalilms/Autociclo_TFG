@@ -385,7 +385,7 @@ export default function Pago() {
 
   const handleSuccess = async (pid: string) => {
     try {
-      await client.put(`/solicitudes/${solicitudId}/pagar`)
+      await client.put(`/solicitudes/${solicitudId}/pagar`, { paymentIntentId: pid })
       setPaymentId(pid)
     } catch (err: any) {
       const status  = err?.response?.status

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Clock, CheckCircle, XCircle, ChevronRight, AlertCircle,
-  ExternalLink, ArrowLeftRight, MessageSquare, Check, X, BadgeCheck
+  ExternalLink, ArrowLeftRight, MessageSquare, Check, X, BadgeCheck, Truck
 } from 'lucide-react'
 import { cn, formatPrice } from '../../lib/utils'
 import { motion, AnimatePresence } from 'motion/react'
@@ -14,6 +14,7 @@ const ESTADO_CFG = {
   aprobada:       { label: 'Aprobada',       Icon: CheckCircle,    cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
   rechazada:      { label: 'Rechazada',      Icon: XCircle,        cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
   pagada:         { label: 'Pagada',         Icon: BadgeCheck,     cls: 'bg-blue-500/10 border-blue-500/20 text-blue-400' },
+  enviado:        { label: 'Enviado',        Icon: Truck,          cls: 'bg-teal-500/10 border-teal-500/20 text-teal-400' },
 } as const
 
 type ModalTipo = 'aprobar' | 'rechazar' | 'contraofertar'
