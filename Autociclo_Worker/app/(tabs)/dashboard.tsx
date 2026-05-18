@@ -45,8 +45,8 @@ export default function DashboardScreen() {
       );
       setAlertas(bajoStock);
 
-      // Solo pedidos aprobados (el empleado tiene que ir a prepararlos)
-      const aprobadas = solicitudesRes.data.filter((s) => s.estado === 'aprobada');
+      // Solo pedidos pagados por el cliente (listos para que el empleado los prepare)
+      const aprobadas = solicitudesRes.data.filter((s) => s.estado === 'pagada');
       setPedidosAprobados(aprobadas);
 
       setLastUpdate(new Date());

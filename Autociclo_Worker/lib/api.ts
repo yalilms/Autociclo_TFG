@@ -108,7 +108,7 @@ export interface SolicitudCliente {
 export interface SolicitudPresupuesto {
   idSolicitud: number;
   fechaSolicitud: string;
-  estado: 'pendiente' | 'en_negociacion' | 'aprobada' | 'rechazada' | 'pagada';
+  estado: 'pendiente' | 'en_negociacion' | 'aprobada' | 'rechazada' | 'pagada' | 'enviado';
   respuestaAdmin?: string;
   referenciaOdoo?: string;
   precioTotal?: number | string;

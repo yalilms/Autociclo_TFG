@@ -1,11 +1,11 @@
--- AutoCiclo — Fix: añadir 'pagada' al ENUM de estado en SOLICITUDES_PRESUPUESTO
+-- AutoCiclo — Fix: añadir 'pagada' y 'enviado' al ENUM de estado en SOLICITUDES_PRESUPUESTO
 -- Ejecutar en el servidor: mysql -u autociclo -pautociclo1234 autociclo_db < fix_pagada_enum.sql
 
 USE `autociclo_db`;
 
 ALTER TABLE `SOLICITUDES_PRESUPUESTO`
     MODIFY COLUMN `estado`
-    ENUM('pendiente','en_negociacion','aprobada','rechazada','pagada')
+    ENUM('pendiente','en_negociacion','aprobada','rechazada','pagada','enviado')
     NOT NULL DEFAULT 'pendiente';
 
 -- Verificar que el cambio se aplicó

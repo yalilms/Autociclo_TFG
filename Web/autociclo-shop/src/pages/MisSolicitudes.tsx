@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Inbox, Clock, CheckCircle, XCircle, ChevronRight, PackageCheck, ArrowLeftRight, Check, X, MessageSquare, CreditCard, BadgeCheck } from 'lucide-react'
+import { Plus, Inbox, Clock, CheckCircle, XCircle, ChevronRight, PackageCheck, ArrowLeftRight, Check, X, MessageSquare, CreditCard, BadgeCheck, Truck } from 'lucide-react'
 import { cn, formatPrice } from '../lib/utils'
 import { motion, AnimatePresence } from 'motion/react'
 import client from '../api/client'
@@ -12,6 +12,7 @@ const ESTADO_CFG = {
   aprobada:       { label: 'Aprobada',       Icon: CheckCircle,    cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' },
   rechazada:      { label: 'Rechazada',      Icon: XCircle,        cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
   pagada:         { label: 'Pagada',         Icon: BadgeCheck,     cls: 'bg-blue-500/10 border-blue-500/20 text-blue-400' },
+  enviado:        { label: 'Enviado',        Icon: Truck,          cls: 'bg-teal-500/10 border-teal-500/20 text-teal-400' },
 } as const
 
 export default function MisSolicitudes() {
@@ -181,6 +182,12 @@ export default function MisSolicitudes() {
                       <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-bold">
                         <BadgeCheck className="w-4 h-4" />
                         Pagado {sol.precioTotal != null ? formatPrice(sol.precioTotal) : ''}
+                      </div>
+                    )}
+                    {sol.estado === 'enviado' && (
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 text-sm font-bold">
+                        <Truck className="w-4 h-4" />
+                        Enviado · {sol.precioTotal != null ? formatPrice(sol.precioTotal) : ''}
                       </div>
                     )}
                     {sol.estado === 'rechazada' && (

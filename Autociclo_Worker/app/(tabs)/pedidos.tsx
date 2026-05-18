@@ -22,7 +22,7 @@ export default function PedidosScreen() {
     if (!silent) setLoading(true);
     try {
       const res = await api.get<SolicitudPresupuesto[]>('/api/solicitudes');
-      setPedidos(res.data.filter((s) => s.estado === 'aprobada'));
+      setPedidos(res.data.filter((s) => s.estado === 'pagada' || s.estado === 'enviado'));
     } catch {
       // mantener datos anteriores si falla
     } finally {
@@ -74,11 +74,14 @@ export default function PedidosScreen() {
             </Text>
           </View>
           <View style={{
-            backgroundColor: 'rgba(16,185,129,0.15)',
+            backgroundColor: item.estado === 'enviado' ? 'rgba(20,184,166,0.15)' : 'rgba(16,185,129,0.15)',
             paddingHorizontal: 10, paddingVertical: 4,
-            borderRadius: 20, borderWidth: 1, borderColor: '#10b981',
+            borderRadius: 20, borderWidth: 1,
+            borderColor: item.estado === 'enviado' ? '#14b8a6' : '#10b981',
           }}>
-            <Text style={{ color: '#10b981', fontSize: 11, fontWeight: '700' }}>APROBADO</Text>
+            <Text style={{ color: item.estado === 'enviado' ? '#14b8a6' : '#10b981', fontSize: 11, fontWeight: '700' }}>
+              {item.estado === 'enviado' ? 'ENVIADO' : 'PAGADO'}
+            </Text>
           </View>
         </View>
 
@@ -141,7 +144,7 @@ export default function PedidosScreen() {
           Pedidos a preparar
         </Text>
         <Text style={{ color: '#475569', fontSize: 13, marginTop: 4 }}>
-          Solicitudes aprobadas pendientes de envío
+          Pedidos pagados — pendientes y enviados
         </Text>
       </View>
 

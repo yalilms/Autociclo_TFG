@@ -3,13 +3,14 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { loadStripe } from '@stripe/stripe-js'
 import {
   Elements,
-  CardNumberElement,
-  CardExpiryElement,
-  CardCvcElement,
+  PaymentElement,
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js'
-import { ShieldCheck, CreditCard, AlertCircle, CheckCircle, Download, ArrowLeft } from 'lucide-react'
+import {
+  ShieldCheck, CreditCard, AlertCircle, CheckCircle,
+  Download, ArrowLeft, MapPin, Package, Lock,
+} from 'lucide-react'
 import { formatPrice } from '../lib/utils'
 import { motion } from 'motion/react'
 import client from '../api/client'
@@ -18,97 +19,119 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import type { SolicitudPresupuesto } from '../types'
 
-// ── Stripe publishable key (sustituir por pk_test_... de tu dashboard) ──
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? 'pk_test_REEMPLAZA_CON_TU_CLAVE'
-)
+// Carga Stripe una sola vez con la clave pública del .env
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
 
-const CARD_STYLE = {
-  style: {
-    base: {
-      color: '#fff',
-      fontFamily: '"Inter", sans-serif',
-      fontSize: '15px',
-      '::placeholder': { color: '#64748b' },
+// Apariencia oscura para los elementos de Stripe
+const stripeAppearance = {
+  theme: 'night' as const,
+  variables: {
+    colorPrimary:     '#3b82f6',
+    colorBackground:  '#0f172a',
+    colorText:        '#f1f5f9',
+    colorDanger:      '#ef4444',
+    fontFamily:       'ui-sans-serif, system-ui, sans-serif',
+    borderRadius:     '12px',
+    spacingUnit:      '5px',
+  },
+  rules: {
+    '.Input': {
+      border:          '1px solid rgba(255,255,255,0.1)',
+      backgroundColor: '#1e293b',
+      padding:         '12px 14px',
     },
-    invalid: { color: '#f87171' },
+    '.Input:focus': {
+      border:     '1px solid #3b82f6',
+      boxShadow:  '0 0 0 1px #3b82f6',
+    },
+    '.Label': {
+      color:      '#94a3b8',
+      fontSize:   '11px',
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: '0.08em',
+    },
   },
 }
 
+interface DireccionEnvio {
+  nombre: string
+  direccion: string
+  ciudad: string
+  codigoPostal: string
+  provincia: string
+}
+
 // ─────────────────────────────────────────────────────────
-// Formulario de pago (dentro del contexto Elements)
+// Formulario de pago con Stripe real
 // ─────────────────────────────────────────────────────────
-function CheckoutForm({
-  clientSecret,
+function StripeCheckoutForm({
   solicitud,
-  usuario,
+  shippingAddress,
   onSuccess,
 }: {
-  clientSecret: string
   solicitud: SolicitudPresupuesto
-  usuario: { nombre: string; email: string }
+  shippingAddress: DireccionEnvio
   onSuccess: (paymentId: string) => Promise<void>
 }) {
   const stripe   = useStripe()
   const elements = useElements()
-  const [paying, setPaying]   = useState(false)
-  const [cardError, setCardError] = useState('')
+  const [paying, setPaying] = useState(false)
+  const [error, setError]   = useState('')
 
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!stripe || !elements) return
-    setCardError('')
+
+    const { nombre, direccion, ciudad, codigoPostal, provincia } = shippingAddress
+    if (!nombre || !direccion || !ciudad || !codigoPostal || !provincia) {
+      setError('Por favor completa todos los campos de dirección de envío.')
+      return
+    }
+
+    setError('')
     setPaying(true)
 
-    const cardEl = elements.getElement(CardNumberElement)
-    if (!cardEl) { setPaying(false); return }
+    // Valida los campos de la tarjeta antes de confirmar
+    const { error: submitError } = await elements.submit()
+    if (submitError) {
+      setError(submitError.message ?? 'Error al validar la tarjeta.')
+      setPaying(false)
+      return
+    }
 
-    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardEl,
-        billing_details: { name: usuario.nombre, email: usuario.email },
-      },
+    // Confirma el pago — sin redirección para tarjetas normales
+    const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: { return_url: window.location.href },
+      redirect: 'if_required',
     })
 
-    if (error) {
-      setCardError(error.message ?? 'Error al procesar el pago.')
+    if (stripeError) {
+      setError(stripeError.message ?? 'El pago fue rechazado. Comprueba los datos.')
       setPaying(false)
-    } else if (paymentIntent?.status === 'succeeded') {
+      return
+    }
+
+    if (paymentIntent?.status === 'succeeded') {
       await onSuccess(paymentIntent.id)
+    } else {
+      setError('El pago no pudo completarse. Inténtalo de nuevo.')
+      setPaying(false)
     }
   }
 
   return (
     <form onSubmit={handlePay} className="space-y-5">
-      {/* Número */}
-      <div>
-        <label className="text-xs text-slate-400 uppercase font-black tracking-widest mb-2 block">
-          Número de tarjeta
-        </label>
-        <div className="bg-slate-900 border border-white/10 rounded-xl px-4 py-3.5 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-          <CardNumberElement options={CARD_STYLE} />
-        </div>
+      {/* Stripe Payment Element — campos reales de tarjeta */}
+      <div className="rounded-xl border border-white/10 overflow-hidden">
+        <PaymentElement options={{ layout: 'tabs' }} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-xs text-slate-400 uppercase font-black tracking-widest mb-2 block">Caducidad</label>
-          <div className="bg-slate-900 border border-white/10 rounded-xl px-4 py-3.5 focus-within:ring-1 focus-within:ring-blue-500">
-            <CardExpiryElement options={CARD_STYLE} />
-          </div>
-        </div>
-        <div>
-          <label className="text-xs text-slate-400 uppercase font-black tracking-widest mb-2 block">CVC</label>
-          <div className="bg-slate-900 border border-white/10 rounded-xl px-4 py-3.5 focus-within:ring-1 focus-within:ring-blue-500">
-            <CardCvcElement options={CARD_STYLE} />
-          </div>
-        </div>
-      </div>
-
-      {cardError && (
+      {error && (
         <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
           <AlertCircle className="w-4 h-4 shrink-0" />
-          {cardError}
+          {error}
         </div>
       )}
 
@@ -122,6 +145,11 @@ function CheckoutForm({
           : <ShieldCheck className="w-5 h-5" />}
         {paying ? 'Procesando…' : `Pagar ${formatPrice(solicitud.precioTotal ?? 0)}`}
       </button>
+
+      <p className="text-center text-xs text-slate-500 flex items-center justify-center gap-1.5">
+        <Lock className="w-3 h-3" />
+        Pago seguro procesado por Stripe. Tus datos nunca pasan por nuestros servidores.
+      </p>
     </form>
   )
 }
@@ -142,32 +170,26 @@ async function cargarLogoBase64(): Promise<string> {
 async function generarFacturaPDF(
   solicitud: SolicitudPresupuesto,
   usuario: { nombre: string; email: string },
-  paymentId: string
+  paymentId: string,
+  envio: DireccionEnvio
 ) {
   const doc = new jsPDF()
   const logoB64 = await cargarLogoBase64()
   const fecha = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
   const numFactura = `FAC-${String(solicitud.idSolicitud).padStart(5, '0')}`
 
-  // ── Franja superior azul oscuro ──
   doc.setFillColor(10, 18, 36)
   doc.rect(0, 0, 210, 52, 'F')
-
-  // Acento azul lateral izquierdo
   doc.setFillColor(37, 99, 235)
   doc.rect(0, 0, 6, 52, 'F')
-
-  // Fondo redondeado blanco para el logo
   doc.setFillColor(255, 255, 255)
   doc.roundedRect(10, 7, 38, 38, 6, 6, 'F')
   doc.addImage(logoB64, 'PNG', 10, 7, 38, 38)
 
-  // Nombre empresa
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(22)
   doc.setFont('helvetica', 'bold')
   doc.text('AutoCiclo', 56, 22)
-
   doc.setFontSize(8.5)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(148, 163, 184)
@@ -175,7 +197,6 @@ async function generarFacturaPDF(
   doc.text('Polígono Industrial, Nave 12 · 18010 Granada', 56, 37)
   doc.text('info@autociclo.es  ·  +34 958 123 456', 56, 44)
 
-  // Número de factura alineado a la derecha
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(11)
   doc.setFont('helvetica', 'bold')
@@ -184,36 +205,38 @@ async function generarFacturaPDF(
   doc.setTextColor(99, 179, 237)
   doc.text(numFactura, 196, 32, { align: 'right' })
 
-  // ── Línea separadora azul ──
   doc.setDrawColor(37, 99, 235)
   doc.setLineWidth(0.8)
   doc.line(14, 56, 196, 56)
 
-  // ── Bloque de datos factura (izquierda) ──
   doc.setTextColor(100, 116, 139)
   doc.setFontSize(7.5)
   doc.setFont('helvetica', 'bold')
   doc.text('FECHA DE EMISIÓN', 14, 66)
   doc.text('MÉTODO DE PAGO', 14, 80)
+  doc.text('DIRECCIÓN DE ENVÍO', 14, 96)
 
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(30, 41, 59)
   doc.setFontSize(9.5)
   doc.text(fecha, 14, 72)
   doc.text('Tarjeta de crédito / débito (Stripe)', 14, 86)
+  doc.setFontSize(8.5)
+  doc.text(envio.nombre, 14, 103)
+  doc.text(envio.direccion, 14, 109)
+  doc.text(`${envio.ciudad}, ${envio.codigoPostal}`, 14, 115)
+  doc.setTextColor(100, 116, 139)
+  doc.text(envio.provincia, 14, 121)
 
-  // ── Bloque cliente (derecha, tarjeta redondeada) ──
   doc.setFillColor(241, 245, 249)
   doc.roundedRect(118, 58, 78, 36, 4, 4, 'F')
   doc.setFillColor(37, 99, 235)
   doc.roundedRect(118, 58, 78, 10, 4, 4, 'F')
   doc.rect(118, 64, 78, 4, 'F')
-
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(7.5)
   doc.setFont('helvetica', 'bold')
   doc.text('DATOS DEL CLIENTE', 125, 64.5)
-
   doc.setTextColor(30, 41, 59)
   doc.setFontSize(9.5)
   doc.setFont('helvetica', 'bold')
@@ -223,32 +246,37 @@ async function generarFacturaPDF(
   doc.setTextColor(71, 85, 105)
   doc.text(usuario.email, 125, 83)
 
-  // ── Tabla de piezas ──
-  const filas = (solicitud.detalles ?? []).map(d => [
-    d.pieza?.nombre ?? `Pieza #${d.id?.idPieza}`,
-    String(d.cantidad),
-    formatPrice(Number(d.pieza?.precioVenta ?? 0)),
-    formatPrice(Number(d.pieza?.precioVenta ?? 0) * d.cantidad),
-  ])
+  const totalConIva   = +(Number(solicitud.precioTotal ?? 0)).toFixed(2)
+  const baseImponible = +(totalConIva / 1.21).toFixed(2)
+  const iva           = +(totalConIva - baseImponible).toFixed(2)
+  const totalCatalogo = (solicitud.detalles ?? []).reduce(
+    (sum, d) => sum + Number(d.pieza?.precioVenta ?? 0) * d.cantidad, 0
+  )
+  const factor = totalCatalogo > 0 ? baseImponible / totalCatalogo : 1
+
+  const filas = (solicitud.detalles ?? []).map(d => {
+    const precioUnit = +(Number(d.pieza?.precioVenta ?? 0) * factor).toFixed(2)
+    const subtotal   = +(precioUnit * d.cantidad).toFixed(2)
+    return [
+      d.pieza?.nombre ?? `Pieza #${d.id?.idPieza}`,
+      String(d.cantidad),
+      formatPrice(precioUnit),
+      formatPrice(subtotal),
+    ]
+  })
 
   autoTable(doc, {
-    startY: 102,
+    startY: 134,
     head: [['Descripción de la pieza', 'Cant.', 'Precio unit.', 'Subtotal']],
     body: filas,
-    headStyles: {
-      fillColor: [10, 18, 36],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize: 9,
-      cellPadding: 6,
-    },
-    bodyStyles: { fontSize: 9.5, cellPadding: 5.5, textColor: [30, 41, 59] },
-    alternateRowStyles: { fillColor: [248, 250, 252] },
+    headStyles:          { fillColor: [10, 18, 36], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9, cellPadding: 6 },
+    bodyStyles:          { fontSize: 9.5, cellPadding: 5.5, textColor: [30, 41, 59] },
+    alternateRowStyles:  { fillColor: [248, 250, 252] },
     columnStyles: {
       0: { cellWidth: 88 },
       1: { halign: 'center', cellWidth: 18 },
-      2: { halign: 'right', cellWidth: 38 },
-      3: { halign: 'right', cellWidth: 38, fontStyle: 'bold' },
+      2: { halign: 'right',  cellWidth: 38 },
+      3: { halign: 'right',  cellWidth: 38, fontStyle: 'bold' },
     },
     tableLineColor: [226, 232, 240],
     tableLineWidth: 0.3,
@@ -256,12 +284,6 @@ async function generarFacturaPDF(
 
   const finalY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY
 
-  // ── Subtotal / IVA / Total ──
-  const base = solicitud.precioTotal ?? 0
-  const iva = +(base * 0.21).toFixed(2)
-  const baseImponible = +(base - iva).toFixed(2)
-
-  // Caja de totales
   doc.setFillColor(248, 250, 252)
   doc.roundedRect(118, finalY + 6, 78, 40, 4, 4, 'F')
   doc.setDrawColor(226, 232, 240)
@@ -273,16 +295,13 @@ async function generarFacturaPDF(
   doc.setTextColor(100, 116, 139)
   doc.text('Base imponible', 124, finalY + 16)
   doc.text('IVA (21%)', 124, finalY + 24)
-
   doc.setTextColor(30, 41, 59)
   doc.text(formatPrice(baseImponible), 192, finalY + 16, { align: 'right' })
-  doc.text(formatPrice(iva), 192, finalY + 24, { align: 'right' })
+  doc.text(formatPrice(iva),           192, finalY + 24, { align: 'right' })
 
-  // Línea separadora en la caja
   doc.setDrawColor(203, 213, 225)
   doc.line(124, finalY + 28, 192, finalY + 28)
 
-  // Total
   doc.setFillColor(37, 99, 235)
   doc.roundedRect(118, finalY + 30, 78, 16, 3, 3, 'F')
   doc.setTextColor(255, 255, 255)
@@ -290,9 +309,8 @@ async function generarFacturaPDF(
   doc.setFont('helvetica', 'bold')
   doc.text('TOTAL PAGADO', 124, finalY + 39)
   doc.setFontSize(12)
-  doc.text(formatPrice(base), 192, finalY + 40, { align: 'right' })
+  doc.text(formatPrice(totalConIva), 192, finalY + 40, { align: 'right' })
 
-  // ── Sello PAGADO ──
   doc.setDrawColor(16, 185, 129)
   doc.setLineWidth(1.5)
   doc.roundedRect(14, finalY + 10, 42, 14, 3, 3, 'S')
@@ -301,14 +319,11 @@ async function generarFacturaPDF(
   doc.setFont('helvetica', 'bold')
   doc.text('PAGADO', 35, finalY + 20, { align: 'center' })
 
-  // ── Pie de página ──
   doc.setDrawColor(226, 232, 240)
   doc.setLineWidth(0.5)
   doc.line(14, 272, 196, 272)
-
   doc.setFillColor(10, 18, 36)
   doc.rect(0, 274, 210, 23, 'F')
-
   doc.setTextColor(148, 163, 184)
   doc.setFontSize(7.5)
   doc.setFont('helvetica', 'normal')
@@ -316,7 +331,7 @@ async function generarFacturaPDF(
   doc.text('AutoCiclo · Polígono Industrial, Nave 12, 18010 Granada · info@autociclo.es', 105, 288, { align: 'center' })
   doc.setTextColor(71, 85, 105)
   doc.setFontSize(7)
-  doc.text(`Documento generado el ${fecha} · Ref. pago: ${paymentId.slice(0, 24)}…`, 105, 294, { align: 'center' })
+  doc.text(`Documento generado el ${fecha} · Stripe ID: ${paymentId.slice(0, 28)}…`, 105, 294, { align: 'center' })
 
   doc.save(`AutoCiclo_Factura_${numFactura}.pdf`)
 }
@@ -326,38 +341,92 @@ async function generarFacturaPDF(
 // ─────────────────────────────────────────────────────────
 export default function Pago() {
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const { usuario } = useAuthStore()
+  const navigate       = useNavigate()
+  const { usuario }    = useAuthStore()
 
   const solicitudId = Number(searchParams.get('id'))
-  const [solicitud, setSolicitud]       = useState<SolicitudPresupuesto | null>(null)
-  const [clientSecret, setClientSecret] = useState('')
-  const [loading, setLoading]           = useState(true)
-  const [error, setError]               = useState('')
-  const [paymentId, setPaymentId]       = useState('')
+  const [solicitud,     setSolicitud]     = useState<SolicitudPresupuesto | null>(null)
+  const [clientSecret,  setClientSecret]  = useState('')
+  const [loading,       setLoading]       = useState(true)
+  const [error,         setError]         = useState('')
+  const [paymentId,     setPaymentId]     = useState('')
+  const [pagoError,     setPagoError]     = useState('')
 
+  const [shippingAddress, setShippingAddress] = useState<DireccionEnvio>({
+    nombre:      usuario?.nombre ?? '',
+    direccion:   '',
+    ciudad:      '',
+    codigoPostal:'',
+    provincia:   '',
+  })
+
+  const setField = (field: keyof DireccionEnvio) =>
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setShippingAddress(prev => ({ ...prev, [field]: e.target.value }))
+
+  // Carga la solicitud y crea el PaymentIntent en Stripe en paralelo
   useEffect(() => {
     if (!solicitudId) { setError('ID de solicitud no válido.'); setLoading(false); return }
 
-    // Carga datos de la solicitud y crea el PaymentIntent
-    client.get(`/solicitudes/${solicitudId}`)
-      .then(r => {
-        setSolicitud(r.data)
-        return client.post('/pagos/intento', { solicitudId })
+    Promise.all([
+      client.get<SolicitudPresupuesto>(`/solicitudes/${solicitudId}`),
+      client.post<{ clientSecret: string }>('/pagos/intento', { solicitudId }),
+    ])
+      .then(([solRes, intentRes]) => {
+        setSolicitud(solRes.data)
+        setClientSecret(intentRes.data.clientSecret)
       })
-      .then(r => setClientSecret(r.data.clientSecret))
-      .catch(() => setError('No se pudo inicializar el pago. Inténtalo de nuevo.'))
+      .catch(err => {
+        const msg = err?.response?.data?.error ?? 'No se pudo inicializar el pago. Inténtalo de nuevo.'
+        setError(msg)
+      })
       .finally(() => setLoading(false))
   }, [solicitudId])
 
   const handleSuccess = async (pid: string) => {
     try {
       await client.put(`/solicitudes/${solicitudId}/pagar`)
-    } catch {
-      // El pago ya se procesó en Stripe; no bloqueamos la UI si esto falla
+      setPaymentId(pid)
+    } catch (err: any) {
+      const status  = err?.response?.status
+      const detalle = err?.response?.data?.message ?? err?.response?.data ?? err?.message ?? ''
+      console.error(`[Pago] PUT /pagar → ${status}`, detalle)
+      setPagoError(
+        `Pago procesado en Stripe (ID: ${pid}) pero no se pudo confirmar en el servidor.` +
+        ` Muestra este ID en AutoCiclo: ${pid}`
+      )
     }
-    setPaymentId(pid)
   }
+
+  // ── Error registrando el pago en servidor (Stripe OK pero PUT /pagar falló) ──
+  if (pagoError) return (
+    <div className="max-w-md mx-auto px-4 py-20 text-center">
+      <div className="glass-card p-12">
+        <AlertCircle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-white mb-3">Pago procesado, pendiente de confirmar</h2>
+        <p className="text-slate-400 text-sm mb-6">{pagoError}</p>
+        <button
+          onClick={async () => {
+            setPagoError('')
+            try {
+              await client.put(`/solicitudes/${solicitudId}/pagar`)
+              setPaymentId(`pi_retry_${Date.now()}`)
+            } catch (err: any) {
+              const status  = err?.response?.status
+              const detalle = err?.response?.data?.message ?? err?.message ?? ''
+              setPagoError(`Reintento fallido (HTTP ${status ?? 'sin respuesta'}): ${detalle}`)
+            }
+          }}
+          className="btn-primary mb-3 w-full"
+        >
+          Reintentar confirmación
+        </button>
+        <button onClick={() => navigate('/mis-solicitudes')} className="btn-secondary w-full">
+          Volver a mis solicitudes
+        </button>
+      </div>
+    </div>
+  )
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
@@ -370,12 +439,14 @@ export default function Pago() {
       <div className="glass-card p-12">
         <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
         <h2 className="text-xl font-bold text-white mb-4">{error}</h2>
-        <button onClick={() => navigate('/mis-solicitudes')} className="btn-primary">Volver a mis solicitudes</button>
+        <button onClick={() => navigate('/mis-solicitudes')} className="btn-primary">
+          Volver a mis solicitudes
+        </button>
       </div>
     </div>
   )
 
-  // ── Estado: pago completado ──
+  // ── Pago completado ──
   if (paymentId) return (
     <div className="max-w-xl mx-auto px-4 py-20 text-center">
       <motion.div
@@ -385,13 +456,17 @@ export default function Pago() {
         <CheckCircle className="w-12 h-12 text-white" />
       </motion.div>
       <h2 className="text-4xl font-black text-white mb-3">¡Pago completado!</h2>
-      <p className="text-slate-400 mb-8">Tu pedido está confirmado.</p>
+      <p className="text-slate-400 mb-2">Tu pedido está confirmado y en preparación.</p>
+      {solicitud?.referenciaOdoo && (
+        <p className="text-blue-400 text-sm font-mono mb-8">Ref. Odoo: {solicitud.referenciaOdoo}</p>
+      )}
       <div className="space-y-3 max-w-xs mx-auto">
         <button
           onClick={() => solicitud && usuario && generarFacturaPDF(
             solicitud,
             { nombre: usuario.nombre, email: usuario.email },
-            paymentId
+            paymentId,
+            shippingAddress
           )}
           className="btn-primary w-full h-12 flex items-center justify-center gap-2 font-bold"
         >
@@ -408,7 +483,7 @@ export default function Pago() {
     </div>
   )
 
-  // ── Estado: formulario de pago ──
+  // ── Formulario de pago ──
   return (
     <div className="max-w-lg mx-auto px-4 py-12">
       <button
@@ -447,16 +522,74 @@ export default function Pago() {
           </div>
         )}
 
-        {/* Stripe Elements */}
-        {clientSecret && solicitud && usuario && (
-          <Elements stripe={stripePromise} options={{ clientSecret }}>
-            <CheckoutForm
-              clientSecret={clientSecret}
+        {/* Dirección de envío */}
+        <div className="mb-6 border-t border-white/10 pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <Package className="w-4 h-4 text-blue-400" />
+            </div>
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest">Dirección de envío</h2>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-slate-500 uppercase font-bold tracking-widest mb-1 block">Nombre completo</label>
+              <input type="text" value={shippingAddress.nombre} onChange={setField('nombre')}
+                placeholder="Nombre Apellidos"
+                className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 uppercase font-bold tracking-widest mb-1 block">Dirección</label>
+              <input type="text" value={shippingAddress.direccion} onChange={setField('direccion')}
+                placeholder="Calle, número, piso…"
+                className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-slate-500 uppercase font-bold tracking-widest mb-1 block">Ciudad</label>
+                <input type="text" value={shippingAddress.ciudad} onChange={setField('ciudad')}
+                  placeholder="Granada"
+                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 uppercase font-bold tracking-widest mb-1 block">Código postal</label>
+                <input type="text" value={shippingAddress.codigoPostal} onChange={setField('codigoPostal')}
+                  placeholder="18010"
+                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 uppercase font-bold tracking-widest mb-1 block">Provincia</label>
+              <input type="text" value={shippingAddress.provincia} onChange={setField('provincia')}
+                placeholder="Granada"
+                className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm" />
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+              <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="text-emerald-400 text-xs">Envío gratuito · Estimado 3–5 días hábiles</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Stripe Elements — solo se renderiza cuando hay clientSecret */}
+        {solicitud && clientSecret && (
+          <Elements
+            stripe={stripePromise}
+            options={{ clientSecret, appearance: stripeAppearance, locale: 'es' }}
+          >
+            <StripeCheckoutForm
               solicitud={solicitud}
-              usuario={{ nombre: usuario.nombre, email: usuario.email }}
+              shippingAddress={shippingAddress}
               onSuccess={handleSuccess}
             />
           </Elements>
+        )}
+
+        {/* Spinner mientras se crea el PaymentIntent */}
+        {!clientSecret && !error && (
+          <div className="flex items-center justify-center py-8 gap-3">
+            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-slate-400 text-sm">Preparando pasarela de pago…</span>
+          </div>
         )}
       </div>
     </div>

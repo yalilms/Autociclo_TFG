@@ -130,19 +130,8 @@ public class OdooClient {
 
         JsonNode ids = callOdooRpc(uid, "product.product", "search", domain);
         if (ids.isArray() && ids.size() > 0) {
-            int existingId = ids.get(0).asInt();
-            // Actualizar precio de lista para que coincida con el precio de la pieza
-            ArrayNode writeIds = mapper.createArrayNode();
-            writeIds.add(existingId);
-            ObjectNode writeArgs = mapper.createObjectNode();
-            writeArgs.set("ids", writeIds);
-            ObjectNode writeVals = mapper.createObjectNode();
-            writeVals.put("list_price", precio);
-            ArrayNode writeArgsArr = mapper.createArrayNode();
-            writeArgsArr.add(writeIds);
-            writeArgsArr.add(writeVals);
-            callOdooRpc(uid, "product.product", "write", writeArgsArr);
-            return existingId;
+            // El precio negociado se aplica en price_unit de la línea del pedido
+            return ids.get(0).asInt();
         }
 
         ObjectNode vals = mapper.createObjectNode();

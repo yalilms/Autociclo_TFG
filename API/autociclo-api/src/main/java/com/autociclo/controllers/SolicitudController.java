@@ -102,4 +102,10 @@ public class SolicitudController {
                                               @AuthenticationPrincipal UserDetails userDetails) {
         return solicitudService.marcarPagada(id, userDetails.getUsername());
     }
+
+    @PutMapping("/{id}/entregar")
+    @PreAuthorize("hasRole('EMPLEADO') or hasRole('ADMIN')")
+    public SolicitudPresupuesto marcarEnviada(@PathVariable Integer id) {
+        return solicitudService.marcarEnviada(id);
+    }
 }

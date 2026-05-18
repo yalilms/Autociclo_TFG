@@ -15,6 +15,9 @@ import javafx.scene.control.*;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class SolicitudesController implements Initializable {
 
@@ -33,6 +36,7 @@ public class SolicitudesController implements Initializable {
 
     private final ObservableList<JsonObject> listaSolicitudes = FXCollections.observableArrayList();
     private final ObservableList<JsonObject> listaFiltrada    = FXCollections.observableArrayList();
+    private ScheduledExecutorService pollScheduler;
 
     private int paginaActual = 0;
     private static final int PAGE_SIZE = 8;
@@ -50,6 +54,29 @@ public class SolicitudesController implements Initializable {
         configurarColumnas();
         tableSolicitudes.setItems(FXCollections.observableArrayList());
         cargarSolicitudes();
+
+        // Refresco automático cada 30 s para mostrar la Ref. Odoo cuando el cliente paga
+        pollScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "solicitudes-poll");
+            t.setDaemon(true);
+            return t;
+        });
+        pollScheduler.scheduleAtFixedRate(
+            () -> Platform.runLater(this::cargarSolicitudesSilencioso),
+            30, 30, TimeUnit.SECONDS
+        );
+    }
+
+    /** Recarga sin tocar el status bar para no interrumpir al usuario */
+    private void cargarSolicitudesSilencioso() {
+        ApiClient.ApiResponse resp = ApiClient.getInstance().get("/api/solicitudes");
+        if (!resp.isSuccess()) return;
+        try {
+            JsonArray arr = JsonParser.parseString(resp.getBody()).getAsJsonArray();
+            listaSolicitudes.clear();
+            arr.forEach(e -> listaSolicitudes.add(e.getAsJsonObject()));
+            filtrarSolicitudes();
+        } catch (Exception ignored) {}
     }
 
     private void configurarColumnas() {
@@ -65,8 +92,12 @@ public class SolicitudesController implements Initializable {
                 new SimpleStringProperty(formatDecimal(d.getValue(), "precioOfertaCliente")));
         colSolContrao.setCellValueFactory(d ->
                 new SimpleStringProperty(formatDecimal(d.getValue(), "precioContraoferta")));
-        colSolOdoo.setCellValueFactory(d ->
-                new SimpleStringProperty(formatOdoo(getStr(d.getValue(), "referenciaOdoo"))));
+        colSolOdoo.setCellValueFactory(d -> {
+            String estado = getStr(d.getValue(), "estado");
+            boolean pagada = "pagada".equals(estado) || "enviado".equals(estado);
+            String ref = pagada ? getStr(d.getValue(), "referenciaOdoo") : null;
+            return new SimpleStringProperty(formatOdoo(ref));
+        });
         colSolTurno.setCellValueFactory(d ->
                 new SimpleStringProperty(formatTurno(d.getValue())));
 
@@ -157,8 +188,7 @@ public class SolicitudesController implements Initializable {
         confirm.setContentText(
             "Cliente: " + getNombreCliente(sel) + "\n" +
             "Precio acordado: " + precioFmt + "\n\n" +
-            "Se creará un pedido de venta en Odoo y el cliente\n" +
-            "recibirá una notificación con botón de pago."
+            "El cliente recibirá una notificación para proceder al pago."
         );
         confirm.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
         aplicarEstiloAlert(confirm);
@@ -172,17 +202,16 @@ public class SolicitudesController implements Initializable {
                 int id = sel.get("idSolicitud").getAsInt();
                 JsonObject body = new JsonObject();
                 body.addProperty("respuestaAdmin",
-                    "Solicitud aprobada. Pedido generado en Odoo. Contactaremos para la entrega.");
+                    "Solicitud aprobada. El cliente recibirá notificación para proceder al pago.");
                 body.addProperty("precioTotal", precioAcordado);
 
-                setStatus("Aprobando solicitud y creando pedido en Odoo…");
+                setStatus("Aprobando solicitud…");
                 new Thread(() -> {
                     ApiClient.ApiResponse resp = ApiClient.getInstance()
                             .put("/api/solicitudes/" + id + "/aprobar", body);
                     Platform.runLater(() -> {
                         if (resp.isSuccess()) {
-                            mostrarInfo("Solicitud aprobada. Pedido de venta creado en Odoo.");
-                            lblOdooRef.setText("✅ Pedido Odoo creado para solicitud #" + id);
+                            mostrarInfo("Solicitud aprobada. El cliente será notificado para pagar.");
                             cargarSolicitudes();
                         } else {
                             mostrarError("Error al aprobar. Código: " + resp.getStatusCode());

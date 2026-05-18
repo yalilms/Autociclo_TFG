@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -126,29 +128,6 @@ public class SolicitudService {
                 "Tu solicitud #" + id + " ha sido aprobada. Precio final: " + req.getPrecioTotal() + "€"
         );
 
-        try {
-            String nombreCliente = solicitud.getCliente().getUsuario().getNombre();
-            String emailCliente  = solicitud.getCliente().getUsuario().getEmail();
-            List<Map<String, Object>> lineas = solicitud.getDetalles().stream()
-                    .map(d -> Map.<String, Object>of(
-                            "nombre",         d.getPieza().getNombre(),
-                            "cantidad",       d.getCantidad(),
-                            "precioUnitario", d.getPieza().getPrecioVenta()
-                    )).toList();
-            String refOdoo = odooClient.crearPedidoVenta(nombreCliente, emailCliente, lineas);
-            if (refOdoo != null) {
-                saved.setReferenciaOdoo(refOdoo);
-                solicitudRepository.save(saved);
-                notificacionService.crearNotificacion(
-                        solicitud.getCliente().getUsuario().getIdUsuario(),
-                        "odoo_pedido",
-                        "Pedido de venta creado en Odoo: " + refOdoo
-                );
-            }
-        } catch (Exception e) {
-            System.err.println("[SolicitudService] Odoo no disponible: " + e.getMessage());
-        }
-
         return saved;
     }
 
@@ -232,29 +211,6 @@ public class SolicitudService {
                         "El cliente ha aceptado el precio de " + solicitud.getPrecioContraoferta()
                                 + "€ en la solicitud #" + id
                 ));
-
-        try {
-            String nombreCliente = solicitud.getCliente().getUsuario().getNombre();
-            String emailOdoo     = solicitud.getCliente().getUsuario().getEmail();
-            List<Map<String, Object>> lineas = solicitud.getDetalles().stream()
-                    .map(d -> Map.<String, Object>of(
-                            "nombre",         d.getPieza().getNombre(),
-                            "cantidad",       d.getCantidad(),
-                            "precioUnitario", d.getPieza().getPrecioVenta()
-                    )).toList();
-            String refOdoo = odooClient.crearPedidoVenta(nombreCliente, emailOdoo, lineas);
-            if (refOdoo != null) {
-                saved.setReferenciaOdoo(refOdoo);
-                solicitudRepository.save(saved);
-                notificacionService.crearNotificacion(
-                        solicitud.getCliente().getUsuario().getIdUsuario(),
-                        "odoo_pedido",
-                        "Pedido de venta creado en Odoo: " + refOdoo
-                );
-            }
-        } catch (Exception e) {
-            System.err.println("[SolicitudService] Odoo no disponible: " + e.getMessage());
-        }
 
         return findById(id);
     }
@@ -344,11 +300,76 @@ public class SolicitudService {
                         "Pago recibido para la solicitud #" + id
                                 + " — " + solicitud.getPrecioTotal() + "€"
                 ));
+
+        enviarAOdoo(saved);
+        return saved;
+    }
+
+    @Transactional
+    public SolicitudPresupuesto marcarEnviada(Integer id) {
+        SolicitudPresupuesto solicitud = findById(id);
+        if (!"pagada".equals(solicitud.getEstado())) {
+            throw new IllegalStateException("Solo se puede marcar como enviada una solicitud pagada");
+        }
+        solicitud.setEstado("enviado");
+        SolicitudPresupuesto saved = solicitudRepository.save(solicitud);
+        notificacionService.crearNotificacion(
+                solicitud.getCliente().getUsuario().getIdUsuario(),
+                "solicitud_actualizada",
+                "Tu pedido #" + id + " ha sido enviado. ¡Pronto lo recibirás!"
+        );
         return saved;
     }
 
     public List<NegociacionHistorial> findHistorial(Integer idSolicitud) {
         return historialRepository.findBySolicitudIdSolicitudOrderByRondaAsc(idSolicitud);
+    }
+
+    /**
+     * Crea el pedido de venta en Odoo con el precio negociado (IVA incluido).
+     * Los precios se distribuyen proporcionalmente al catálogo y se dividen
+     * entre 1,21 para que Odoo añada el IVA por encima y cuadre el total.
+     */
+    private void enviarAOdoo(SolicitudPresupuesto solicitud) {
+        try {
+            if (solicitud.getPrecioTotal() == null) return;
+
+            double totalConIva   = solicitud.getPrecioTotal().doubleValue();
+            double baseImponible = totalConIva / 1.21;
+
+            double totalCatalogo = solicitud.getDetalles().stream()
+                    .mapToDouble(d -> d.getPieza().getPrecioVenta().doubleValue() * d.getCantidad())
+                    .sum();
+            double factor = totalCatalogo > 0 ? baseImponible / totalCatalogo : 1.0;
+
+            List<Map<String, Object>> lineas = solicitud.getDetalles().stream()
+                    .map(d -> {
+                        double precioBase = d.getPieza().getPrecioVenta().doubleValue() * factor;
+                        double redondeado = BigDecimal.valueOf(precioBase)
+                                .setScale(2, RoundingMode.HALF_UP).doubleValue();
+                        return Map.<String, Object>of(
+                                "nombre",         d.getPieza().getNombre(),
+                                "cantidad",       d.getCantidad(),
+                                "precioUnitario", redondeado
+                        );
+                    }).toList();
+
+            String nombreCliente = solicitud.getCliente().getUsuario().getNombre();
+            String emailCliente  = solicitud.getCliente().getUsuario().getEmail();
+            String refOdoo = odooClient.crearPedidoVenta(nombreCliente, emailCliente, lineas);
+
+            if (refOdoo != null) {
+                solicitud.setReferenciaOdoo(refOdoo);
+                solicitudRepository.save(solicitud);
+                notificacionService.crearNotificacion(
+                        solicitud.getCliente().getUsuario().getIdUsuario(),
+                        "odoo_pedido",
+                        "Pedido de venta creado en Odoo: " + refOdoo
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("[SolicitudService] Odoo no disponible: " + e.getMessage());
+        }
     }
 
     private void guardarHistorial(SolicitudPresupuesto solicitud, int ronda,

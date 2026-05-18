@@ -7,10 +7,16 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useFocusEffect, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api, { SolicitudPresupuesto, DetalleSolicitud, formatPrecio, AUTH_REDIRECT } from '@/lib/api';
+
+// Clave AsyncStorage para persistir piezas recogidas entre navegaciones
+function storageKey(solicitudId: string) {
+  return `recogidas_solicitud_${solicitudId}`;
+}
 
 export default function DetalleSolicitudScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -18,9 +24,9 @@ export default function DetalleSolicitudScreen() {
 
   const [solicitud, setSolicitud] = useState<SolicitudPresupuesto | null>(null);
   const [loading, setLoading] = useState(true);
-  // ids de piezas ya recogidas en esta sesión
   const [recogidas, setRecogidas] = useState<Set<number>>(new Set());
   const [recogiendo, setRecogiendo] = useState<number | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
   const fetchSolicitud = useCallback(async () => {
     setLoading(true);
@@ -36,15 +42,36 @@ export default function DetalleSolicitudScreen() {
     }
   }, [id]);
 
+  // Cargar solicitud + recogidas persistidas cada vez que la pantalla recibe foco
   useFocusEffect(
     useCallback(() => {
       fetchSolicitud();
-    }, [fetchSolicitud])
+      // Restaurar piezas ya recogidas desde AsyncStorage
+      AsyncStorage.getItem(storageKey(id)).then((raw) => {
+        if (raw) {
+          try {
+            const ids: number[] = JSON.parse(raw);
+            setRecogidas(new Set(ids));
+          } catch {
+            setRecogidas(new Set());
+          }
+        }
+      });
+    }, [fetchSolicitud, id])
   );
+
+  // Guarda el set en AsyncStorage cada vez que cambia
+  async function persistRecogidas(newSet: Set<number>) {
+    setRecogidas(newSet);
+    await AsyncStorage.setItem(storageKey(id), JSON.stringify([...newSet]));
+  }
 
   async function recogerPieza(detalle: DetalleSolicitud) {
     const pieza = detalle.pieza;
     if (!pieza) return;
+
+    // Evitar recoger dos veces la misma pieza en la misma sesión
+    if (recogidas.has(pieza.idPieza)) return;
 
     if (detalle.cantidad > pieza.stockDisponible) {
       Alert.alert(
@@ -71,8 +98,11 @@ export default function DetalleSolicitudScreen() {
                 cantidad: detalle.cantidad,
                 notas: `Pedido #${solicitud?.idSolicitud}`,
               });
-              setRecogidas((prev) => new Set(prev).add(pieza.idPieza));
-              // Refrescar para actualizar stock
+              // Persistir en AsyncStorage para sobrevivir a la navegación
+              const next = new Set(recogidas);
+              next.add(pieza.idPieza);
+              await persistRecogidas(next);
+              // Refrescar stock mostrado
               await fetchSolicitud();
             } catch (err: any) {
               if (err === AUTH_REDIRECT) return;
@@ -80,6 +110,35 @@ export default function DetalleSolicitudScreen() {
               Alert.alert('Error', msg);
             } finally {
               setRecogiendo(null);
+            }
+          },
+        },
+      ]
+    );
+  }
+
+  async function marcarEnviado() {
+    Alert.alert(
+      'Confirmar envío',
+      '¿Confirmas que todas las piezas han sido recogidas y el pedido está listo para enviar?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sí, marcar enviado',
+          onPress: async () => {
+            setEnviando(true);
+            try {
+              await api.put(`/api/solicitudes/${id}/entregar`);
+              // Limpiar recogidas del AsyncStorage al completar el pedido
+              await AsyncStorage.removeItem(storageKey(id));
+              Alert.alert('¡Pedido enviado!', 'El cliente recibirá una notificación.', [
+                { text: 'OK', onPress: () => router.back() },
+              ]);
+            } catch (err: any) {
+              if (err === AUTH_REDIRECT) return;
+              Alert.alert('Error', err.response?.data?.error ?? 'No se pudo marcar como enviado.');
+            } finally {
+              setEnviando(false);
             }
           },
         },
@@ -96,6 +155,45 @@ export default function DetalleSolicitudScreen() {
   }
 
   if (!solicitud) return null;
+
+  // Si el pedido ya fue enviado, mostrar pantalla de completado (sin botones de recoger)
+  if (solicitud.estado === 'enviado') {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
+        <View style={{ backgroundColor: '#1e293b', paddingTop: insets.top + 8, paddingBottom: 20, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+          <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+            <Ionicons name="arrow-back" size={18} color="#3b82f6" />
+            <Text style={{ color: '#3b82f6', fontSize: 14 }}>Pedidos</Text>
+          </TouchableOpacity>
+          <Text style={{ color: '#f1f5f9', fontSize: 22, fontWeight: '900' }}>
+            Pedido #{solicitud.idSolicitud}
+          </Text>
+        </View>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
+          <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(16,185,129,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderWidth: 2, borderColor: '#10b981' }}>
+            <Ionicons name="checkmark-done" size={40} color="#10b981" />
+          </View>
+          <Text style={{ color: '#10b981', fontSize: 22, fontWeight: '900', marginBottom: 8 }}>
+            Pedido enviado
+          </Text>
+          <Text style={{ color: '#475569', fontSize: 14, textAlign: 'center' }}>
+            Este pedido ya ha sido procesado y el cliente fue notificado.
+          </Text>
+          {solicitud.referenciaOdoo && (
+            <Text style={{ color: '#3b82f6', fontSize: 13, marginTop: 12, fontWeight: '700' }}>
+              Ref. Odoo: {solicitud.referenciaOdoo}
+            </Text>
+          )}
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{ marginTop: 32, backgroundColor: '#1e293b', borderRadius: 14, paddingVertical: 14, paddingHorizontal: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}
+          >
+            <Text style={{ color: '#f1f5f9', fontWeight: '700', fontSize: 15 }}>Volver a pedidos</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   const todasRecogidas =
     solicitud.detalles.length > 0 &&
@@ -173,7 +271,7 @@ export default function DetalleSolicitudScreen() {
 
           const yaRecogida = recogidas.has(pieza.idPieza);
           const estaRecogiendo = recogiendo === pieza.idPieza;
-          const sinStock = detalle.cantidad > pieza.stockDisponible;
+          const sinStock = detalle.cantidad > pieza.stockDisponible && !yaRecogida;
           const stockColor = pieza.stockDisponible === 0
             ? '#ef4444'
             : pieza.stockDisponible <= pieza.stockMinimo
@@ -211,7 +309,7 @@ export default function DetalleSolicitudScreen() {
               </View>
 
               {/* Datos: cantidad + ubicación + stock */}
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: yaRecogida ? 0 : 14 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                   <Ionicons name="layers-outline" size={13} color="#3b82f6" />
                   <Text style={{ color: '#3b82f6', fontWeight: '700', fontSize: 13 }}>
@@ -226,15 +324,17 @@ export default function DetalleSolicitudScreen() {
                     </Text>
                   </View>
                 )}
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: stockColor }} />
-                  <Text style={{ color: stockColor, fontSize: 12, fontWeight: '600' }}>
-                    Stock: {pieza.stockDisponible} uds.
-                  </Text>
-                </View>
+                {!yaRecogida && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: stockColor }} />
+                    <Text style={{ color: stockColor, fontSize: 12, fontWeight: '600' }}>
+                      Stock: {pieza.stockDisponible} uds.
+                    </Text>
+                  </View>
+                )}
               </View>
 
-              {/* Botón recoger */}
+              {/* Botón recoger — solo si no se ha recogido aún */}
               {!yaRecogida && (
                 <TouchableOpacity
                   onPress={() => recogerPieza(detalle)}
@@ -285,6 +385,35 @@ export default function DetalleSolicitudScreen() {
           );
         })}
       </View>
+
+      {/* Botón entregar — aparece cuando todas las piezas están recogidas */}
+      {todasRecogidas && (
+        <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 }}>
+          <TouchableOpacity
+            onPress={marcarEnviado}
+            disabled={enviando}
+            style={{
+              backgroundColor: enviando ? '#1d4ed8' : '#3b82f6',
+              borderRadius: 16,
+              paddingVertical: 18,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+            }}
+            activeOpacity={0.8}
+          >
+            {enviando ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Ionicons name="send" size={20} color="#fff" />
+            )}
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16 }}>
+              {enviando ? 'Marcando enviado...' : 'Marcar pedido como enviado'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </ScrollView>
   );
 }
