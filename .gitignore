@@ -11,6 +11,24 @@
 .vscode/
 .DS_Store
 
-# Instaladores grandes (se entregan por Moodle)
+# Instaladores grandes (se entregan aparte)
 *.exe
 *.run
+*.deb
+*.rpm
+*.msi
+*.zip
+Escritorio/Instaladores/
+
+# Credenciales y configuración sensible — NO subir al repo
+API/autociclo-api/src/main/resources/application.properties
+Web/autociclo-shop/.env
+Web/autociclo-shop/.env.local
+
+# Node
+**/node_modules/
+
+# Expo / React Native
+Autociclo_Worker/.expo/
+Autociclo_Worker/android/
+Autociclo_Worker/ios/

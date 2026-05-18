@@ -73,55 +73,172 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+// Crea el directorio de instaladores si no existe
+def instaladoresDir = file('../Instaladores')
+instaladoresDir.mkdirs()
+
 // Tarea para regenerar la carpeta de instalación
-task regenerarCarpetaInstalacion(type: Copy) {
+task regenerarCarpetaInstalacion {
     group = 'distribution'
-    description = 'Regenera la carpeta de instalación con JAR, dependencias y scripts'
-    
+    description = 'Regenera la carpeta de instalación con JAR y dependencias'
     dependsOn jar
-    
-    // Directorio de destino
-    def instalacionDir = file('../Instaladores/CarpetaInstalacion')
-    
-    // Limpiar carpeta existente excepto run.sh y run.bat (ya tienen la configuración correcta)
-    doFirst {
-        delete(instalacionDir.listFiles().findAll { 
-            it.name != 'run.sh' && it.name != 'run.bat' && it.name != 'iconos'
-        })
-    }
-    
-    // Copiar JAR principal
-    from(jar.archiveFile) {
-        rename { 'AutoCiclo.jar' }
-        into instalacionDir
-    }
-    
-    // Copiar dependencias a lib/
-    from(configurations.runtimeClasspath) {
-        into "${instalacionDir}/lib"
-    }
-    
-    // Copiar LICENSE.txt si existe
-    from(projectDir) {
-        include 'LICENSE.txt'
-        into instalacionDir
-    }
-    
-    // Si no existe LICENSE.txt, crear uno genérico
+
     doLast {
+        def instalacionDir = file('../Instaladores/CarpetaInstalacion')
+        instalacionDir.mkdirs()
+
+        // Limpiar contenido previo (salvo scripts manuales)
+        instalacionDir.listFiles()?.each { f ->
+            if (f.name != 'run.sh' && f.name != 'run.bat' && f.name != 'iconos') f.deleteDir() ?: f.delete()
+        }
+
+        // Copiar JAR principal
+        copy {
+            from jar.archiveFile
+            into instalacionDir
+            rename { 'AutoCiclo.jar' }
+        }
+
+        // Copiar dependencias a lib/
+        copy {
+            from configurations.runtimeClasspath
+            into new File(instalacionDir, 'lib')
+        }
+
+        // LICENSE
         def licenseFile = new File(instalacionDir, 'LICENSE.txt')
         if (!licenseFile.exists()) {
-            licenseFile.text = """AutoCiclo - Sistema de Gestión de Desguace
-Copyright (c) 2026 SoftCrown
-
-Todos los derechos reservados.
-"""
+            licenseFile.text = "AutoCiclo - Sistema de Gestión de Desguace\nCopyright (c) 2026 Yalil Musa Talhaoui. Todos los derechos reservados.\n"
         }
-        
-        println "Carpeta de instalación regenerada en: ${instalacionDir.absolutePath}"
-        println "Ahora puedes usar InstallBuilder para generar el instalador .run"
+
+        println "✅ Carpeta de instalación lista en: ${instalacionDir.absolutePath}"
     }
 }
 
+// ─────────────────────────────────────────────────────────
+// Instalador Linux .deb — embebe JRE 21, no necesita Java
+// Genera: ../Instaladores/autociclo_1.0.0_amd64.deb
+// ─────────────────────────────────────────────────────────
+task instaladorLinux(type: Exec) {
+    group = 'distribution'
+    description = 'Genera autociclo_1.0.0_amd64.deb con JRE embebido'
+    dependsOn regenerarCarpetaInstalacion
 
+    def inputDir  = file('../Instaladores/CarpetaInstalacion').absolutePath
+    def outputDir = file('../Instaladores').absolutePath
+    def icon      = file('src/main/resources/imagenes/logo_autociclo.png').absolutePath
 
+    doFirst {
+        // Eliminar .deb anterior si existe para evitar error de jpackage
+        fileTree('../Instaladores').matching { include 'autociclo*.deb' }.each { it.delete() }
+    }
+
+    commandLine 'jpackage',
+        '--type',           'deb',
+        '--input',          inputDir,
+        '--main-jar',       'AutoCiclo.jar',
+        '--main-class',     'com.autociclo.Main',
+        '--name',           'autociclo',
+        '--app-version',    '1.0.0',
+        '--vendor',         'Yalil Musa Talhaoui',
+        '--description',    'Sistema de gestión multiplataforma para desguace de vehículos',
+        '--icon',           icon,
+        '--dest',           outputDir,
+        '--runtime-image',  '/usr/lib/jvm/java-21-openjdk-amd64',
+        '--linux-app-category', 'Utility',
+        '--linux-shortcut',
+        '--java-options',   '--module-path $APPDIR/lib',
+        '--java-options',   '--add-modules=javafx.base,javafx.graphics,javafx.controls,javafx.fxml,javafx.media',
+        '--java-options',   '-Dfile.encoding=UTF-8'
+
+    doLast { println "\n✅ Linux .deb generado en: ${outputDir}" }
+}
+
+// ─────────────────────────────────────────────────────────
+// Portable Windows — ZIP con JRE 21 embebido
+// Genera: ../Instaladores/AutoCiclo-1.0.0-Windows.zip
+// No requiere Java instalado en el PC destino
+// ─────────────────────────────────────────────────────────
+task portableWindows {
+    group = 'distribution'
+    description = 'Genera AutoCiclo-1.0.0-Windows.zip con JRE embebido'
+    dependsOn regenerarCarpetaInstalacion
+
+    doLast {
+        def baseDir    = file('../Instaladores')
+        def winDir     = new File(baseDir, 'AutoCiclo-Windows')
+        def jreZipFile = new File(baseDir, 'jre-win.zip')
+        def jreDir     = new File(winDir,  'jre')
+        def srcDir     = file('../Instaladores/CarpetaInstalacion')
+
+        // 1 ── Preparar directorio
+        winDir.deleteDir()
+        winDir.mkdirs()
+        jreDir.mkdirs()
+
+        // 2 ── Copiar JAR y dependencias
+        copy {
+            from new File(srcDir, 'AutoCiclo.jar')
+            into winDir
+        }
+        copy {
+            from new File(srcDir, 'lib')
+            into new File(winDir, 'lib')
+        }
+
+        // 3 ── Descargar JRE Windows 21 si no está cacheado (~110 MB, una sola vez)
+        if (!jreZipFile.exists()) {
+            println "Descargando JRE 21 para Windows (~110 MB)..."
+            def url = new URL('https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.7%2B6/OpenJDK21U-jre_x64_windows_hotspot_21.0.7_6.zip')
+            jreZipFile.bytes = url.bytes
+            println "JRE descargado."
+        }
+
+        // 4 ── Extraer JRE Windows al subdirectorio jre/
+        copy {
+            from zipTree(jreZipFile)
+            into jreDir
+            eachFile { fcd ->
+                // Quitar el primer nivel de directorio del zip (jdk-21.0.7+6-jre/)
+                fcd.path = fcd.path.replaceFirst('^[^/]+/', '')
+            }
+            includeEmptyDirs = false
+        }
+
+        // 5 ── Crear lanzador .bat
+        new File(winDir, 'AutoCiclo.bat').text = """\
+@echo off
+title AutoCiclo — Sistema de Gestión de Desguace
+cd /d "%~dp0"
+.\\jre\\bin\\java.exe ^
+  --module-path .\\lib ^
+  --add-modules javafx.base,javafx.graphics,javafx.controls,javafx.fxml,javafx.media ^
+  -Dfile.encoding=UTF-8 ^
+  -jar AutoCiclo.jar
+pause
+"""
+
+        // 6 ── Crear README
+        new File(winDir, 'LEEME.txt').text = """\
+AutoCiclo v1.0.0 — Instalación Windows
+=======================================
+1. Extrae esta carpeta en cualquier ubicación.
+2. Haz doble clic en AutoCiclo.bat para ejecutar.
+   (No necesitas instalar Java — el JRE está incluido.)
+
+Desarrollado por Yalil Musa Talhaoui
+IES P. Hermenegildo Lanz — DAM 2025/26
+"""
+
+        // 7 ── Comprimir en ZIP
+        def zipOut = new File(baseDir, 'AutoCiclo-1.0.0-Windows.zip')
+        zipOut.delete()
+        ant.zip(destfile: zipOut.absolutePath, basedir: baseDir.absolutePath, includes: 'AutoCiclo-Windows/**')
+
+        // 8 ── Limpiar carpeta temporal
+        winDir.deleteDir()
+
+        println "\n✅ Windows portable ZIP generado en: ${zipOut.absolutePath}"
+        println "   Tamaño: ${(zipOut.length() / 1_048_576).round(1)} MB"
+    }
+}
