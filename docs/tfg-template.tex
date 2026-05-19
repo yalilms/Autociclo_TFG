@@ -1,0 +1,366 @@
+% ============================================================
+%  AutoCiclo TFG — Plantilla LaTeX
+%  Colores extraídos del Design System de la presentación:
+%    --orange: #FF6B1A   --cyan: #0089A3
+%    --text:   #0D1321   --text-2: #465470
+%    --surface: #F7F8FB  --border: #CDD2E2
+%    --amber:  #A87800   --green: #007F48
+% ============================================================
+
+\documentclass[12pt, a4paper, oneside]{article}
+
+% ── Codificación y fuentes ─────────────────────────────────
+\usepackage{fontspec}
+\setmainfont{Liberation Serif}[
+  BoldFont = Liberation Serif Bold,
+  ItalicFont = Liberation Serif Italic,
+  BoldItalicFont = Liberation Serif Bold Italic
+]
+\setmonofont{Liberation Mono}[Scale=0.88]
+\usepackage{microtype}
+
+% ── Geometría ─────────────────────────────────────────────
+\usepackage[
+  a4paper,
+  top=2.8cm, bottom=2.8cm,
+  left=3.0cm, right=2.5cm,
+  headheight=16pt
+]{geometry}
+
+% ── Colores ───────────────────────────────────────────────
+\usepackage[table,dvipsnames]{xcolor}
+\definecolor{acOrange}{HTML}{FF6B1A}
+\definecolor{acCyan}{HTML}{0089A3}
+\definecolor{acText}{HTML}{0D1321}
+\definecolor{acText2}{HTML}{465470}
+\definecolor{acMuted}{HTML}{7D8FAA}
+\definecolor{acSurface}{HTML}{F7F8FB}
+\definecolor{acSurface2}{HTML}{EFF1F6}
+\definecolor{acBorder}{HTML}{CDD2E2}
+\definecolor{acAmber}{HTML}{A87800}
+\definecolor{acGreen}{HTML}{007F48}
+\definecolor{acCodeBg}{HTML}{EFF1F6}
+
+% ── Idioma ────────────────────────────────────────────────
+\usepackage[spanish,es-nolayout]{babel}
+\usepackage{csquotes}
+
+% ── Interlineado y párrafos ────────────────────────────────
+\usepackage{setspace}
+\setstretch{1.25}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt}
+
+% ── Hipervínculos ─────────────────────────────────────────
+\usepackage[
+  colorlinks=true,
+  linkcolor=acCyan,
+  urlcolor=acCyan,
+  citecolor=acCyan,
+  pdftitle={AutoCiclo — Documentación TFG},
+  pdfauthor={Yalil Musa Talhaoui},
+  pdfsubject={Trabajo de Fin de Ciclo 2.º DAM},
+  pdfkeywords={Spring Boot, React, JavaFX, React Native, Odoo, Stripe, RabbitMQ},
+  unicode
+]{hyperref}
+
+% ── Encabezado y pie de página ─────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{acBorder}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\small\color{acMuted}\texttt{AUTOCICLO — DOCUMENTACIÓN TFG}}
+\fancyhead[R]{\small\color{acMuted}\texttt{2.º DAM · 2025/26}}
+\fancyfoot[C]{\small\color{acMuted}\thepage}
+
+% ── Títulos de sección ─────────────────────────────────────
+\usepackage{titlesec}
+
+% Sección: número naranja + texto oscuro, línea inferior cyan
+\titleformat{\section}
+  {\Large\bfseries\color{acText}}
+  {\textcolor{acOrange}{\thesection.}}{0.6em}{}
+  [\vspace{2pt}{\color{acCyan}\titlerule[1.5pt]}\vspace{4pt}]
+
+% Subsección: número cyan + texto
+\titleformat{\subsection}
+  {\large\bfseries\color{acText}}
+  {\textcolor{acCyan}{\thesubsection}}{0.6em}{}
+
+% Subsubsección: cursiva, texto secundario
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{acText2}}
+  {\thesubsubsection}{0.6em}{}
+
+% Espaciados
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+\titlespacing*{\subsection}{0pt}{14pt}{4pt}
+\titlespacing*{\subsubsection}{0pt}{10pt}{2pt}
+
+% ── Tablas ────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{colortbl}
+
+% Fila de encabezado de tabla con fondo naranja
+\newcommand{\tableheadcolor}{\rowcolor{acOrange!15}}
+\renewcommand{\arraystretch}{1.35}
+
+% ── Código fuente ─────────────────────────────────────────
+\usepackage{listings}
+\lstset{
+  backgroundcolor=\color{acCodeBg},
+  basicstyle=\small\ttfamily\color{acText},
+  commentstyle=\color{acMuted}\itshape,
+  keywordstyle=\color{acOrange}\bfseries,
+  stringstyle=\color{acCyan},
+  numberstyle=\tiny\color{acMuted},
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  frame=single,
+  framesep=4pt,
+  rulecolor=\color{acBorder},
+  xleftmargin=8pt,
+  xrightmargin=4pt,
+  aboveskip=8pt,
+  belowskip=8pt,
+  tabsize=2,
+  keepspaces=true,
+  captionpos=b,
+}
+
+% Shorthand para código inline
+\newcommand{\code}[1]{\texttt{\color{acCyan}#1}}
+
+% ── Cajas informativas ────────────────────────────────────
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+
+\newtcolorbox{infobox}[1][]{
+  enhanced, breakable,
+  colback=acSurface2,
+  colframe=acCyan,
+  fonttitle=\bfseries\color{acCyan},
+  left=6pt, right=6pt, top=4pt, bottom=4pt,
+  title=#1,
+  before skip=10pt, after skip=10pt,
+}
+
+\newtcolorbox{warnbox}[1][]{
+  enhanced, breakable,
+  colback=acOrange!8,
+  colframe=acOrange,
+  fonttitle=\bfseries\color{acOrange},
+  left=6pt, right=6pt, top=4pt, bottom=4pt,
+  title=#1,
+  before skip=10pt, after skip=10pt,
+}
+
+% ── Gráficos y figuras ────────────────────────────────────
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\captionsetup{
+  font={small,color=acText2},
+  labelfont={bf,color=acText2},
+  labelsep=period,
+}
+
+% ── Listas ────────────────────────────────────────────────
+\usepackage{enumitem}
+\setlist[itemize]{
+  leftmargin=1.4em,
+  itemsep=2pt,
+  parsep=0pt,
+  label={\color{acOrange}\textbullet}
+}
+\setlist[enumerate]{
+  leftmargin=1.4em,
+  itemsep=2pt,
+  parsep=0pt,
+}
+
+% ── Índice ────────────────────────────────────────────────
+\usepackage{tocloft}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsecfont}{\color{acText}}
+\renewcommand{\cftsecpagefont}{\color{acText2}}
+\renewcommand{\cftsubsecfont}{\small\color{acText2}}
+\renewcommand{\cftsubsecpagefont}{\small\color{acMuted}}
+\setlength{\cftbeforesecskip}{4pt}
+
+% ── Portada ───────────────────────────────────────────────
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+% ── Utilidades ────────────────────────────────────────────
+\usepackage{ifthen}
+\usepackage{calc}
+
+% ── Definición de variables del documento ─────────────────
+$if(title)$\title{$title$}$endif$
+$if(author)$\author{$author$}$endif$
+$if(date)$\date{$date$}$endif$
+
+% ── Redefinir \maketitle para portada personalizada ────────
+\renewcommand{\maketitle}{
+  \begin{titlepage}
+    \pagecolor{acText}
+
+    % Barra lateral naranja izquierda
+    \begin{tikzpicture}[remember picture, overlay]
+      \fill[acOrange] (current page.north west) rectangle
+        ([xshift=8pt]current page.south west);
+    \end{tikzpicture}
+
+    \vspace*{2cm}
+    \hspace{1.5cm}%
+    \begin{minipage}{0.85\textwidth}
+
+      % Eyebrow
+      {\fontspec{Liberation Mono}\small\color{acMuted}\MakeUppercase{Trabajo de Fin de Ciclo · 2.º DAM}}
+
+      \vspace{0.8cm}
+
+      % Título grande
+      {\fontspec{Liberation Sans Bold}\fontsize{52}{54}\selectfont
+       \color{white}\bfseries AUTO\textcolor{acOrange}{CICLO}}
+
+      \vspace{0.3cm}
+
+      {\fontspec{Liberation Sans}\fontsize{18}{22}\selectfont
+       \color{acMuted} Sistema de Gestión Multiplataforma}
+      \\[2pt]
+      {\fontspec{Liberation Sans}\fontsize{18}{22}\selectfont
+       \color{acMuted} para Desguace de Vehículos}
+
+      \vspace{2.5cm}
+
+      % Línea separadora
+      {\color{acOrange!40}\rule{0.85\textwidth}{0.6pt}}
+
+      \vspace{0.6cm}
+
+      % Metadatos en cuatro columnas
+      \begin{tabular}{@{}p{3.8cm}p{3.8cm}p{3.8cm}p{3.8cm}@{}}
+        {\fontspec{Liberation Mono}\tiny\color{acMuted}\MakeUppercase{Alumno}} &
+        {\fontspec{Liberation Mono}\tiny\color{acMuted}\MakeUppercase{Ciclo}} &
+        {\fontspec{Liberation Mono}\tiny\color{acMuted}\MakeUppercase{Centro}} &
+        {\fontspec{Liberation Mono}\tiny\color{acMuted}\MakeUppercase{Curso}} \\[6pt]
+        {\fontspec{Liberation Sans Bold}\small\color{white} Yalil Musa Talhaoui} &
+        {\fontspec{Liberation Sans Bold}\small\color{white} 2.º DAM} &
+        {\fontspec{Liberation Sans Bold}\small\color{white} IES P.\ Hermenegildo Lanz} &
+        {\fontspec{Liberation Sans Bold}\small\color{white} 2025 / 2026} \\[2pt]
+        {} &
+        {\fontspec{Liberation Sans}\small\color{acMuted} DAM — Multiplataforma} &
+        {\fontspec{Liberation Sans}\small\color{acMuted} Granada} &
+        {\fontspec{Liberation Sans}\small\color{acMuted} Mayo 2026}
+      \end{tabular}
+
+      \vspace{2.5cm}
+
+      % Sello de entrega
+      \begin{tikzpicture}
+        \node[
+          draw=acOrange, color=acOrange, thick,
+          rectangle, rounded corners=2pt,
+          inner xsep=14pt, inner ysep=8pt,
+          font=\fontspec{Liberation Mono}\small
+        ] {
+          \MakeUppercase{Entrega} · 19 Mayo 2026
+        };
+      \end{tikzpicture}
+
+    \end{minipage}
+
+    \vfill
+
+    % Footer de portada
+    \hspace{1.5cm}%
+    {\fontspec{Liberation Mono}\tiny\color{acMuted}%
+      AUTOCICLO — API REST · WEB SHOP · DESKTOP · WORKER MÓVIL · ODOO 17 · RABBITMQ · STRIPE}
+
+    \vspace{1.2cm}
+
+  \end{titlepage}
+  \nopagecolor
+  \thispagestyle{empty}
+}
+
+% ── Soporte pandoc ────────────────────────────────────────
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{2pt}\setlength{\parskip}{0pt}}
+
+% ── Redefinir verbatim de pandoc para usar listings ────────
+\usepackage{fancyvrb}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+  commandchars=\\\{\},
+  fontsize=\small
+}
+\newcommand{\AlertTok}[1]{\textcolor{acOrange}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor{acMuted}{\textit{#1}}}
+\newcommand{\AttributeTok}[1]{\textcolor{acCyan}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor{acAmber}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor{acOrange}{\textbf{#1}}}
+\newcommand{\CharTok}[1]{\textcolor{acCyan}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor{acMuted}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor{acMuted}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor{acAmber}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor{acOrange}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor{acCyan}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor{acAmber}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor{acMuted}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor{red}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{\textcolor{acText}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor{acAmber}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor{acOrange}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor{acCyan}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor{acCyan}{\textit{#1}}}
+\newcommand{\KeywordTok}[1]{\textcolor{acOrange}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{\textcolor{acText}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor{acText}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor{acText2}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor{acOrange}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor{acMuted}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor{acCyan}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor{acCyan}{#1}}
+\newcommand{\StringTok}[1]{\textcolor{acGreen}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor{acText}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor{acGreen}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor{acAmber}{\textbf{#1}}}
+
+% Entorno Shaded para bloques de código
+\usepackage{framed}
+\newenvironment{Shaded}{%
+  \begin{tcolorbox}[
+    enhanced, breakable,
+    colback=acCodeBg,
+    colframe=acBorder,
+    left=6pt, right=6pt, top=4pt, bottom=4pt,
+    boxrule=0.4pt,
+    before skip=8pt, after skip=8pt,
+  ]%
+}{\end{tcolorbox}}
+
+\begin{document}
+
+\maketitle
+\newpage
+
+$if(toc)$
+{
+  \hypersetup{linkcolor=acText2}
+  \setcounter{tocdepth}{$toc-depth$}
+  \renewcommand{\contentsname}{\textcolor{acText}{Índice de contenidos}}
+  \tableofcontents
+  \newpage
+}
+$endif$
+
+$body$
+
+\end{document}

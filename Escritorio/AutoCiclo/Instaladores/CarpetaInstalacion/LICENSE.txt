@@ -1,2 +1,0 @@
-AutoCiclo - Sistema de Gestión de Desguace
-Copyright (c) 2026 Yalil Musa Talhaoui. Todos los derechos reservados.
