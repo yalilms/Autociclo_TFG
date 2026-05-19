@@ -20,6 +20,41 @@ La idea es que un desguace tiene tres tipos de personas: el cliente que busca pi
 
 El cliente solicita una pieza con el precio que está dispuesto a pagar. El admin lo ve en el Desktop, puede aceptarlo, rechazarlo o hacer una contraoferta. Si llegan a un acuerdo, el cliente paga con Stripe. El trabajador ve el pedido en el móvil, recoge la pieza y el stock baja automáticamente. Odoo registra el pedido de venta.
 
+## Cómo probarlo
+
+**Web Shop** — Abre el navegador y entra en:
+
+```
+http://109.123.247.31
+```
+
+Puedes registrarte como cliente nuevo o usar la cuenta de demo:
+
+```
+Email:      cliente@autociclo.com
+Contraseña: admin123
+```
+
+**Desktop (app del admin)** — Hay instaladores listos sin necesidad de tener Java instalado.
+
+- Fedora/RHEL: `sudo dnf install autociclo-1.0.0-1.x86_64.rpm`
+- Ubuntu/Debian: `sudo dpkg -i autociclo_1.0.0_amd64.deb`
+- Windows: descomprimir el ZIP y ejecutar `AutoCiclo.bat`
+
+Credenciales de acceso:
+
+```
+Email:      admin@autociclo.es
+Contraseña: admin123
+```
+
+**Worker (app del almacén)** — Instala el APK en cualquier Android y accede con:
+
+```
+Email:      pedro@autociclo.es
+Contraseña: admin123
+```
+
 ## Stack tecnológico
 
 - API: Java 21, Spring Boot 3, Spring Security, JWT, JPA/Hibernate, MySQL 8

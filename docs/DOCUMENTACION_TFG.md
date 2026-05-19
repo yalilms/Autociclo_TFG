@@ -1137,6 +1137,79 @@ scp -r dist root@<servidor>:/var/www/autociclo-shop/
 ssh root@<servidor> "cp -r /var/www/autociclo-shop/dist/* /var/www/autociclo-shop/"
 ```
 
+## 5.6 Acceso al sistema
+
+Todas las partes del sistema están desplegadas y accesibles. A continuación se detallan las URLs, credenciales de demo e instrucciones de instalación para cada componente.
+
+### Web Shop
+
+Accesible desde cualquier navegador en:
+
+```
+http://109.123.247.31
+```
+
+El cliente puede registrarse con cualquier cuenta de correo o usar la cuenta de demo:
+
+| Campo | Valor |
+|---|---|
+| Email | cliente@autociclo.com |
+| Contraseña | admin123 |
+
+Para probar el pago con Stripe se usan las tarjetas de test de Stripe:
+
+| Campo | Valor |
+|---|---|
+| Número de tarjeta | 4242 4242 4242 4242 |
+| Fecha | cualquier fecha futura |
+| CVC | cualquier 3 dígitos |
+
+### Aplicación Desktop (admin)
+
+Los instaladores se distribuyen con JRE 21 embebido — no hace falta tener Java instalado en la máquina de destino.
+
+**Fedora / RHEL:**
+
+```bash
+sudo dnf install autociclo-1.0.0-1.x86_64.rpm
+```
+
+**Ubuntu / Debian:**
+
+```bash
+sudo dpkg -i autociclo_1.0.0_amd64.deb
+```
+
+**Windows:**
+
+Descomprimir el ZIP y hacer doble clic en `AutoCiclo.bat`. Si Windows muestra un aviso de seguridad, seleccionar "Más información" y luego "Ejecutar de todas formas".
+
+Credenciales de acceso (rol ADMIN):
+
+| Campo | Valor |
+|---|---|
+| Email | admin@autociclo.es |
+| Contraseña | admin123 |
+
+### Worker Móvil
+
+La app se distribuye como APK de Android. Instalar en cualquier dispositivo Android habilitando la opción "Instalar desde fuentes desconocidas" en los ajustes.
+
+Credenciales de acceso (rol EMPLEADO):
+
+| Campo | Valor |
+|---|---|
+| Email | pedro@autociclo.es |
+| Contraseña | admin123 |
+
+### Resumen de cuentas demo
+
+| Rol | Email | Contraseña | App |
+|---|---|---|---|
+| ADMIN | admin@autociclo.es | admin123 | Desktop |
+| EMPLEADO | pedro@autociclo.es | admin123 | Worker móvil |
+| CLIENTE | cliente@autociclo.com | admin123 | Web Shop |
+
 \newpage
 
 ---
