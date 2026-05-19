@@ -117,6 +117,18 @@ El proyecto se ha desarrollado siguiendo una metodología **iterativa e incremen
 
 Las herramientas de gestión utilizadas han sido GitHub para control de versiones, con commits frecuentes que documentan la evolución del proyecto.
 
+### Planificación y estimación de horas
+
+| Fase | Periodo | Tareas principales | Horas estimadas |
+|---|---|---|---|
+| Análisis y diseño | Febrero 2026 | Requisitos, modelo E/R, diseño API, prototipos UI | 40 h |
+| Desarrollo del núcleo | Marzo 2026 | API REST, base de datos, autenticación JWT, Spring Security | 60 h |
+| Web Shop y Desktop | Abril 2026 | React + TypeScript, JavaFX, integración con la API | 80 h |
+| Integración de servicios | Abril–Mayo 2026 | Stripe, Odoo 17, RabbitMQ, notificaciones | 40 h |
+| Worker móvil | Mayo 2026 | React Native, Expo SDK 54, escáner QR, compilación APK | 35 h |
+| Pruebas y despliegue | Mayo 2026 | Pruebas E2E, instaladores jpackage, VPS Contabo, documentación | 30 h |
+| **Total** | **Feb–May 2026** | | **~285 h** |
+
 \newpage
 
 ---
@@ -340,7 +352,62 @@ AutoCiclo sigue una arquitectura **cliente-servidor multicapa** con una API REST
 
 ## 3.2 Modelo de base de datos
 
-La base de datos MySQL 8.0 contiene **12 tablas** organizadas en cuatro áreas funcionales:
+La base de datos MySQL 8.0 contiene **12 tablas** organizadas en cuatro áreas funcionales.
+
+### Diagrama entidad-relación
+
+```
+┌──────────┐     ┌────────────────┐     ┌─────────────────────┐
+│  ROLES   │1──N │    USUARIOS    │1──1 │      CLIENTES       │
+│──────────│     │────────────────│     │─────────────────────│
+│id_rol    │     │id_usuario (PK) │     │id_cliente (PK)      │
+│nombre    │     │nombre          │     │id_usuario (FK UNIQ) │
+└──────────┘     │email           │     │telefono · nif       │
+                 │password_hash   │     └──────────┬──────────┘
+                 │id_rol (FK)     │                │ 1
+                 └───────┬────────┘                │ N
+                         │ 1                       │
+                  NOTIFICACIONES         ┌──────────▼──────────────────────┐
+                  (id_usuario FK)        │   SOLICITUDES_PRESUPUESTO       │
+                                         │─────────────────────────────────│
+                                         │id_solicitud (PK)                │
+                                         │id_cliente (FK)                  │
+                                         │estado · turno · precio_total    │
+                                         │referencia_odoo                  │
+                                         └──────┬──────────────┬───────────┘
+                                                │ 1            │ 1
+                                  ┌─────────────▼──────┐ ┌────▼──────────────────┐
+                                  │  DETALLE_SOLICITUD │ │ NEGOCIACION_HISTORIAL │
+                                  │────────────────────│ │───────────────────────│
+                                  │id_solicitud (FK)   │ │id_solicitud (FK)      │
+                                  │id_pieza (FK)       │ │ronda · autor · precio │
+                                  │cantidad            │ └───────────────────────┘
+                                  └─────────┬──────────┘
+                                          N │
+                            ┌──────────────▼──────────────┐
+                            │           PIEZAS             │
+                            │─────────────────────────────│
+                            │id_pieza (PK)                │
+                            │codigo_pieza (UNIQUE)        │
+                            │nombre · categoria · stock   │
+                            │precio_venta · imagen        │
+                            └──────┬──────────┬───────────┘
+                                   │ 1        │ 1
+              ┌────────────────────▼──────┐  ┌▼─────────────────────┐
+              │     INVENTARIO_PIEZAS     │  │  MOVIMIENTOS_STOCK   │
+              │───────────────────────────│  │──────────────────────│
+              │id_vehiculo (FK)           │  │id_pieza (FK)         │
+              │id_pieza (FK)              │  │tipo · cantidad       │
+              └──────────┬───────────────┘  │id_usuario (FK)       │
+                       N │                  └──────────────────────┘
+              ┌──────────▼──────────┐
+              │      VEHICULOS      │    CODIGOS_QR
+              │─────────────────────│    ─────────────────────────
+              │id_vehiculo (PK)     │    id_qr · codigo (UNIQUE)
+              │matricula (UNIQUE)   │    tipo (pieza/vehiculo)
+              │marca · modelo · año │    id_referencia
+              └─────────────────────┘
+```
 
 ### Área Catálogo
 
@@ -872,6 +939,16 @@ La aplicación Desktop se distribuye en dos formatos:
 
 ## 4.5 Worker Móvil — React Native
 
+### Configuración de la API
+
+La URL base de la API está definida en `lib/api.ts`:
+
+```typescript
+baseURL: 'http://109.123.247.31:8080'
+```
+
+Esta URL apunta directamente al servidor de producción. Para ejecutar la app en local contra una API propia, basta con cambiar este valor por `http://localhost:8080` o la IP de la máquina de desarrollo.
+
 ### Estructura de navegación (Expo Router)
 
 Expo Router usa el sistema de archivos para definir las rutas, similar a Next.js:
@@ -1146,7 +1223,7 @@ Todas las partes del sistema están desplegadas y accesibles. A continuación se
 Accesible desde cualquier navegador en:
 
 ```
-http://109.123.247.31
+http://109.123.247.31:8090
 ```
 
 El cliente puede registrarse con cualquier cuenta de correo o usar la cuenta de demo:
@@ -1193,7 +1270,14 @@ Credenciales de acceso (rol ADMIN):
 
 ### Worker Móvil
 
-La app se distribuye como APK de Android. Instalar en cualquier dispositivo Android habilitando la opción "Instalar desde fuentes desconocidas" en los ajustes.
+La app se distribuye como APK de Android. El APK se encuentra en el repositorio del proyecto:
+
+```
+https://github.com/yalilms/Autociclo_TFG
+→ Autociclo_Worker/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Para instalar: copiar el APK al dispositivo Android, habilitar "Instalar desde fuentes desconocidas" en los ajustes de seguridad e instalar el archivo.
 
 Credenciales de acceso (rol EMPLEADO):
 
@@ -1415,6 +1499,168 @@ Las áreas de mejora y extensión más relevantes para una versión futura serí
 - **NativeWind** — https://www.nativewind.dev
 - **Adoptium Temurin** (JRE embebido para Windows) — https://adoptium.net
 - **jpackage** (empaquetado Java) — incluido en JDK 14+
+
+\newpage
+
+---
+
+# Anexo A — Manual de usuario
+
+Este anexo describe paso a paso cómo utilizar cada aplicación del ecosistema AutoCiclo según el rol del usuario.
+
+---
+
+## A.1 Web Shop — Manual del cliente
+
+### Registro e inicio de sesión
+
+1. Acceder a `http://109.123.247.31:8090`.
+2. Pulsar **"Registrarse"** en la barra de navegación.
+3. Rellenar el formulario: nombre, email, contraseña, teléfono, dirección y NIF.
+4. Pulsar **"Crear cuenta"**. El sistema crea la sesión automáticamente.
+5. Para sesiones posteriores: pulsar **"Iniciar sesión"**, introducir email y contraseña.
+
+### Explorar el catálogo
+
+1. Desde el menú, acceder a **"Catálogo"**.
+2. Usar el buscador o los filtros de categoría (motor, carrocería, interior, electrónica, ruedas) para localizar la pieza.
+3. Pulsar sobre una tarjeta de pieza para ver el detalle completo: descripción, stock disponible, precio de referencia y vehículos compatibles.
+
+### Solicitar presupuesto
+
+1. En el detalle de una pieza, pulsar **"Solicitar presupuesto"**.
+2. En el formulario de solicitud:
+   - Se muestran las piezas seleccionadas con sus cantidades.
+   - Introducir el **precio que se ofrece** (el cliente propone, no hay precio fijo).
+   - Añadir notas opcionales para el administrador.
+3. Pulsar **"Enviar solicitud"**.
+4. La solicitud queda en estado **pendiente** a la espera de respuesta del administrador.
+
+### Seguimiento de la negociación
+
+1. Acceder a **"Mis Solicitudes"** desde el menú.
+2. Cada solicitud muestra su estado con un badge de color:
+   - **Pendiente** — el admin aún no ha respondido.
+   - **En negociación** — hay una contraoferta pendiente de revisión.
+   - **Aprobada** — el precio está acordado, se puede pagar.
+   - **Rechazada** — la solicitud no ha prosperado.
+   - **Pagada** — transacción completada.
+3. Si el admin ha enviado una contraoferta, aparecen tres botones: **"Aceptar"**, **"Rechazar"** o **"Nueva oferta"**.
+4. Si se elige "Nueva oferta", introducir el nuevo precio propuesto y un mensaje opcional.
+
+### Pagar una solicitud aprobada
+
+1. En "Mis Solicitudes", localizar la solicitud con estado **aprobada**.
+2. Pulsar **"Pagar"**.
+3. En la página de pago aparece el formulario seguro de **Stripe Elements**.
+4. Introducir los datos de la tarjeta:
+   - En entorno de pruebas: número `4242 4242 4242 4242`, fecha futura, CVC cualquiera.
+5. Pulsar **"Pagar"**.
+6. Si el pago se confirma, la solicitud pasa a **pagada** y se descarga automáticamente una factura PDF.
+
+---
+
+## A.2 Aplicación Desktop — Manual del administrador
+
+### Instalación e inicio
+
+- **Linux (Fedora):** `sudo dnf install autociclo-1.0.0-1.x86_64.rpm`
+- **Linux (Ubuntu/Debian):** `sudo dpkg -i autociclo_1.0.0_amd64.deb`
+- **Windows:** descomprimir el ZIP y ejecutar `AutoCiclo.bat`.
+
+Al abrir la aplicación aparece una pantalla de splash y luego el formulario de login. Introducir las credenciales de administrador y pulsar **"Iniciar sesión"**.
+
+### Gestión de solicitudes
+
+1. En el menú lateral, pulsar **"Solicitudes"**.
+2. La tabla muestra todas las solicitudes con columnas: ID, cliente, estado, fecha, oferta del cliente, contraoferta, referencia Odoo y turno.
+3. La columna **"Turno"** indica quién debe actuar:
+   - "Tu turno" — el admin debe responder.
+   - "Turno del cliente" — esperando respuesta del cliente.
+   - "Cerrada / Cerrado" — solicitud finalizada.
+4. Hacer **doble clic** en una solicitud abre el diálogo de negociación con el historial completo en burbujas de chat.
+5. Desde el diálogo de negociación:
+   - **"Aprobar"** — introduce el precio final y aprueba directamente (genera pedido en Odoo).
+   - **"Contraofertar"** — introduce un precio diferente y un mensaje.
+   - **"Rechazar"** — cierra la solicitud con un motivo.
+6. La tabla se actualiza automáticamente cada 30 segundos sin necesidad de recargar.
+
+### Gestión del catálogo
+
+**Piezas:**
+1. Pulsar **"Piezas"** en el menú lateral.
+2. La tabla muestra todas las piezas con stock, categoría y precio.
+3. Pulsar **"Nueva pieza"** para abrir el formulario: rellenar código, nombre, categoría, precio, stock mínimo, stock disponible y ubicación.
+4. Doble clic en una pieza para ver su detalle. Desde allí se puede editar o eliminar.
+5. Botones de filtro rápido por categoría en la parte superior.
+
+**Vehículos:**
+1. Pulsar **"Vehículos"** en el menú.
+2. Registrar vehículos con: matrícula, marca, modelo, año, color, kilómetros, fecha de entrada y estado (completo / desguazando / desguazado).
+3. Desde el detalle de un vehículo se pueden ver las piezas asociadas.
+
+**Inventario:**
+1. Pulsar **"Inventario"** para gestionar qué piezas están asociadas a qué vehículos.
+2. Seleccionar vehículo y pieza y pulsar **"Asociar"**.
+
+### Estadísticas
+
+Pulsar **"Estadísticas"** en el menú para ver el dashboard con métricas del negocio: solicitudes por estado, stock bajo mínimo, piezas más solicitadas y resumen de ingresos.
+
+### Gestión de usuarios
+
+1. Pulsar **"Usuarios"** (solo visible para el rol ADMIN).
+2. Ver todos los usuarios del sistema: clientes, empleados y administradores.
+3. Se puede cambiar el estado de un usuario (activo/inactivo) desde el detalle.
+
+---
+
+## A.3 Worker Móvil — Manual del empleado
+
+### Instalación
+
+1. Descargar el APK desde el repositorio del proyecto.
+2. En el dispositivo Android: `Ajustes → Seguridad → Fuentes desconocidas → Activar`.
+3. Instalar el APK desde el administrador de archivos.
+4. Abrir la app **AutoCiclo Worker** e iniciar sesión con las credenciales de empleado.
+
+### Dashboard — Alertas de stock
+
+La pantalla principal muestra alertas de piezas con stock bajo o agotado:
+- **Rojo** — sin stock (0 unidades).
+- **Naranja** — stock por debajo del mínimo.
+
+Pulsar cualquier alerta para ir directamente al detalle de la pieza y registrar una entrada de stock.
+
+### Pedidos — Preparar envíos
+
+1. Pulsar la pestaña **"Pedidos"**.
+2. Se muestran todas las solicitudes en estado `aprobada` pendientes de preparar.
+3. Pulsar un pedido para ver el detalle: lista de piezas a recoger con cantidad y ubicación en el almacén.
+4. Recoger las piezas físicamente y registrar la salida de stock desde el detalle de cada pieza.
+
+### Escanear código QR
+
+1. Pulsar la pestaña **"Escanear"**.
+2. La cámara se activa automáticamente.
+3. Enfocar el código QR de una pieza o vehículo.
+4. La app navega automáticamente al detalle correspondiente.
+5. Desde el detalle de pieza se puede registrar movimiento de stock directamente.
+
+### Registrar movimiento de stock
+
+1. Navegar al detalle de una pieza (por escaneo QR o desde las alertas).
+2. En la sección **"Movimiento de stock"**:
+   - Seleccionar tipo: **"Entrada"** (añadir stock) o **"Salida"** (retirar stock).
+   - Introducir la cantidad.
+   - Pulsar el botón correspondiente.
+3. El stock se actualiza en pantalla inmediatamente.
+4. Si el stock resultante está por debajo del mínimo, la alerta aparece en el dashboard.
+
+### Vehículos
+
+1. Pulsar la pestaña **"Vehículos"** para ver el listado de vehículos del desguace.
+2. Pulsar un vehículo para ver su ficha: marca, modelo, estado y piezas asociadas.
 
 ---
 
